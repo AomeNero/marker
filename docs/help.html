@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101114" />
+    <title>Marker Help &amp; Shortcuts</title>
+    <meta
+      name="description"
+      content="Marker keyboard shortcuts and help: global hotkeys, drawing tools, click-through mode, whiteboard, and modifier tips for Windows and macOS."
+    />
+    <meta
+      name="keywords"
+      content="Marker help, screen annotation shortcuts, click-through mode, whiteboard shortcuts, Ctrl+Shift+D, keyboard drawing"
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://marker.cn/help.html" />
+    <meta property="og:title" content="Marker Help &amp; Shortcuts" />
+    <meta
+      property="og:description"
+      content="Learn Marker shortcuts: enter annotation, switch tools, toggle click-through, whiteboard, colors, and drag tips."
+    />
+    <meta property="og:url" content="https://marker.cn/help.html" />
+    <meta property="og:site_name" content="Marker" />
+    <meta property="og:image" content="https://marker.cn/assets/hero.png" />
+    <meta property="og:image:alt" content="Marker screen annotation tool" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Marker Help &amp; Shortcuts" />
+    <meta
+      name="twitter:description"
+      content="Marker shortcuts for screen annotation, click-through mode, whiteboard mode, tools, colors, and drawing modifiers."
+    />
+    <meta name="twitter:image" content="https://marker.cn/assets/hero.png" />
+    <link rel="icon" href="assets/icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="motion.css" />
+    <script>
+      (function () {
+        var stored = localStorage.getItem('marker-lang');
+        var locale =
+          stored || (navigator.language && navigator.language.indexOf('zh') === 0 ? 'zh-CN' : 'en');
+        document.documentElement.lang = locale === 'zh-CN' ? 'zh-CN' : 'en';
+        document.documentElement.dataset.locale = locale;
+      })();
+    </script>
+  </head>
+  <body class="help-page" data-page="help">
+    <a class="skip-link" href="#main-content" data-i18n="skip">Skip to content</a>
+
+    <header class="site-header t-scroll-reveal" data-reveal-immediate data-i18n-aria="nav.aria">
+      <div class="content-wrap header-inner">
+        <a class="brand" href="index.html" data-i18n-aria="nav.brandAria">
+          <img src="assets/icon.png" width="32" height="32" alt="" aria-hidden="true" />
+          <span translate="no">Marker</span>
+        </a>
+        <div class="header-actions">
+          <nav class="nav-links" data-i18n-aria="nav.linksAria">
+            <a href="index.html#features" data-i18n="nav.features">Features</a>
+            <a href="help.html" aria-current="page" data-i18n="nav.help">Help</a>
+            <a href="index.html#download" data-i18n="nav.download">Download</a>
+            <a href="index.html#faq" data-i18n="nav.faq">FAQ</a>
+            <a href="https://afdian.com/a/marker" rel="noopener noreferrer" target="_blank" data-i18n="nav.sponsor">Sponsor</a>
+            <a class="nav-cta" href="https://github.com/ifer47/marker" data-i18n="nav.github">GitHub</a>
+          </nav>
+          <div class="lang-switch" role="group" data-i18n-aria="nav.langAria">
+            <button type="button" class="lang-btn" data-lang="en" aria-pressed="true">EN</button>
+            <button type="button" class="lang-btn" data-lang="zh-CN" aria-pressed="false">中文</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="help-hero" aria-labelledby="help-title">
+        <div class="help-hero-ink" aria-hidden="true">
+          <svg class="help-hero-ink__svg" viewBox="0 0 640 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              class="help-hero-ink__stroke help-hero-ink__stroke--red"
+              d="M48 188C98 128 148 96 214 92c66-4 98 28 148 54s118 42 178 18"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              class="help-hero-ink__stroke help-hero-ink__stroke--blue"
+              d="M72 214c54-36 112-58 176-52 52 5 88 34 132 48"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              class="help-hero-ink__stroke help-hero-ink__stroke--green"
+              d="M420 72c28 18 46 48 42 82-4 36-28 58-62 70"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle class="help-hero-ink__dot" cx="556" cy="118" r="5" />
+            <rect class="help-hero-ink__frame" x="468" y="148" width="92" height="58" rx="6" />
+          </svg>
+        </div>
+        <div class="content-wrap help-hero-grid t-scroll-reveal" data-reveal-immediate>
+          <div class="help-hero-copy">
+            <p class="help-eyebrow" data-i18n="helpPage.eyebrow">Shortcuts reference</p>
+            <h1 id="help-title" class="help-title">
+              <span class="help-title-brand" translate="no">Marker</span>
+              <span class="help-title-text" data-i18n="helpPage.title">Help &amp; shortcuts</span>
+            </h1>
+            <p class="help-lead" data-i18n="helpPage.lead">
+              Keyboard-first annotation for demos and teaching. Quick reference for global hotkeys, tools, modifiers,
+              and click-through.
+            </p>
+            <nav class="help-toc" data-i18n-aria="helpPage.tocAria">
+              <a href="#quick-start" data-i18n="helpPage.toc.quick">Quick start</a>
+              <a href="#global" data-i18n="helpPage.toc.global">Global</a>
+              <a href="#tools" data-i18n="helpPage.toc.tools">Tools</a>
+              <a href="#draw" data-i18n="helpPage.toc.draw">Draw &amp; board</a>
+              <a href="#tips" data-i18n="helpPage.toc.tips">Tips</a>
+            </nav>
+          </div>
+          <aside class="help-hero-aside" data-i18n-aria="helpPage.aside.aria">
+            <div class="help-aside-head">
+              <p class="help-aside-title" data-i18n="helpPage.aside.title">Cheat sheet</p>
+              <p class="help-aside-sub" data-i18n="helpPage.aside.sub">Top 4 essentials</p>
+            </div>
+            <div class="help-mini-table help-aside-table" role="table">
+              <div class="help-shortcut-row" role="row">
+                <span class="help-shortcut-label" role="cell" data-i18n="helpPage.aside.enter">Enter annotation</span>
+                <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.aside.enterKeys">
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>
+                </span>
+              </div>
+              <div class="help-shortcut-row" role="row">
+                <span class="help-shortcut-label" role="cell" data-i18n="helpPage.aside.through">Click-through</span>
+                <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.aside.throughKeys">
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
+                </span>
+              </div>
+              <div class="help-shortcut-row" role="row">
+                <span class="help-shortcut-label" role="cell" data-i18n="helpPage.aside.toolbar">Toolbar</span>
+                <span class="help-shortcut-keys" role="cell"><kbd>Space</kbd></span>
+              </div>
+              <div class="help-shortcut-row" role="row">
+                <span class="help-shortcut-label" role="cell" data-i18n="helpPage.aside.exit">Exit annotation</span>
+                <span class="help-shortcut-keys" role="cell"><kbd>Esc</kbd></span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="help-section help-section--tight-top" aria-labelledby="quick-title">
+        <div class="content-wrap">
+          <div class="help-section-heading t-scroll-reveal" id="quick-start">
+            <p class="help-section-eyebrow" data-i18n="helpPage.quick.eyebrow">01</p>
+            <h2 id="quick-title" data-i18n="helpPage.quick.title">Quick start</h2>
+            <p class="help-section-lead" data-i18n="helpPage.quick.lead">
+              From tray to first stroke in a few keys.
+            </p>
+            <p class="help-video help-video--quick">
+              <a
+                class="help-video-link"
+                href="https://www.bilibili.com/video/BV17ygy67ETV"
+                rel="noopener noreferrer"
+                target="_blank"
+                data-i18n="helpPage.video"
+              >
+                Prefer a walkthrough? Watch the Bilibili tutorial →
+              </a>
+            </p>
+          </div>
+          <ol class="help-steps help-steps--cards">
+            <li class="help-step t-scroll-reveal" data-reveal-delay="0">
+              <span class="help-step-num" aria-hidden="true">1</span>
+              <div>
+                <h3 data-i18n="helpPage.quick.step1Title">Launch</h3>
+                <p data-i18n="helpPage.quick.step1Body">
+                  Marker runs in the system tray. Launching again while it is already running toggles annotation —
+                  same as clicking the tray icon.
+                </p>
+              </div>
+            </li>
+            <li class="help-step t-scroll-reveal" data-reveal-delay="1">
+              <span class="help-step-num" aria-hidden="true">2</span>
+              <div>
+                <h3 data-i18n="helpPage.quick.step2Title">Enter annotation</h3>
+                <p data-i18n-html="helpPage.quick.step2Body">
+                  Press
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>
+                  (macOS:
+                  <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>⇧</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>)
+                  to draw over any app.
+                </p>
+              </div>
+            </li>
+            <li class="help-step t-scroll-reveal" data-reveal-delay="2">
+              <span class="help-step-num" aria-hidden="true">3</span>
+              <div>
+                <h3 data-i18n="helpPage.quick.step3Title">Stay visible, keep working</h3>
+                <p data-i18n-html="helpPage.quick.step3Body">
+                  Press
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
+                  for click-through so marks stay while you click below. <kbd>Esc</kbd> exits.
+                  <kbd>Space</kbd> opens the toolbar.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="help-section help-section-alt" aria-labelledby="global-title">
+        <div class="content-wrap">
+          <div class="help-section-heading t-scroll-reveal" id="global">
+            <p class="help-section-eyebrow" data-i18n="helpPage.global.eyebrow">02</p>
+            <h2 id="global-title" data-i18n="helpPage.global.title">Global shortcuts</h2>
+            <p class="help-section-lead" data-i18n="helpPage.global.lead">
+              Work from anywhere — even when the overlay is not active.
+            </p>
+          </div>
+          <div class="help-shortcut-table t-scroll-reveal" role="table" data-i18n-aria="helpPage.global.tableAria">
+            <div class="help-shortcut-head" role="row">
+              <span role="columnheader" data-i18n="helpPage.th.action">Action</span>
+              <span role="columnheader" data-i18n="helpPage.th.windows">Windows</span>
+              <span role="columnheader" data-i18n="helpPage.th.macos">macOS</span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.global.toggle">Toggle annotation</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.toggleWin">
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>
+              </span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.toggleMac">
+                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>⇧</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>
+              </span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.global.clear">Clear all annotations (undoable)</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.clearWin">
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>C</kbd></span>
+              </span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.clearMac">
+                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>⇧</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>C</kbd></span>
+              </span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.global.through">Toggle click-through</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.throughWin">
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
+              </span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.throughMac">
+                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>⇧</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
+              </span>
+            </div>
+          </div>
+          <p class="help-note t-scroll-reveal" data-i18n-html="helpPage.global.note">
+            While drawing, press <kbd>X</kbd> to toggle click-through, or <kbd>Esc</kbd> to exit annotation.
+          </p>
+        </div>
+      </section>
+
+      <section class="help-section" aria-labelledby="tools-title">
+        <div class="content-wrap">
+          <div class="help-section-heading t-scroll-reveal" id="tools">
+            <p class="help-section-eyebrow" data-i18n="helpPage.tools.eyebrow">03</p>
+            <h2 id="tools-title" data-i18n="helpPage.tools.title">In-session tools</h2>
+            <p class="help-section-lead" data-i18n="helpPage.tools.lead">
+              Number keys and letter shortcuts switch tools. Press <kbd>V</kbd> for Select to marquee-select and batch
+              move or delete.
+            </p>
+          </div>
+          <div class="help-grid help-tool-grid">
+            <article class="help-tool-card help-tool-card--featured t-scroll-reveal" data-reveal-delay="0">
+              <kbd>V</kbd>
+              <h3 data-i18n="helpPage.tools.select">Select</h3>
+              <p data-i18n-html="helpPage.tools.selectDesc">
+                Marquee or click to select; drag to move as a group;
+                <kbd>Delete</kbd> / <kbd>Backspace</kbd> removes; <kbd>Esc</kbd> clears selection
+              </p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="1">
+              <kbd>1</kbd>
+              <h3 data-i18n="helpPage.tools.pen">Pen</h3>
+              <p data-i18n="helpPage.tools.penDesc">Freehand drawing with smooth curves</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="2">
+              <kbd>2</kbd>
+              <h3 data-i18n="helpPage.tools.highlighter">Highlighter</h3>
+              <p data-i18n="helpPage.tools.highlighterDesc">Semi-transparent highlight</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="0">
+              <kbd>3</kbd>
+              <h3 data-i18n="helpPage.tools.arrow">Arrow</h3>
+              <p data-i18n="helpPage.tools.arrowDesc">Arrow pointer line</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="1">
+              <kbd>4</kbd>
+              <h3 data-i18n="helpPage.tools.rect">Rectangle</h3>
+              <p data-i18n="helpPage.tools.rectDesc">Rectangle outline</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="2">
+              <kbd>5</kbd>
+              <h3 data-i18n="helpPage.tools.ellipse">Ellipse</h3>
+              <p data-i18n="helpPage.tools.ellipseDesc">Ellipse outline</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="0">
+              <kbd>6</kbd>
+              <h3 data-i18n="helpPage.tools.line">Line</h3>
+              <p data-i18n="helpPage.tools.lineDesc">Straight line segment</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="1">
+              <kbd>7</kbd>
+              <h3 data-i18n="helpPage.tools.eraser">Eraser</h3>
+              <p data-i18n="helpPage.tools.eraserDesc">
+                Separate width; press <kbd>7</kbd> again while selected to switch stroke / object erase (also in Settings →
+                General)
+              </p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="2">
+              <kbd>8</kbd>
+              <h3 data-i18n="helpPage.tools.laser">Laser</h3>
+              <p data-i18n="helpPage.tools.laserDesc">Temporary ink that fades from the oldest tip first</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="0">
+              <kbd>T</kbd>
+              <h3 data-i18n="helpPage.tools.text">Text</h3>
+              <p data-i18n="helpPage.tools.textDesc">Double-click to place; scroll to resize</p>
+            </article>
+            <article class="help-tool-card t-scroll-reveal" data-reveal-delay="1">
+              <kbd>N</kbd>
+              <h3 data-i18n="helpPage.tools.stamp">Stamp</h3>
+              <p data-i18n-html="helpPage.tools.stampDesc">
+                Click to place numbered or lettered markers; press <kbd>N</kbd> again to toggle;
+                <kbd>Shift</kbd>+<kbd>N</kbd> resets the counter
+              </p>
+            </article>
+          </div>
+
+          <div class="help-mini-table t-scroll-reveal" role="table" data-i18n-aria="helpPage.session.tableAria">
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.session.toolbar">Toolbar</span>
+              <span class="help-shortcut-keys" role="cell"><kbd>Space</kbd></span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.session.delete">Delete selection</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.session.deleteKeys">
+                <kbd>Delete</kbd> / <kbd>Backspace</kbd>
+              </span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.session.undo">Undo</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.session.undoKeys">
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Z</kbd></span>
+                <span class="help-key-sep" aria-hidden="true">/</span>
+                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Z</kbd></span>
+              </span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.session.redo">Redo</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.session.redoKeys">
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Z</kbd></span>
+                <span class="help-key-sep" aria-hidden="true">/</span>
+                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>⇧</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Z</kbd></span>
+              </span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.session.width">Stroke width</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.session.widthKeys">
+                <kbd>Ctrl</kbd> + scroll
+              </span>
+            </div>
+            <div class="help-shortcut-row" role="row">
+              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.session.copy">Copy screen</span>
+              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.session.copyKeys">
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>C</kbd></span>
+                <span class="help-key-sep" aria-hidden="true">/</span>
+                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>C</kbd></span>
+              </span>
+            </div>
+          </div>
+          <p class="help-note t-scroll-reveal" data-i18n="helpPage.session.widthHint">
+            Pen, laser, arrow, rectangle, ellipse, and line share one width; highlighter, eraser, and text each have their own.
+          </p>
+        </div>
+      </section>
+
+      <section class="help-section help-section-alt" aria-labelledby="draw-title">
+        <div class="content-wrap">
+          <div class="help-section-heading t-scroll-reveal" id="draw">
+            <p class="help-section-eyebrow" data-i18n="helpPage.draw.eyebrow">04</p>
+            <h2 id="draw-title" data-i18n="helpPage.draw.title">Drawing modifiers, colors &amp; whiteboard</h2>
+            <p class="help-section-lead" data-i18n="helpPage.draw.lead">
+              Hold modifiers while dragging to snap shapes. Cycle colors without leaving the canvas.
+            </p>
+          </div>
+
+          <div class="help-draw-grid">
+            <div class="help-draw-stack help-draw-stack--left">
+              <div class="help-panel t-scroll-reveal" data-reveal-delay="0">
+                <h3 data-i18n="helpPage.draw.modifiersTitle">Modifier + drag</h3>
+                <div class="help-mini-table" role="table">
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.line">Line</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.lineKeys">
+                      <kbd>Alt</kbd> / <kbd>⌥</kbd> + drag
+                    </span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.rect">Rectangle</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.rectKeys">
+                      <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + drag
+                    </span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.square">Square</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.squareKeys">
+                      <kbd>Ctrl</kbd>+<kbd>Alt</kbd> / <kbd>⌘</kbd>+<kbd>⌥</kbd> + drag
+                    </span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.ellipse">Ellipse</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.ellipseKeys">
+                      <kbd>Shift</kbd> / <kbd>⇧</kbd> + drag
+                    </span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.circle">Circle</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.circleKeys">
+                      <kbd>Shift</kbd>+<kbd>Alt</kbd> / <kbd>⇧</kbd>+<kbd>⌥</kbd> + drag
+                    </span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.arrow">Arrow</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.arrowKeys">
+                      <kbd>Ctrl</kbd>+<kbd>Shift</kbd> / <kbd>⌘</kbd>+<kbd>⇧</kbd> + drag
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <article class="help-explain-card t-scroll-reveal" data-reveal-delay="1">
+                <h3 data-i18n="helpPage.settings.eraserTitle">Eraser modes</h3>
+                <p data-i18n="helpPage.settings.eraserBody">
+                  Stroke: erase pixels along the drag path (undoable). Object: delete entire shapes or text when you pass
+                  over them (undoable). Element dragging is disabled while the eraser is selected, even with hover drag on.
+                  Switch in Settings → General, or press <kbd>7</kbd> again while the eraser is selected.
+                </p>
+              </article>
+            </div>
+
+            <div class="help-draw-stack help-draw-stack--right">
+              <div class="help-panel t-scroll-reveal" data-reveal-delay="1">
+                <h3 data-i18n="helpPage.draw.colorsTitle">Colors</h3>
+                <div class="help-mini-table" role="table">
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.colorsPrevNext">Prev / next color</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.colorsKeys">
+                      <kbd>Q</kbd> / <kbd>E</kbd>
+                    </span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.rightClick">Color picker</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n="helpPage.draw.rightClickKeys">
+                      Right-click
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="help-panel t-scroll-reveal" data-reveal-delay="2">
+                <h3 data-i18n="helpPage.draw.boardTitle">Whiteboard</h3>
+                <div class="help-mini-table" role="table">
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.boardToggle">Enter / exit</span>
+                    <span class="help-shortcut-keys" role="cell"><kbd>W</kbd></span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.boardCopy">Copy whiteboard</span>
+                    <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.draw.boardCopyKeys">
+                      <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>C</kbd></span>
+                      <span class="help-key-sep" aria-hidden="true">/</span>
+                      <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>C</kbd></span>
+                    </span>
+                  </div>
+                  <div class="help-shortcut-row" role="row">
+                    <span class="help-shortcut-label" role="cell" data-i18n="helpPage.draw.boardExit">Exit whiteboard</span>
+                    <span class="help-shortcut-keys" role="cell"><kbd>Esc</kbd></span>
+                  </div>
+                </div>
+              </div>
+
+              <article class="help-explain-card t-scroll-reveal" data-reveal-delay="3">
+                <h3 data-i18n="helpPage.settings.boardTitle">Whiteboard &amp; content</h3>
+                <p data-i18n="helpPage.settings.boardBody">
+                  Default entry chooses screen overlay or whiteboard. Keep after exit restores your last session when you
+                  re-enter. Keep on W toggle preserves drawings when switching modes without exiting; turn off to start
+                  with a blank whiteboard each time you press W. Configure these in Settings → General.
+                </p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="help-section" aria-labelledby="tips-title">
+        <div class="content-wrap">
+          <div class="help-section-heading t-scroll-reveal" id="tips">
+            <p class="help-section-eyebrow" data-i18n="helpPage.tips.eyebrow">05</p>
+            <h2 id="tips-title" data-i18n="helpPage.tips.title">Click-through &amp; drag tips</h2>
+            <p class="help-section-lead" data-i18n="helpPage.tips.lead">
+              Keep marks on screen while you present — then move or edit when you need to.
+            </p>
+          </div>
+          <div class="help-tips-grid">
+            <article class="help-tip-card t-scroll-reveal" data-reveal-delay="0">
+              <h3 data-i18n="helpPage.tips.throughTitle">Click-through mode</h3>
+              <p data-i18n-html="helpPage.tips.throughBody">
+                Toggle from the toolbar, with
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
+                (global), or <kbd>X</kbd> while drawing. Annotations stay visible; clicks, scrolls, and typing reach the app underneath.
+              </p>
+            </article>
+            <article class="help-tip-card t-scroll-reveal" data-reveal-delay="1">
+              <h3 data-i18n="helpPage.tips.selectTitle">Select &amp; batch edit</h3>
+              <p data-i18n-html="helpPage.tips.selectBody">
+                Press <kbd>V</kbd> for Select. Marquee or click to select (hold <kbd>Shift</kbd> to add). Drag the
+                selection to move; <kbd>Delete</kbd> / <kbd>Backspace</kbd> to remove; <kbd>Esc</kbd> clears selection.
+              </p>
+            </article>
+            <article class="help-tip-card t-scroll-reveal" data-reveal-delay="2">
+              <h3 data-i18n="helpPage.tips.dragTitle">Drag elements</h3>
+              <p data-i18n="helpPage.tips.dragBody">
+                In General settings: off, hover to drag, or hold Ctrl/Command to drag. Dragging is disabled while the
+                eraser is selected. Prefer Select (<kbd>V</kbd>) for moving several marks at once.
+              </p>
+            </article>
+            <article class="help-tip-card t-scroll-reveal" data-reveal-delay="0">
+              <h3 data-i18n="helpPage.tips.textTitle">Edit text</h3>
+              <p data-i18n-html="helpPage.tips.textBody">
+                Double-click existing text to re-edit; in <kbd>T</kbd> mode, double-click empty area to create text.
+                Confirm with
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Enter</kbd></span>
+                (macOS:
+                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Return</kbd></span>)
+                or double right-click.
+              </p>
+            </article>
+            <article class="help-tip-card t-scroll-reveal" data-reveal-delay="0">
+              <h3 data-i18n="helpPage.tips.toolbarTitle">Toolbar</h3>
+              <p data-i18n="helpPage.tips.toolbarBody">
+                Press Space to open the floating toolbar. Panel actions keep it open; canvas actions collapse it. Pin
+                it to stay visible. Use More for full options; pen / pointer buttons switch drawing and click-through.
+              </p>
+            </article>
+          </div>
+
+          <div class="help-cta t-scroll-reveal">
+            <p data-i18n="helpPage.cta.copy">Ready to annotate? Download Marker and start with the tray shortcut.</p>
+            <div class="help-cta-actions">
+              <a class="button help-button-primary" href="https://github.com/ifer47/marker/releases/latest" data-i18n="helpPage.cta.download">
+                Download Latest
+              </a>
+              <a class="button help-button-secondary" href="index.html" data-i18n="helpPage.cta.home">Back to home</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content-wrap footer-inner">
+        <span data-i18n-html="footer.license"><a href="https://github.com/ifer47/marker" translate="no">Marker</a> is open source under the MIT License.</span>
+        <div class="footer-links">
+          <a href="https://afdian.com/a/marker" rel="noopener noreferrer" target="_blank" data-i18n="footer.sponsor">Support development</a>
+          <a href="https://github.com/ifer47/marker/issues" data-i18n="footer.feedback">Feedback and issues</a>
+        </div>
+      </div>
+    </footer>
+    <script src="i18n.js"></script>
+    <script src="motion.js"></script>
+  </body>
+</html>

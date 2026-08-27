@@ -1,0 +1,95 @@
+{
+  "name": "marker",
+  "version": "2.9.4",
+  "description": "轻量级屏幕标注工具 - 按下快捷键，随时在桌面上自由绘画、标注",
+  "author": "ifer47 <iamajser@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ifer47/marker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ifer47/marker/issues"
+  },
+  "homepage": "https://marker.cn/",
+  "private": true,
+  "engines": {
+    "node": "24.15.0",
+    "npm": "11.12.1"
+  },
+  "packageManager": "npm@11.12.1",
+  "keywords": [
+    "marker",
+    "screen-annotation",
+    "drawing",
+    "tauri",
+    "vue"
+  ],
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "dev:fe": "vite",
+    "build": "tauri build",
+    "build:sign": "tauri build -c src-tauri/tauri.sign.conf.json",
+    "build:mac-arm64": "tauri build --target aarch64-apple-darwin",
+    "build:msix": "bash scripts/build-msix.sh",
+    "build:portable": "bash scripts/build-portable.sh",
+    "build:all": "tauri build && bash scripts/build-msix.sh && bash scripts/build-portable.sh",
+    "build:fe": "vue-tsc --noEmit && vite build",
+    "test": "vitest run && node --test scripts/*.test.mjs",
+    "test:watch": "vitest",
+    "format": "prettier --write \"src/**/*.{ts,vue,css}\" \"*.{ts,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,vue,css}\" \"*.{ts,json}\"",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "commit": "czg",
+    "prepare": "husky",
+    "preinstall": "node scripts/check-node.mjs",
+    "release:check": "node scripts/release.mjs check",
+    "release": "node scripts/release.mjs",
+    "check:node": "node scripts/check-node.mjs",
+    "check:engines": "node scripts/check-lock-engines.mjs",
+    "sync:sponsors": "node scripts/sync-afdian-sponsors.mjs"
+  },
+  "lint-staged": {
+    "*.{ts,vue,css}": [
+      "prettier --write"
+    ],
+    "*.{ts,vue}": [
+      "oxlint"
+    ],
+    "*.json": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@lucide/vue": "^1.0.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/cli": "^2",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "czg": "^1.12.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^16.4.0",
+    "oxlint": "^1.60.0",
+    "prettier": "^3.8.3",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.0",
+    "vitest": "^3.2.4",
+    "vue": "^3.5.30",
+    "vue-tsc": "^3.2.6"
+  },
+  "dependencies": {
+    "@excalidraw/laser-pointer": "^1.3.2",
+    "@tauri-apps/plugin-autostart": "^2.5.1",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-updater": "^2.10.1",
+    "perfect-freehand": "^1.2.3"
+  }
+}

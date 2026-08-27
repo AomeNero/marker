@@ -1,0 +1,60 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.playwright-mcp
+
+# Tauri / Rust
+src-tauri/target
+src-tauri/gen/
+
+# Editor directories and files
+.vscode/.debug.env
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# lockfile (keep package-lock.json for CI reproducibility)
+pnpm-lock.yaml
+yarn.lock
+
+# Code-signing certificates (NEVER commit)
+devcert.pfx
+codesign.pfx
+codesign.cer
+.cert-thumbprint
+*.pfx
+*.cer
+
+# MSIX packaging
+dist_msix/
+*.msix
+*.msixbundle
+.agents/
+skills-lock.json
+
+# Local macOS DMG from `npm run build` (upload to GitHub Releases, do not commit)
+/Marker_*.dmg
+juejin.md
+
+# Machine-specific Cargo/MSVC config
+src-tauri/.cargo/
+
+# Windows NUL device artifact
+NUL
+# Brainstorm / agent session artifacts
+.superpowers/
+.worktrees/

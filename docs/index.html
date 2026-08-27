@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101114" />
+    <title>Marker - Lightweight Screen Annotation Tool</title>
+    <meta
+      name="description"
+      content="Marker is a lightweight open-source screen annotation tool with click-through mode, whiteboard mode, and keyboard-first drawing for Windows and macOS."
+    />
+    <meta
+      name="keywords"
+      content="screen annotation tool, desktop drawing overlay, click-through annotation, desktop whiteboard, Tauri app, screen drawing"
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://marker.cn/" />
+    <meta property="og:title" content="Marker - Lightweight Screen Annotation Tool" />
+    <meta
+      property="og:description"
+      content="Draw, highlight, and annotate anywhere on your desktop. Click-through mode keeps annotations visible while you interact with apps below."
+    />
+    <meta property="og:url" content="https://marker.cn/" />
+    <meta property="og:site_name" content="Marker" />
+    <meta property="og:image" content="https://marker.cn/assets/hero.png" />
+    <meta property="og:image:alt" content="Marker screen annotation tool" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Marker - Lightweight Screen Annotation Tool" />
+    <meta
+      name="twitter:description"
+      content="Draw over any desktop app, keep annotations visible, and click through to the app below. Free, open source, and local-first."
+    />
+    <meta name="twitter:image" content="https://marker.cn/assets/hero.png" />
+    <link rel="icon" href="assets/icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="motion.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "Marker",
+            "applicationCategory": "ProductivityApplication",
+            "operatingSystem": "Windows, macOS",
+            "url": "https://marker.cn/",
+            "downloadUrl": "https://github.com/ifer47/marker/releases/latest",
+            "softwareVersion": "2.2.0",
+            "image": "https://marker.cn/assets/hero.png",
+            "description": "A lightweight open-source screen annotation tool with click-through mode, whiteboard mode, and keyboard-first controls.",
+            "license": "https://github.com/ifer47/marker/blob/master/LICENSE",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": {
+              "@type": "Person",
+              "name": "ifer47"
+            },
+            "sameAs": [
+              "https://github.com/ifer47/marker",
+              "https://apps.microsoft.com/detail/9n6623x973jv"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is Marker for?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Marker provides live screen annotation for demos, teaching, meetings, and recordings on Windows and macOS."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does click-through mode work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Annotations remain visible while clicks, scrolling, and typing pass through to the application underneath."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Marker require an account or cloud upload?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. Marker is local-first, open source, and account-free."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <script>
+      (function () {
+        var stored = localStorage.getItem('marker-lang');
+        var locale =
+          stored || (navigator.language && navigator.language.indexOf('zh') === 0 ? 'zh-CN' : 'en');
+        document.documentElement.lang = locale === 'zh-CN' ? 'zh-CN' : 'en';
+        document.documentElement.dataset.locale = locale;
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content" data-i18n="skip">Skip to content</a>
+
+    <header class="site-header t-scroll-reveal" data-reveal-immediate data-i18n-aria="nav.aria">
+      <div class="content-wrap header-inner">
+        <a class="brand" href="#top" data-i18n-aria="nav.brandAria">
+          <img src="assets/icon.png" width="32" height="32" alt="" aria-hidden="true" />
+          <span translate="no">Marker</span>
+        </a>
+        <div class="header-actions">
+          <nav class="nav-links" data-i18n-aria="nav.linksAria">
+            <a href="#features" data-i18n="nav.features">Features</a>
+            <a href="help.html" data-i18n="nav.help">Help</a>
+            <a href="#download" data-i18n="nav.download">Download</a>
+            <a href="#faq" data-i18n="nav.faq">FAQ</a>
+            <a href="https://afdian.com/a/marker" rel="noopener noreferrer" target="_blank" data-i18n="nav.sponsor">Sponsor</a>
+            <a class="nav-cta" href="https://github.com/ifer47/marker" data-i18n="nav.github">GitHub</a>
+          </nav>
+          <div class="lang-switch" role="group" data-i18n-aria="nav.langAria">
+            <button type="button" class="lang-btn" data-lang="en" aria-pressed="true">EN</button>
+            <button type="button" class="lang-btn" data-lang="zh-CN" aria-pressed="false">中文</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <img
+          class="hero-image"
+          src="assets/hero.png"
+          width="1600"
+          height="900"
+          alt=""
+          aria-hidden="true"
+          fetchpriority="high"
+        />
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="content-wrap hero-grid">
+          <div class="hero-content">
+            <div class="t-stagger" id="hero-stagger">
+              <p class="eyebrow t-stagger-line t-stagger-line--1" data-i18n="hero.eyebrow">Open source / Tauri v2 / ~1.5&nbsp;MB</p>
+              <h1 id="hero-title" class="t-stagger-line t-stagger-line--2" translate="no">Marker</h1>
+              <p class="hero-copy t-stagger-line t-stagger-line--3" data-i18n="hero.copy">
+                A keyboard-first screen annotation tool for demos, teaching, meetings, and recordings. Draw over any app,
+                then switch to click-through mode while your marks stay visible.
+              </p>
+              <div class="hero-actions t-stagger-line t-stagger-line--4" data-i18n-aria="hero.downloadAria">
+                <a class="button primary" href="https://github.com/ifer47/marker/releases/latest" data-i18n="hero.downloadLatest">
+                  Download Latest
+                </a>
+                <a
+                  class="button secondary"
+                  href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge"
+                  data-i18n="hero.msStore"
+                >
+                  Microsoft Store
+                </a>
+              </div>
+            </div>
+            <ul class="hero-chips t-avatar-group t-scroll-reveal" data-reveal-immediate data-reveal-delay="5" data-i18n-aria="hero.chipsAria">
+              <li class="t-avatar" data-i18n="hero.chip.tools">Keyboard-first drawing tools</li>
+              <li class="t-avatar" data-i18n="hero.chip.clickThrough">Click-through mode</li>
+              <li class="t-avatar" data-i18n="hero.chip.whiteboard">Whiteboard mode</li>
+              <li class="t-avatar" data-i18n="hero.chip.platforms">Win / macOS</li>
+            </ul>
+          </div>
+          <aside class="hero-aside t-scroll-reveal" data-reveal-immediate data-reveal-delay="3" data-i18n-aria="hero.quickStartAria">
+            <h2 class="hero-aside-title" data-i18n="hero.quickStartTitle">Quick Start</h2>
+            <ol class="quick-steps">
+              <li>
+                <span class="quick-step-keys" data-i18n-html="hero.quickStep1Keys">
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>
+                </span>
+                <span class="quick-step-desc" data-i18n="hero.quickStep1Desc">Enter annotation</span>
+              </li>
+              <li>
+                <span class="quick-step-keys" data-i18n-html="hero.quickStep2Keys">
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
+                </span>
+                <span class="quick-step-desc" data-i18n="hero.quickStep2Desc">Click through</span>
+              </li>
+              <li>
+                <span class="quick-step-keys" data-i18n-html="hero.quickStep3Keys"><kbd>Esc</kbd></span>
+                <span class="quick-step-desc" data-i18n="hero.quickStep3Desc">Exit</span>
+              </li>
+              <li>
+                <span class="quick-step-keys" data-i18n-html="hero.quickStep4Keys"><kbd>Space</kbd></span>
+                <span class="quick-step-desc" data-i18n="hero.quickStep4Desc">Toolbar</span>
+              </li>
+            </ol>
+          </aside>
+        </div>
+      </section>
+
+      <section class="proof-band" data-i18n-aria="proof.aria">
+        <div class="content-wrap proof-grid">
+          <article class="proof-item t-scroll-reveal" data-reveal-delay="0">
+            <strong data-i18n="proof.instantTitle">Instant</strong>
+            <p data-i18n-html="proof.instantBody">
+              Press
+              <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>
+              and start drawing over any app.
+            </p>
+          </article>
+          <article class="proof-item t-scroll-reveal" data-reveal-delay="1">
+            <strong data-i18n="proof.unintrusiveTitle">Unintrusive</strong>
+            <p data-i18n="proof.unintrusiveBody">Runs in the tray — no account, telemetry, or cloud dependency.</p>
+          </article>
+          <article class="proof-item t-scroll-reveal" data-reveal-delay="2">
+            <strong data-i18n="proof.preciseTitle">Precise</strong>
+            <p data-i18n="proof.preciseBody">Shortcuts, angle snapping, custom widths, undo/redo — no menus required.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="feature-section" id="features" aria-labelledby="features-title">
+        <div class="content-wrap">
+          <div class="section-heading t-scroll-reveal">
+            <p class="eyebrow" data-i18n="features.eyebrow">Built for live explanation</p>
+            <h2 id="features-title" data-i18n="features.title">Keep the screen moving while your marks stay put.</h2>
+          </div>
+
+          <div class="product-board">
+            <div class="feature-grid">
+              <article class="feature feature-highlight t-scroll-reveal" data-reveal-delay="0">
+                <h3 data-i18n="features.clickThroughTitle">Click-through mode</h3>
+                <p data-i18n-html="features.clickThroughBody">
+                  Toggle from the toolbar or with
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>.
+                  Annotations stay visible while clicks, scrolls, and typing reach the app underneath.
+                </p>
+              </article>
+              <article class="feature t-scroll-reveal" data-reveal-delay="1">
+                <h3 data-i18n="features.keyboardTitle">Keyboard-first tools</h3>
+                <p data-i18n-html="features.keyboardBody">
+                  Number keys and <kbd>V</kbd> (Select) switch tools. <kbd>Ctrl</kbd>+scroll adjusts width.
+                  <kbd>Q</kbd>/<kbd>E</kbd> cycle colors. Copy and clear without opening menus.
+                </p>
+              </article>
+              <article class="feature t-scroll-reveal" data-reveal-delay="2">
+                <h3 data-i18n="features.whiteboardTitle">Whiteboard when needed</h3>
+                <p data-i18n-html="features.whiteboardBody">
+                  Press <kbd>W</kbd> for a clean board, keep content between sessions, and copy as an image for docs
+                  or chats.
+                </p>
+              </article>
+            </div>
+
+            <div class="showcase-row">
+              <div class="showcase-tilt t-scroll-reveal" data-reveal-delay="0">
+                <article class="panel-card t-tilt-card">
+                  <p class="panel-eyebrow" data-i18n="showcase.surfaceEyebrow">Product surface</p>
+                  <h3 class="panel-title" data-i18n="showcase.toolsTitle">Annotation tools</h3>
+                  <figure class="panel-media">
+                    <img
+                      src="assets/tools.png"
+                      width="960"
+                      height="600"
+                      loading="lazy"
+                      data-i18n-alt="showcase.toolsAlt"
+                      alt="Marker annotation tools"
+                    />
+                  </figure>
+                  <p class="panel-caption" data-i18n="showcase.toolsCaption">Select, pen, highlighter, laser, arrow, shapes, eraser, text, stamp, and colors.</p>
+                  <div class="t-tilt-glare" aria-hidden="true"></div>
+                </article>
+              </div>
+
+              <div class="showcase-tilt t-scroll-reveal" data-reveal-delay="1">
+                <article class="panel-card t-tilt-card">
+                  <p class="panel-eyebrow" data-i18n="showcase.surfaceEyebrow">Product surface</p>
+                  <h3 class="panel-title" data-i18n="showcase.settingsTitle">Settings panel</h3>
+                  <figure class="panel-media">
+                    <img
+                      src="assets/settings.png"
+                      width="960"
+                      height="600"
+                      loading="lazy"
+                      data-i18n-alt="showcase.settingsAlt"
+                      alt="Marker settings panel"
+                    />
+                  </figure>
+                  <p class="panel-caption" data-i18n="showcase.settingsCaption">Toolbar, whiteboard, drag modes, shortcuts, and startup.</p>
+                  <div class="t-tilt-glare" aria-hidden="true"></div>
+                </article>
+              </div>
+
+              <div class="showcase-tilt t-scroll-reveal" data-reveal-delay="2">
+                <article class="panel-card panel-card-demo t-tilt-card" aria-labelledby="click-through-demo-title">
+                  <p class="panel-eyebrow" data-i18n="showcase.demoEyebrow">Live demo</p>
+                  <h3 class="panel-title" id="click-through-demo-title" data-i18n="showcase.demoTitle">Click-through mode</h3>
+                  <figure class="panel-media panel-media-gif">
+                    <img
+                      class="demo-gif"
+                      src="assets/click-through-mode.gif"
+                      width="1280"
+                      height="720"
+                      loading="lazy"
+                      decoding="async"
+                      data-i18n-alt="showcase.demoAlt"
+                      alt="Click-through demo: draw on screen, press Ctrl+Shift+X, then select text in the app below while annotations remain visible"
+                    />
+                  </figure>
+                  <p class="panel-caption" data-i18n-html="showcase.demoCaption">
+                    Draw, press
+                    <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>,
+                    then keep working underneath.
+                  </p>
+                  <div class="t-tilt-glare" aria-hidden="true"></div>
+                </article>
+              </div>
+            </div>
+
+            <ul class="shortcut-row t-avatar-group t-scroll-reveal" data-i18n-aria="shortcuts.aria">
+              <li class="t-avatar">
+                <span class="shortcut-label" data-i18n="shortcuts.enter">Enter</span>
+                <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>D</kbd></span>
+              </li>
+              <li class="t-avatar">
+                <span class="shortcut-label" data-i18n="shortcuts.toolbar">Toolbar</span>
+                <kbd>Space</kbd>
+              </li>
+              <li class="t-avatar">
+                <span class="shortcut-label" data-i18n="shortcuts.through">Through</span>
+                <span data-i18n-html="shortcuts.throughKeys">
+                  <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
+                </span>
+              </li>
+              <li class="t-avatar">
+                <span class="shortcut-label" data-i18n="shortcuts.board">Board</span>
+                <kbd>W</kbd>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="bottom-section">
+        <div class="content-wrap">
+          <div class="bottom-intro t-scroll-reveal">
+            <p class="eyebrow" data-i18n="bottom.eyebrow">Get started</p>
+            <h2 data-i18n="bottom.title">Download Marker or read the FAQ.</h2>
+            <p class="section-lead" data-i18n="bottom.lead">Official installers and quick answers when comparing screen annotation tools.</p>
+          </div>
+
+          <div class="bottom-panels">
+            <div class="bottom-panel" id="download" aria-labelledby="download-label">
+              <h3 class="bottom-panel-label" id="download-label" data-i18n="bottom.downloadLabel">Official downloads</h3>
+              <div class="info-list">
+                <a class="info-card info-card-dark t-scroll-reveal" data-reveal-delay="0" href="https://github.com/ifer47/marker/releases/latest">
+                  <span class="info-card-title" data-i18n="bottom.githubTitle">GitHub Releases</span>
+                  <span class="info-card-desc" data-i18n="bottom.githubDesc">Windows / macOS installers and Windows portable zip</span>
+                  <span class="info-card-mark" aria-hidden="true">→</span>
+                </a>
+                <a class="info-card info-card-blue t-scroll-reveal" data-reveal-delay="1" href="https://apps.microsoft.com/detail/9n6623x973jv">
+                  <span class="info-card-title" data-i18n="bottom.storeTitle">Microsoft Store</span>
+                  <span class="info-card-desc" data-i18n="bottom.storeDesc">Windows install and updates</span>
+                  <span class="info-card-mark" aria-hidden="true">→</span>
+                </a>
+                <a class="info-card info-card-green t-scroll-reveal" data-reveal-delay="2" href="https://github.com/ifer47/marker/releases/latest">
+                  <span class="info-card-title" data-i18n="bottom.portableTitle">Windows portable</span>
+                  <span class="info-card-desc" data-i18n="bottom.portableDesc">Extract and run — config stays in data\ next to the exe</span>
+                  <span class="info-card-mark" aria-hidden="true">→</span>
+                </a>
+                <a class="info-card info-card-dark t-scroll-reveal" data-reveal-delay="3" href="https://github.com/ifer47/marker">
+                  <span class="info-card-title" data-i18n="bottom.sourceTitle">Source Code</span>
+                  <span class="info-card-desc" data-i18n="bottom.sourceDesc">MIT licensed on GitHub</span>
+                  <span class="info-card-mark" aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="bottom-panel" id="faq" aria-labelledby="faq-label">
+              <h3 class="bottom-panel-label" id="faq-label" data-i18n="bottom.faqLabel">Common questions</h3>
+              <div class="info-list">
+                <article class="info-card info-card-dark t-scroll-reveal" data-reveal-delay="0">
+                  <h4 class="info-card-title" data-i18n="bottom.faq1Title">What is Marker for?</h4>
+                  <p class="info-card-desc" data-i18n="bottom.faq1Desc">
+                    Live screen annotation for demos, teaching, and meetings — keyboard-first tools and click-through mode built in.
+                  </p>
+                </article>
+                <article class="info-card info-card-blue t-scroll-reveal" data-reveal-delay="1">
+                  <h4 class="info-card-title" data-i18n="bottom.faq2Title">How does click-through mode work?</h4>
+                  <p class="info-card-desc" data-i18n-html="bottom.faq2Desc">
+                    Toggle from the toolbar or with
+                    <span class="kbd-combo"><kbd>Ctrl</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>Shift</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>.
+                    Marks stay visible while you click, scroll, and type in apps below.
+                  </p>
+                </article>
+                <article class="info-card info-card-green t-scroll-reveal" data-reveal-delay="2">
+                  <h4 class="info-card-title" data-i18n="bottom.faq3Title">Account or cloud upload?</h4>
+                  <p class="info-card-desc" data-i18n="bottom.faq3Desc">No. Local-first, open source, and account-free.</p>
+                </article>
+                <a class="info-card info-card-blue t-scroll-reveal" data-reveal-delay="3" href="help.html">
+                  <span class="info-card-title" data-i18n="bottom.helpLink">Full shortcuts &amp; help</span>
+                  <span class="info-card-desc" data-i18n="bottom.helpLinkDesc">Tools, modifiers, whiteboard, and click-through tips.</span>
+                  <span class="info-card-mark" aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content-wrap footer-inner">
+        <span data-i18n-html="footer.license"><a href="https://github.com/ifer47/marker" translate="no">Marker</a> is open source under the MIT License.</span>
+        <div class="footer-links">
+          <a href="https://afdian.com/a/marker" rel="noopener noreferrer" target="_blank" data-i18n="footer.sponsor">Support development</a>
+          <a href="https://github.com/ifer47/marker/issues" data-i18n="footer.feedback">Feedback and issues</a>
+        </div>
+      </div>
+    </footer>
+    <script src="i18n.js"></script>
+    <script src="motion.js"></script>
+  </body>
+</html>
