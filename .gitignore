@@ -13,7 +13,8 @@ dist-ssr
 *.local
 .playwright-mcp
 
-# Tauri / Rust
+# Tauri / Rust（输出目录在仓库根目录，见 .cargo/config.toml）
+/target
 src-tauri/target
 src-tauri/gen/
 

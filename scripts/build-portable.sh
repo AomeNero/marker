@@ -12,7 +12,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RELEASE_DIR="$ROOT/src-tauri/target/release"
+RELEASE_DIR="$ROOT/target/release"
 
 VERSION=$(cd "$ROOT" && node -p "require('./package.json').version")
 echo "==> Building portable zip for Marker v${VERSION}"

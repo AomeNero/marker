@@ -8,7 +8,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RELEASE_DIR="$ROOT/src-tauri/target/release"
+RELEASE_DIR="$ROOT/target/release"
 EXE="$RELEASE_DIR/marker.exe"
 
 VERSION=$(cd "$ROOT" && node -p "require('./package.json').version")

@@ -31,6 +31,7 @@
     "dev": "tauri dev",
     "dev:fe": "vite",
     "build": "tauri build",
+    "build:local": "bash scripts/build.sh",
     "build:sign": "tauri build -c src-tauri/tauri.sign.conf.json",
     "build:mac-arm64": "tauri build --target aarch64-apple-darwin",
     "build:msix": "bash scripts/build-msix.sh",

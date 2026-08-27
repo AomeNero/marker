@@ -1,0 +1,4 @@
+# Cargo 构建配置：编译输出统一放在仓库根目录 target/
+# （src-tauri 下的 cargo 调用会向上发现本文件）
+[build]
+target-dir = "target"
