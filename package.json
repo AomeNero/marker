@@ -1,17 +1,17 @@
 {
   "name": "marker",
-  "version": "2.9.4",
+  "version": "1.0.1",
   "description": "轻量级屏幕标注工具 - 按下快捷键，随时在桌面上自由绘画、标注",
-  "author": "ifer47 <iamajser@gmail.com>",
+  "author": "AomeNero",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ifer47/marker.git"
+    "url": "git+https://github.com/AomeNero/marker.git"
   },
   "bugs": {
-    "url": "https://github.com/ifer47/marker/issues"
+    "url": "https://github.com/AomeNero/marker/issues"
   },
-  "homepage": "https://marker.cn/",
+  "homepage": "https://github.com/AomeNero/marker",
   "private": true,
   "engines": {
     "node": "24.15.0",
@@ -50,8 +50,7 @@
     "release:check": "node scripts/release.mjs check",
     "release": "node scripts/release.mjs",
     "check:node": "node scripts/check-node.mjs",
-    "check:engines": "node scripts/check-lock-engines.mjs",
-    "sync:sponsors": "node scripts/sync-afdian-sponsors.mjs"
+    "check:engines": "node scripts/check-lock-engines.mjs"
   },
   "lint-staged": {
     "*.{ts,vue,css}": [

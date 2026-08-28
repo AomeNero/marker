@@ -1,9 +1,9 @@
 [package]
 name = "marker"
-version = "2.9.4"
+version = "1.0.1"
 description = "轻量级屏幕标注工具"
-authors = ["ifer47"]
-repository = "https://github.com/ifer47/marker"
+authors = ["AomeNero"]
+repository = "https://github.com/AomeNero/marker"
 license = "MIT"
 edition = "2021"
 

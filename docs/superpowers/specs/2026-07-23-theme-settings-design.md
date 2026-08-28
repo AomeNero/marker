@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-23  
 **Status:** Approved design  
-**Issue:** [#29](https://github.com/ifer47/marker/issues/29)  
+**Issue:** [#29](https://github.com/AomeNero/marker/issues/29)  
 **Scope:** Settings window + floating chrome (toolbar, Space panel, color panels); Mac + Windows
 
 ## Problem

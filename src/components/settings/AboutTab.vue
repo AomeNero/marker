@@ -109,33 +109,11 @@ async function openUrl(url: string) {
         </div>
         <button
           class="w-full flex items-center justify-between px-4 py-3 ui-divider-b settings-row-hover-strong transition-colors cursor-pointer bg-transparent border-x-0 border-t-0"
-          @click="openUrl('https://github.com/ifer47/marker')"
+          @click="openUrl('https://github.com/AomeNero/marker')"
         >
           <span class="settings-text-row-key">GitHub</span>
           <span class="flex items-center gap-1.5 settings-text-accent-link">
-            ifer47/marker
-            <svg
-              class="w-3 h-3 opacity-50"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-          </span>
-        </button>
-        <button
-          class="w-full flex items-center justify-between px-4 py-3 ui-divider-b settings-row-hover-strong transition-colors cursor-pointer bg-transparent border-x-0 border-t-0"
-          @click="openUrl('https://afdian.com/a/marker')"
-        >
-          <span class="settings-text-row-key">{{ t('about.sponsor') }}</span>
-          <span class="flex items-center gap-1.5 settings-text-accent-link">
-            {{ '\u7231\u53d1\u7535' }}
+            AomeNero/marker
             <svg
               class="w-3 h-3 opacity-50"
               viewBox="0 0 24 24"
@@ -153,7 +131,7 @@ async function openUrl(url: string) {
         </button>
         <button
           class="w-full flex items-center justify-between px-4 py-3 settings-row-hover-strong transition-colors cursor-pointer bg-transparent border-none"
-          @click="openUrl('https://github.com/ifer47/marker/issues')"
+          @click="openUrl('https://github.com/AomeNero/marker/issues')"
         >
           <span class="settings-text-row-key">{{ t('about.feedback') }}</span>
           <svg
@@ -171,6 +149,6 @@ async function openUrl(url: string) {
       </div>
     </div>
 
-    <p class="shrink-0 mt-auto pt-6 pb-1 settings-text-footer tracking-wide">&copy; 2026 ifer47 &middot; Open Source</p>
+    <p class="shrink-0 mt-auto pt-6 pb-1 settings-text-footer tracking-wide">&copy; 2026 AomeNero &middot; Open Source</p>
   </div>
 </template>

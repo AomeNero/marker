@@ -15,8 +15,8 @@ Use this as the source of truth for public posts, replies, bios, and listing for
 - Core workflow: hotkey to draw, `X` for click-through, `W` for whiteboard, `Esc` to exit
 - Tools: pen, highlighter, laser, arrow, rectangle, ellipse, line, eraser, text, stamp
 - Official website: https://marker.cn/
-- Source: https://github.com/ifer47/marker
-- Download: https://github.com/ifer47/marker/releases/latest
+- Source: https://github.com/AomeNero/marker
+- Download: https://github.com/AomeNero/marker/releases/latest
 - Microsoft Store: https://apps.microsoft.com/detail/9n6623x973jv
 - WinGet: `winget install --id 9N6623X973JV --source msstore`
 
@@ -34,7 +34,7 @@ Download the zip, extract it, and run — no installer required. Settings stay i
 
 Marker is a ~1.5 MB open-source screen annotation app with click-through mode, whiteboard mode, and keyboard-first controls for Windows and macOS.
 
-https://github.com/ifer47/marker/releases/tag/v2.2.0
+https://github.com/AomeNero/marker/releases/tag/v2.2.0
 
 ### 中文
 
@@ -44,7 +44,7 @@ Marker v2.2.0 已发布，这次新增了官方 Windows 绿色免安装版。
 
 Marker 是一款约 1.5 MB 的开源屏幕标注工具，支持穿透模式、白板模式和全键盘操作，可用于讲课、演示、会议与录屏。
 
-https://github.com/ifer47/marker/releases/tag/v2.2.0
+https://github.com/AomeNero/marker/releases/tag/v2.2.0
 
 ## Positioning
 
@@ -71,10 +71,10 @@ Marker also includes a whiteboard mode, undo/redo, text, arrows, shapes, eraser 
 
 Official downloads:
 
-- GitHub Releases: https://github.com/ifer47/marker/releases/latest
+- GitHub Releases: https://github.com/AomeNero/marker/releases/latest
 - Website: https://marker.cn/
 - Microsoft Store: https://apps.microsoft.com/detail/9n6623x973jv
-- Source: https://github.com/ifer47/marker
+- Source: https://github.com/AomeNero/marker
 
 ## Product Hunt Draft
 
@@ -127,8 +127,8 @@ It is meant for demos, teaching, meetings, and recordings: press a hotkey, draw 
 
 Tech stack: Tauri v2, Rust, Vue 3, TypeScript, Canvas.
 
-Downloads: https://github.com/ifer47/marker/releases/latest
-Source: https://github.com/ifer47/marker
+Downloads: https://github.com/AomeNero/marker/releases/latest
+Source: https://github.com/AomeNero/marker
 
 I'd especially appreciate feedback on multi-monitor behavior, macOS tablet/stylus input, and whether the keyboard-first workflow feels natural.
 
@@ -156,8 +156,8 @@ Marker 是一个开源、轻量、快捷键优先的桌面标注工具。按快�
 - 支持 Windows / macOS
 - Windows 可从 Microsoft Store 安装
 
-GitHub: https://github.com/ifer47/marker
-下载: https://github.com/ifer47/marker/releases/latest
+GitHub: https://github.com/AomeNero/marker
+下载: https://github.com/AomeNero/marker/releases/latest
 
 欢迎反馈多屏、macOS 数位板等实际使用问题。
 
@@ -174,7 +174,7 @@ It is a tiny open-source screen annotation app with click-through mode:
 - click/scroll/type in the app underneath
 - switch back to drawing instantly
 
-https://github.com/ifer47/marker
+https://github.com/AomeNero/marker
 
 2.
 
@@ -187,7 +187,7 @@ Esc -> done
 
 Open source, local-first, around 1.5 MB.
 
-https://github.com/ifer47/marker
+https://github.com/AomeNero/marker
 
 3.
 
@@ -195,7 +195,7 @@ Teachers, demo presenters, and tutorial makers: I would love feedback on Marker.
 
 It is a lightweight screen annotation tool with click-through mode, whiteboard mode, and full keyboard control.
 
-https://github.com/ifer47/marker/releases/latest
+https://github.com/AomeNero/marker/releases/latest
 
 ## Dev.to / Medium Draft
 
@@ -297,7 +297,7 @@ Meeting whiteboards are tied to a meeting app. Marker works over any desktop app
 - Windows / macOS
 
 官网：https://marker.cn/
-源码：https://github.com/ifer47/marker
+源码：https://github.com/AomeNero/marker
 
 ### 小红书 / 即刻
 
@@ -340,7 +340,7 @@ The interaction I cared about most was click-through: annotations stay visible w
 It is account-free, has no cloud dependency, and the installer is around 1.5 MB. The stack is Tauri v2, Rust, Vue 3, TypeScript, and Canvas.
 
 Website: https://marker.cn/
-Source: https://github.com/ifer47/marker
+Source: https://github.com/AomeNero/marker
 
 I would value feedback on the project structure, packaging, and the keyboard-first workflow.
 
@@ -396,12 +396,12 @@ Why it may fit {{publication}}:
 - Windows and macOS builds, plus Microsoft Store availability
 
 Website: https://marker.cn/
-Source and downloads: https://github.com/ifer47/marker
+Source and downloads: https://github.com/AomeNero/marker
 
 If useful, I can provide screenshots, a short demo clip, or technical details about the Tauri/Rust/Vue implementation. No expectation of coverage; I thought it matched your audience.
 
 Best,
-ifer47
+AomeNero
 
 ## Comment Replies
 

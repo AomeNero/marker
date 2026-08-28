@@ -53,7 +53,6 @@
       'nav.help': 'Help',
       'nav.download': 'Download',
       'nav.faq': 'FAQ',
-      'nav.sponsor': 'Sponsor',
       'nav.github': 'GitHub',
       'nav.langAria': 'Language',
       'nav.langEn': 'English',
@@ -279,8 +278,7 @@
       'bottom.faq3Title': 'Account or cloud upload?',
       'bottom.faq3Desc': 'No. Local-first, open source, and account-free.',
       'footer.license':
-        '<a href="https://github.com/ifer47/marker" translate="no">Marker</a> is open source under the MIT License.',
-      'footer.sponsor': 'Support development',
+        '<a href="https://github.com/AomeNero/marker" translate="no">Marker</a> is open source under the MIT License.',
       'footer.feedback': 'Feedback and issues',
     },
     'zh-CN': {
@@ -308,7 +306,6 @@
       'nav.help': '帮助',
       'nav.download': '下载',
       'nav.faq': '常见问题',
-      'nav.sponsor': '赞助',
       'nav.github': 'GitHub',
       'nav.langAria': '语言',
       'nav.langEn': '英语',
@@ -532,8 +529,7 @@
       'bottom.faq3Title': '需要账号或上传截图吗？',
       'bottom.faq3Desc': '不需要。本地优先、开源、无需账号。',
       'footer.license':
-        '<a href="https://github.com/ifer47/marker" translate="no">Marker</a> 基于 MIT 协议开源。',
-      'footer.sponsor': '赞助开发',
+        '<a href="https://github.com/AomeNero/marker" translate="no">Marker</a> 基于 MIT 协议开源。',
       'footer.feedback': '反馈与 Issue',
     },
   };

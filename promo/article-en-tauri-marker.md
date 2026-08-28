@@ -8,7 +8,7 @@ The interaction I wanted was simpler: press a hotkey, turn the desktop into a ca
 
 That became [Marker](https://marker.cn/), an MIT-licensed screen annotation app built with Tauri v2, Rust, Vue 3, TypeScript, and Canvas. It supports Windows and macOS, uses an installer of roughly 1.5 MB, requires no account, and has no cloud dependency.
 
-Source: https://github.com/ifer47/marker
+Source: https://github.com/AomeNero/marker
 
 ## Start with a hotkey, not a window
 
@@ -74,8 +74,8 @@ Marker can export a diagnostic report from Settings, and issues are welcome on G
 ## Try it
 
 - Website: https://marker.cn/
-- Source: https://github.com/ifer47/marker
-- Latest release: https://github.com/ifer47/marker/releases/latest
+- Source: https://github.com/AomeNero/marker
+- Latest release: https://github.com/AomeNero/marker/releases/latest
 - Microsoft Store / WinGet: `winget install --id 9N6623X973JV --source msstore`
 - Scoop: `scoop bucket add extras && scoop install marker`
 

@@ -64,8 +64,7 @@ mod tests {
 
     #[test]
     fn detects_portable_marker() {
-        let dir =
-            std::env::temp_dir().join(format!("marker-portable-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("marker-portable-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         assert!(detect_portable_root_in(&dir).is_none());

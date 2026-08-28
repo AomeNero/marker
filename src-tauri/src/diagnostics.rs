@@ -18,7 +18,7 @@ use crate::overlay;
 
 const LOG_TAIL_BYTES: u64 = 96 * 1024;
 const MAX_DIAGNOSTIC_EVENTS: usize = 500;
-const GITHUB_ISSUE_REPO: &str = "https://github.com/ifer47/marker/issues/new";
+const GITHUB_ISSUE_REPO: &str = "https://github.com/AomeNero/marker/issues/new";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -331,7 +331,7 @@ pub async fn open_github_issue_report(
     let bundle = build_bundle(&app, &state, description)?;
     let body = issue_body_from_bundle(&bundle);
     let url = github_issue_url(&title, &body);
-    if !url.starts_with("https://github.com/ifer47/marker/") {
+    if !url.starts_with("https://github.com/AomeNero/marker/") {
         return Err(AppError::Other("URL not allowed".into()));
     }
     app.opener()

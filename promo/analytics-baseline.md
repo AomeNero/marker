@@ -31,7 +31,7 @@ The latest complete daily values were 2026-07-20. Do not compare partial windows
 ## Public Presence Confirmed
 
 - Official website: https://marker.cn/
-- GitHub: https://github.com/ifer47/marker
+- GitHub: https://github.com/AomeNero/marker
 - Microsoft Store: https://apps.microsoft.com/detail/9n6623x973jv
 - V2EX: https://www.v2ex.com/t/1204012
 - Reddit r/tauri: https://www.reddit.com/r/tauri/comments/1sjh08d/marker_a_lightweight_screen_annotation_tool/

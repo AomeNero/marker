@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-24  
 **Status:** Approved design  
-**Issue:** [#30](https://github.com/ifer47/marker/issues/30)  
+**Issue:** [#30](https://github.com/AomeNero/marker/issues/30)  
 **Scope:** Settings + overlay activation (Mac + Windows); Linux degrades gracefully
 
 ## Problem

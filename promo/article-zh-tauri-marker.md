@@ -8,7 +8,7 @@
 
 于是有了 [Marker](https://marker.cn/)——一个基于 Tauri v2、Rust、Vue 3、TypeScript 与 Canvas API 的开源屏幕标注工具。它支持 Windows 和 macOS，安装包约 1.5 MB，不需要账号，也没有云端依赖。
 
-源码：https://github.com/ifer47/marker
+源码：https://github.com/AomeNero/marker
 
 ## 从快捷键开始，而不是从一个窗口开始
 
@@ -79,8 +79,8 @@ Marker 的设置页可以导出诊断报告，问题可以直接提交到 GitHub
 ## 现在就可以试
 
 - 官网：https://marker.cn/
-- 源码：https://github.com/ifer47/marker
-- 最新下载：https://github.com/ifer47/marker/releases/latest
+- 源码：https://github.com/AomeNero/marker
+- 最新下载：https://github.com/AomeNero/marker/releases/latest
 - Microsoft Store / WinGet：`winget install --id 9N6623X973JV --source msstore`
 - Scoop：`scoop bucket add extras && scoop install marker`
 

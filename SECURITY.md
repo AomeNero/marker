@@ -14,7 +14,7 @@ Only the latest release receives security updates. Please upgrade to the newest 
 If you discover a security vulnerability, please report it responsibly:
 
 1. **Do NOT** open a public issue
-2. Email **iamajser@gmail.com** with:
+2. Email **** with:
    - A description of the vulnerability
    - Steps to reproduce
    - Potential impact

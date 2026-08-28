@@ -5,16 +5,15 @@
     <a href="./README.md">English</a>
   </p>
   <p>
-    <a href="https://github.com/ifer47/marker/actions/workflows/ci.yml"><img src="https://github.com/ifer47/marker/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/github/v/tag/ifer47/marker?label=latest&color=blue" alt="Release" /></a>
-    <a href="https://github.com/ifer47/marker/releases"><img src="https://img.shields.io/github/downloads/ifer47/marker/total" alt="Downloads" /></a>
+    <a href="https://github.com/AomeNero/marker/actions/workflows/ci.yml"><img src="https://github.com/AomeNero/marker/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+    <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/github/v/tag/AomeNero/marker?label=latest&color=blue" alt="Release" /></a>
+    <a href="https://github.com/AomeNero/marker/releases"><img src="https://img.shields.io/github/downloads/AomeNero/marker/total" alt="Downloads" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License" /></a>
-    <a href="https://github.com/ifer47/marker/stargazers"><img src="https://img.shields.io/github/stars/ifer47/marker?style=social" alt="Stars" /></a>
+    <a href="https://github.com/AomeNero/marker/stargazers"><img src="https://img.shields.io/github/stars/AomeNero/marker?style=social" alt="Stars" /></a>
     <a href="https://marker.cn/"><img src="https://img.shields.io/badge/网站-文档-0ea5e9" alt="网站" /></a>
     <a href="https://www.bilibili.com/video/BV17ygy67ETV"><img src="https://img.shields.io/badge/Bilibili-使用教程-fb7299" alt="Bilibili 使用教程" /></a>
-    <a href="https://afdian.com/a/marker"><img src="https://img.shields.io/badge/爱发电-赞助-946ce6" alt="爱发电赞助" /></a>
   </p>
-  <p><strong>轻量级屏幕标注工具</strong>（~1.5 MB）— 按下快捷键（<strong>快捷键优先</strong>），随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。<strong>免费开源。</strong>如果 Marker 在你的演示、教学或会议中帮到了你，欢迎 <a href="https://afdian.com/a/marker"><strong>在爱发电赞助</strong></a>，每一份支持都有助于项目的持续维护。</p>
+  <p><strong>轻量级屏幕标注工具</strong>（~1.5 MB）— 按下快捷键（<strong>快捷键优先</strong>），随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。<strong>免费开源。</strong></p>
 </div>
 
 
@@ -27,13 +26,13 @@
 ## 下载安装
 
 <p>
-  <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/badge/Windows-x64-0078D4?logo=windows&logoColor=white" alt="Windows" /></a>
-  <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-ARM64-000000?logo=apple&logoColor=white" alt="macOS ARM64" /></a>
-  <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-x64-666666?logo=apple&logoColor=white" alt="macOS x64" /></a>
+  <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/Windows-x64-0078D4?logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-ARM64-000000?logo=apple&logoColor=white" alt="macOS ARM64" /></a>
+  <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-x64-666666?logo=apple&logoColor=white" alt="macOS x64" /></a>
   <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge"><img src="https://img.shields.io/badge/微软商店-Marker-0078D4?logo=microsoftstore&logoColor=white" alt="Microsoft Store" /></a>
 </p>
 
-**[下载最新版本](https://github.com/ifer47/marker/releases/latest)** — 在 Assets 列表中选择对应平台的安装包下载。Windows 另提供 **绿色免安装版**（`*_x64_portable.zip`）：解压即用，配置写在程序目录下的 `data\`，不写系统 AppData。
+**[下载最新版本](https://github.com/AomeNero/marker/releases/latest)** — 在 Assets 列表中选择对应平台的安装包下载。Windows 另提供 **绿色免安装版**（`*_x64_portable.zip`）：解压即用，配置写在程序目录下的 `data\`，不写系统 AppData。
 
 Windows 用户也可以通过 WinGet 安装微软商店版本：
 
@@ -167,7 +166,7 @@ winget install --id 9N6623X973JV --source msstore
 
 ## 反馈与 Issue
 
-- **报 Bug：** 设置 → **诊断** → 导出报告，再到 [GitHub Issues](https://github.com/ifer47/marker/issues) 提交
+- **报 Bug：** 设置 → **诊断** → 导出报告，再到 [GitHub Issues](https://github.com/AomeNero/marker/issues) 提交
 - **隐私政策：** [PRIVACY.md](./PRIVACY.md)
 
 ## 开发构建

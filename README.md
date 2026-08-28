@@ -5,16 +5,15 @@
     <a href="./README_zh.md">中文</a>
   </p>
   <p>
-    <a href="https://github.com/ifer47/marker/actions/workflows/ci.yml"><img src="https://github.com/ifer47/marker/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/github/v/tag/ifer47/marker?label=latest&color=blue" alt="Release" /></a>
-    <a href="https://github.com/ifer47/marker/releases"><img src="https://img.shields.io/github/downloads/ifer47/marker/total" alt="Downloads" /></a>
+    <a href="https://github.com/AomeNero/marker/actions/workflows/ci.yml"><img src="https://github.com/AomeNero/marker/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+    <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/github/v/tag/AomeNero/marker?label=latest&color=blue" alt="Release" /></a>
+    <a href="https://github.com/AomeNero/marker/releases"><img src="https://img.shields.io/github/downloads/AomeNero/marker/total" alt="Downloads" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License" /></a>
-    <a href="https://github.com/ifer47/marker/stargazers"><img src="https://img.shields.io/github/stars/ifer47/marker?style=social" alt="Stars" /></a>
+    <a href="https://github.com/AomeNero/marker/stargazers"><img src="https://img.shields.io/github/stars/AomeNero/marker?style=social" alt="Stars" /></a>
     <a href="https://marker.cn/"><img src="https://img.shields.io/badge/website-docs-0ea5e9" alt="Website" /></a>
     <a href="https://www.bilibili.com/video/BV17ygy67ETV"><img src="https://img.shields.io/badge/Bilibili-tutorial(CN)-fb7299" alt="Bilibili tutorial (Chinese)" /></a>
-    <a href="https://afdian.com/a/marker"><img src="https://img.shields.io/badge/爱发电-赞助-946ce6" alt="Sponsor on 爱发电" /></a>
   </p>
-  <p><strong>Lightweight screen annotation tool</strong> (~1.5 MB) — press a hotkey (<strong>keyboard-first</strong>) to instantly draw, highlight, and annotate anywhere on your desktop. Built for demos, teaching, meetings, and screen recording.<strong>Free &amp; open source.</strong> If Marker saves you time in demos, teaching, or meetings, <a href="https://afdian.com/a/marker"><strong>sponsor on Afdian</strong></a> — every contribution helps keep the project maintained.</p>
+  <p><strong>Lightweight screen annotation tool</strong> (~1.5 MB) — press a hotkey (<strong>keyboard-first</strong>) to instantly draw, highlight, and annotate anywhere on your desktop. Built for demos, teaching, meetings, and screen recording.<strong>Free &amp; open source.</strong></p>
 </div>
 
 
@@ -27,13 +26,13 @@
 ## Download
 
 <p>
-  <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/badge/Windows-x64-0078D4?logo=windows&logoColor=white" alt="Windows" /></a>
-  <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-ARM64-000000?logo=apple&logoColor=white" alt="macOS ARM64" /></a>
-  <a href="https://github.com/ifer47/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-x64-666666?logo=apple&logoColor=white" alt="macOS x64" /></a>
+  <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/Windows-x64-0078D4?logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-ARM64-000000?logo=apple&logoColor=white" alt="macOS ARM64" /></a>
+  <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-x64-666666?logo=apple&logoColor=white" alt="macOS x64" /></a>
   <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge"><img src="https://img.shields.io/badge/Microsoft_Store-Marker-0078D4?logo=microsoftstore&logoColor=white" alt="Microsoft Store" /></a>
 </p>
 
-**[Download Latest Release](https://github.com/ifer47/marker/releases/latest)** — pick the installer for your platform from the assets list. Windows also ships a **portable zip** (`*_x64_portable.zip`): extract and run — config stays under `data\` next to the exe (no AppData).
+**[Download Latest Release](https://github.com/AomeNero/marker/releases/latest)** — pick the installer for your platform from the assets list. Windows also ships a **portable zip** (`*_x64_portable.zip`): extract and run — config stays under `data\` next to the exe (no AppData).
 
 Windows users can also install the Microsoft Store version with WinGet:
 
@@ -167,7 +166,7 @@ In **Settings → General** (toolbar display, click-through, and stroke width �
 
 ## Feedback & Issues
 
-- **Bug reports:** Settings → **Diagnostics** → export a report, then open a [GitHub Issue](https://github.com/ifer47/marker/issues)
+- **Bug reports:** Settings → **Diagnostics** → export a report, then open a [GitHub Issue](https://github.com/AomeNero/marker/issues)
 - **Privacy:** [PRIVACY.md](./PRIVACY.md)
 
 ## Development

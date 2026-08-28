@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-23  
 **Status:** Approved design  
-**Issue:** [#41](https://github.com/ifer47/marker/issues/41) (partial — eraser hold only; no radial menu)  
+**Issue:** [#41](https://github.com/AomeNero/marker/issues/41) (partial — eraser hold only; no radial menu)  
 **Scope:** Annotation overlay pointer interaction (Mac + Windows)
 
 ## Problem

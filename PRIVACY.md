@@ -62,6 +62,6 @@ If there are significant changes, we will post notifications on the [project hom
 
 ## Contact Information
 
-If you have questions or suggestions about this privacy policy, please contact us through the [GitHub project page](https://github.com/ifer47/marker).
+If you have questions or suggestions about this privacy policy, please contact us through the [GitHub project page](https://github.com/AomeNero/marker).
 
 > Last Updated: July 22, 2026

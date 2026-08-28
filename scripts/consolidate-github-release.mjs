@@ -18,7 +18,7 @@ if (!tag || !mergedLatestPath) {
   process.exit(1)
 }
 
-const repo = process.env.GH_REPO || 'ifer47/marker'
+const repo = process.env.GH_REPO || 'AomeNero/marker'
 const GH_MAX_BUFFER = 10 * 1024 * 1024
 
 function gh(args, { json = true, allowFail = false } = {}) {

@@ -12,9 +12,9 @@
   IgnorableNamespaces="uap uap2 uap3 uap10 desktop desktop6 rescap">
 
   <Identity
-    Name="ifer.Marker"
+    Name="AomeNero.Marker"
     Publisher="CN=1CC39F0D-AB5D-475D-87ED-F37428C133CD"
-    Version="0.1.6.0"
+    Version="1.0.1.0"
     ProcessorArchitecture="x64" />
 
   <Properties>

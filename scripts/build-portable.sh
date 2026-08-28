@@ -80,7 +80,7 @@ English
 6. To update: download a newer portable.zip and replace Marker.exe (keep data\\ and marker.portable).
 7. Requires Microsoft Edge WebView2 Runtime (usually preinstalled on Windows 10/11).
 
-https://github.com/ifer47/marker/releases
+https://github.com/AomeNero/marker/releases
 EOF
 
 OUTDIR="$RELEASE_DIR/bundle/portable"

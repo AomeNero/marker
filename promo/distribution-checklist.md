@@ -24,7 +24,7 @@ Metrics are a dated baseline, not evergreen marketing copy. Release asset downlo
 - Local source: `docs/`
 - Workflow: `.github/workflows/pages.yml`
 - Custom domain: `https://marker.cn/`
-- Legacy URL: `https://ifer47.github.io/marker/`
+- Legacy URL: `https://AomeNero.github.io/marker/`
 - SEO/social metadata: canonical URLs, absolute Open Graph image, Twitter card metadata, SoftwareApplication + FAQ structured data
 - Remaining manual work: submit `https://marker.cn/sitemap.xml` in Google Search Console and Bing Webmaster Tools
 
