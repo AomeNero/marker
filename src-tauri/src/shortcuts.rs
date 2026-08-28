@@ -15,6 +15,9 @@ mod tests {
 
     #[test]
     fn parse_valid_shortcuts() {
+        assert!(parse_shortcut("Alt+G").is_some());
+        assert!(parse_shortcut("Alt+E").is_some());
+        assert!(parse_shortcut("Alt+M").is_some());
         assert!(parse_shortcut("Ctrl+Shift+D").is_some());
         assert!(parse_shortcut("Ctrl+Shift+C").is_some());
         assert!(parse_shortcut("Ctrl+Alt+X").is_some());
