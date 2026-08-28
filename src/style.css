@@ -62,7 +62,7 @@ html[data-theme='dark'] {
   --ui-accent-soft: rgba(10, 132, 255, 0.15);
   --ui-accent-border: rgba(10, 132, 255, 0.4);
   --ui-accent-border-strong: rgba(10, 132, 255, 0.5);
-  --ui-accent-bg-active: rgba(10, 132, 255, 0.3);
+  --ui-accent-bg-active: #183d63;
   --ui-accent-bg-card: rgba(10, 132, 255, 0.05);
   --ui-accent-ring: rgba(10, 132, 255, 0.2);
   --ui-accent-text: rgba(10, 132, 255, 0.8);
@@ -189,7 +189,7 @@ html[data-theme='light'] {
   --ui-accent-soft: rgba(10, 132, 255, 0.12);
   --ui-accent-border: rgba(10, 132, 255, 0.45);
   --ui-accent-border-strong: rgba(10, 132, 255, 0.5);
-  --ui-accent-bg-active: rgba(10, 132, 255, 0.22);
+  --ui-accent-bg-active: #c1dcf9;
   --ui-accent-bg-card: rgba(10, 132, 255, 0.06);
   --ui-accent-ring: rgba(10, 132, 255, 0.2);
   --ui-accent-text: rgba(10, 132, 255, 0.9);

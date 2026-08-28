@@ -270,6 +270,14 @@ pub fn run() {
                             "info",
                         );
                         toggle_drawing(&handle_click);
+                        // Entering annotation from the tray should surface the toolbar bar.
+                        if crate::overlay::current_mode(&state)
+                            == crate::overlay::OverlayMode::Drawing
+                        {
+                            if let Err(e) = handle_click.emit("tray-toolbar-request", ()) {
+                                warn!("Failed to emit tray-toolbar-request: {}", e);
+                            }
+                        }
                     }
                 });
             }

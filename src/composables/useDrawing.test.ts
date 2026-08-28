@@ -93,8 +93,8 @@ describe('useDrawing', () => {
       expect(drawing.currentTool.value).toBe('pen')
     })
 
-    it('starts with default color as red', () => {
-      expect(drawing.currentColor.value).toBe('#FF3B30')
+    it('starts with default color as yellow', () => {
+      expect(drawing.currentColor.value).toBe('#FFCC02')
     })
 
     it('starts with default line width of 6 (middle preset)', () => {

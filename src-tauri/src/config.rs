@@ -17,11 +17,11 @@ pub struct Shortcuts {
 fn default_toggle_penetration() -> String {
     #[cfg(target_os = "macos")]
     {
-        "Command+Shift+X".into()
+        "Alt+M".into()
     }
     #[cfg(not(target_os = "macos"))]
     {
-        "Ctrl+Shift+X".into()
+        "Alt+M".into()
     }
 }
 
@@ -317,17 +317,17 @@ pub fn default_shortcuts() -> Shortcuts {
     #[cfg(target_os = "macos")]
     {
         Shortcuts {
-            toggle_drawing: "Command+Shift+D".into(),
-            clear_drawing: "Command+Shift+C".into(),
-            toggle_penetration: "Command+Shift+X".into(),
+            toggle_drawing: "Alt+G".into(),
+            clear_drawing: "Alt+E".into(),
+            toggle_penetration: "Alt+M".into(),
         }
     }
     #[cfg(not(target_os = "macos"))]
     {
         Shortcuts {
-            toggle_drawing: "Ctrl+Shift+D".into(),
-            clear_drawing: "Ctrl+Shift+C".into(),
-            toggle_penetration: "Ctrl+Shift+X".into(),
+            toggle_drawing: "Alt+G".into(),
+            clear_drawing: "Alt+E".into(),
+            toggle_penetration: "Alt+M".into(),
         }
     }
 }

@@ -366,7 +366,7 @@ const eraserCursorDiameter = computed(() => Math.min(80, eraserLineWidth(lineWid
 const eraserCursorRadius = computed(() => eraserCursorDiameter.value / 2)
 const textOutline = ref<TextOutlineStyle>(createDefaultTextOutline())
 
-const activeTextBoxColor = ref('#FF3B30')
+const activeTextBoxColor = ref('#FFCC02')
 const activeTextBoxFontSize = ref(24)
 const activeTextBoxInitialText = ref('')
 const activeTextBoxOutline = ref<TextOutlineStyle>(createDefaultTextOutline())
@@ -2180,6 +2180,15 @@ onMounted(async () => {
       toolbarPanelHovered.value = false
       toolbarPanelDragging.value = false
       showToolbarPopup.value = false
+    }),
+  )
+
+  // Tray click that enters annotation surfaces the docked toolbar bar (space mode).
+  unlisteners.push(
+    await listen('tray-toolbar-request', () => {
+      if (!toolbarPinned.value && sessionActive.value) {
+        void setToolbarPopupVisible(true)
+      }
     }),
   )
 

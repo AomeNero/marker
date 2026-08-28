@@ -263,12 +263,12 @@ pub fn get_overlay_monitor_work_logical_bounds(app: &AppHandle) -> Option<Monito
         let cy = pos.y + (size.height as i32 / 2);
         let (x, y, w, h) = crate::win32::get_monitor_work_rect_at_point_win32(cx, cy)?;
         let scale = window.scale_factor().ok()?;
-        return Some(MonitorLogicalBounds {
+        Some(MonitorLogicalBounds {
             left: x as f64 / scale,
             top: y as f64 / scale,
             width: w as f64 / scale,
             height: h as f64 / scale,
-        });
+        })
     }
     #[cfg(not(target_os = "windows"))]
     {

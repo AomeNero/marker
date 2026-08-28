@@ -856,7 +856,7 @@ onUnmounted(() => {
 }
 
 .overlay-toolbar-action--active {
-  background: var(--ui-control-bg-strong);
+  background: var(--ui-accent-bg-active);
   color: var(--ui-tool-text-hover);
 }
 
@@ -974,22 +974,21 @@ onUnmounted(() => {
   color: var(--ui-tool-text-hover);
 }
 
-/* Drag grip at the left end of the bar. */
+/* Drag grip at the left end of the bar: compact 2×3 dot handle. */
 .toolbar-grip {
   width: 12px;
-  height: 30px;
+  height: 24px;
   flex-shrink: 0;
   border-radius: 6px;
-  background-image: radial-gradient(currentColor 1px, transparent 1px);
-  background-size: 4px 4px;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.3px);
+  background-size: 6px 8px;
+  background-repeat: repeat;
   color: var(--ui-text-icon);
-  opacity: 0.4;
+  opacity: 0.65;
   margin-right: 2px;
 }
 
 .toolbar-grip:hover {
-  opacity: 0.8;
+  opacity: 1;
 }
 </style>

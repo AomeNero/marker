@@ -32,7 +32,7 @@ import type { AppConfig } from '../types/app'
 import { applyTheme, watchSystemTheme, type ThemePreference } from '../composables/useAppTheme'
 
 const currentTool = ref<Tool>('pen')
-const currentColor = ref('#FF3B30')
+const currentColor = ref('#FFCC02')
 const lineWidth = ref(3)
 const textOutline = ref<TextOutlineStyle>(createDefaultTextOutline())
 const whiteboardMode = ref(false)
