@@ -1,4 +1,5 @@
 import type { Component } from 'vue'
+import { ref } from 'vue'
 import {
   SquareDashedMousePointer,
   Pen,
@@ -40,14 +41,65 @@ export const TOOL_DEFS: ToolDef[] = [
 /** Tools shown in the toolbar grid (excludes select). */
 export const DRAWING_TOOL_DEFS: ToolDef[] = TOOL_DEFS.filter((d) => d.id !== 'select')
 
+/** Pen-family tools collapsed into one toolbar button; shows the last used. */
+export const PEN_GROUP_TOOLS: Tool[] = ['pen', 'highlighter', 'laser']
+export const PEN_GROUP_DEFAULT: Tool = 'pen'
+
+/** Shape tools collapsed into one toolbar button; shows the last used. */
+export const SHAPE_GROUP_TOOLS: Tool[] = ['arrow', 'rect', 'ellipse', 'line', 'stamp']
+export const SHAPE_GROUP_DEFAULT: Tool = 'ellipse'
+
+export type ToolbarGroupId = 'pen' | 'shape'
+
+/** Which collapsed group a tool belongs to (null = standalone button). */
+export function toolbarGroupOf(tool: Tool): ToolbarGroupId | null {
+  if (PEN_GROUP_TOOLS.includes(tool)) return 'pen'
+  if (SHAPE_GROUP_TOOLS.includes(tool)) return 'shape'
+  return null
+}
+
+export function toolDefOf(tool: Tool): ToolDef {
+  return TOOL_DEFS.find((d) => d.id === tool) ?? SELECT_TOOL_DEF
+}
+
 export const TOOL_ICON_MAP: Record<Tool, Component> = Object.fromEntries(
   TOOL_DEFS.map((d) => [d.id, d.icon]),
 ) as Record<Tool, Component>
 
-export const WIDTH_PRESETS: number[] = [1, 2, 3, 5, 8]
+/** Default stroke-width presets (XS/S/M/L/XL); user-configurable via Settings. */
+export const DEFAULT_WIDTH_PRESETS: number[] = [2, 4, 6, 10, 16]
 
-/** Middle preset — default line width for every width group. */
-export const DEFAULT_LINE_WIDTH = WIDTH_PRESETS[2]
+/** Positional labels for the five width preset buttons. */
+export const WIDTH_PRESET_LABEL_KEYS = ['xs', 's', 'm', 'l', 'xl'] as const
+
+const widthPresetsState = ref<number[]>(DEFAULT_WIDTH_PRESETS.slice())
+
+/** Validate a persisted preset array; anything else falls back to the defaults. */
+export function resolveWidthPresets(value: unknown): number[] {
+  if (
+    Array.isArray(value) &&
+    value.length === 5 &&
+    value.every((v) => typeof v === 'number' && Number.isFinite(v) && v >= 1 && v <= 100)
+  ) {
+    return value.slice()
+  }
+  return DEFAULT_WIDTH_PRESETS.slice()
+}
+
+/** Seed the active preset set from config (overlay + toolbar windows each call this). */
+export function setWidthPresets(value: unknown): void {
+  widthPresetsState.value = resolveWidthPresets(value)
+}
+
+/** Active presets — reactive so toolbar buttons and Ctrl+wheel follow config changes. */
+export function getWidthPresets(): number[] {
+  return widthPresetsState.value
+}
+
+/** Middle preset (M) — default line width for every width group. */
+export function defaultLineWidth(): number {
+  return widthPresetsState.value[2] ?? DEFAULT_WIDTH_PRESETS[2]
+}
 
 /** Pen + shapes share one preset; highlighter / eraser / text are separate. */
 export type LineWidthGroup = 'stroke' | 'highlighter' | 'eraser' | 'text'
@@ -74,7 +126,7 @@ export function isStrokeTool(tool: Tool): boolean {
 }
 
 export function createDefaultLineWidths(): ToolLineWidths {
-  const w = DEFAULT_LINE_WIDTH
+  const w = defaultLineWidth()
   return {
     stroke: w,
     highlighter: w,
@@ -83,8 +135,19 @@ export function createDefaultLineWidths(): ToolLineWidths {
   }
 }
 
+/** Snap a width to the closest active preset (ties prefer the larger preset). */
 export function normalizeLineWidth(value: unknown): number {
-  return typeof value === 'number' && WIDTH_PRESETS.includes(value) ? value : DEFAULT_LINE_WIDTH
+  if (typeof value !== 'number' || !Number.isFinite(value)) return defaultLineWidth()
+  let best = defaultLineWidth()
+  let bestDistance = Infinity
+  for (const preset of getWidthPresets()) {
+    const distance = Math.abs(preset - value)
+    if (distance < bestDistance || (distance === bestDistance && preset > best)) {
+      best = preset
+      bestDistance = distance
+    }
+  }
+  return best
 }
 
 /** Resolve persisted line widths; missing/invalid values fall back to defaults. */

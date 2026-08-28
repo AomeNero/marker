@@ -187,9 +187,10 @@ pub fn save_line_widths(
     state: tauri::State<'_, AppState>,
     line_widths: LineWidthsConfig,
 ) -> AppResult<()> {
-    let normalized = line_widths.normalized();
     let snapshot = {
         let mut cfg = lock_or_recover(&state.config);
+        // Snap to the closest preset of the active (already-normalized) preset set.
+        let normalized = line_widths.normalized_with(&cfg.general.width_presets);
         if cfg.general.line_widths == normalized {
             return Ok(());
         }
@@ -293,7 +294,6 @@ pub fn raise_toolbar(app: AppHandle) {
 const ALLOWED_URL_PREFIXES: &[&str] = &[
     "https://github.com/",
     "https://apps.microsoft.com/",
-    "https://afdian.com/",
     "https://marker.cn/",
 ];
 
@@ -375,11 +375,10 @@ mod tests {
 
     #[test]
     fn open_url_allowlist_permits_known_destinations() {
-        assert!(is_allowed_open_url("https://github.com/ifer47/marker"));
+        assert!(is_allowed_open_url("https://github.com/AomeNero/marker"));
         assert!(is_allowed_open_url(
-            "https://github.com/ifer47/marker/issues"
+            "https://github.com/AomeNero/marker/issues"
         ));
-        assert!(is_allowed_open_url("https://afdian.com/a/marker"));
         assert!(is_allowed_open_url(
             "https://apps.microsoft.com/store/detail/marker/9P123"
         ));
@@ -389,10 +388,8 @@ mod tests {
     #[test]
     fn open_url_allowlist_blocks_untrusted_destinations() {
         assert!(!is_allowed_open_url("https://example.com/"));
-        assert!(!is_allowed_open_url("http://github.com/ifer47/marker"));
-        assert!(!is_allowed_open_url(
-            "https://afdian.com.evil.com/a/marker"
-        ));
+        assert!(!is_allowed_open_url("http://github.com/AomeNero/marker"));
+        assert!(!is_allowed_open_url("https://afdian.com.evil.com/a/marker"));
         assert!(!is_allowed_open_url("https://marker.cn.evil.com/help"));
         assert!(!is_allowed_open_url("http://marker.cn/help.html"));
     }

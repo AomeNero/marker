@@ -66,7 +66,7 @@ export function useDrawing(
   previewCanvasRef: Ref<HTMLCanvasElement | null>,
 ) {
   const currentTool = ref<Tool>('pen')
-  const currentColor = ref('#FF0000')
+  const currentColor = ref('#FF3B30')
   const lineWidths = ref(createDefaultLineWidths())
   const lineWidth = computed({
     get: () => lineWidths.value[toolLineWidthGroup(currentTool.value)],

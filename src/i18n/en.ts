@@ -42,8 +42,7 @@ export default {
     '#FFFFFF': 'White',
     '#000000': 'Black',
   },
-  widths: { 1: 'XS', 2: 'S', 3: 'M', 5: 'L', 8: 'XL' },
-  textSizes: { 1: 'XS', 2: 'S', 3: 'M', 5: 'L', 8: 'XL' },
+  widths: { xs: 'XS', s: 'S', m: 'M', l: 'L', xl: 'XL' },
   panel: {
     tools: 'Tools',
     toolsHint: 'Press V / 1-8 / T / N',
@@ -82,11 +81,6 @@ export default {
       about: 'About',
     },
     sidebarOpenSource: 'OSS',
-    creditsRoll: {
-      title: 'Credits',
-      sponsorsEmpty: 'Every supporter on Afdian',
-      closing: 'Thank you for your support',
-    },
     shortcutLabels: {
       toggleDrawing: 'Toggle annotation',
       clearDrawing: 'Clear annotations',
@@ -147,6 +141,8 @@ export default {
     eraserModeDesc:
       'Stroke: erase pixels along the drag path (undoable). Object: delete entire shapes or text when you pass over them (undoable). While the eraser is selected, press 7 again (or click the toolbar eraser again) to switch modes. Element dragging is disabled while the eraser is selected, even with hover drag on.',
     strokeSmoothing: 'Stroke smoothing',
+    widthPresets: 'Stroke width presets',
+    widthPresetsDesc: 'Customize the five toolbar stroke widths in pixels (XS / S / M / L / XL). Existing drawings keep their width; the current width snaps to the closest preset.',
     strokeSmoothingOff: 'Off',
     strokeSmoothingStandard: 'Standard',
     strokeSmoothingStrong: 'Strong',
@@ -160,13 +156,8 @@ export default {
     whiteboard: 'Whiteboard',
     exitWhiteboard: 'Exit whiteboard',
     copy: 'Copy',
-    drawingMode: 'Drawing mode',
     penetrationMode: 'Click-through mode',
-    pin: 'Pin toolbar',
-    unpin: 'Unpin toolbar',
     exit: 'Exit annotation',
-    more: 'Expand',
-    less: 'Collapse',
   },
   help: {
     basicUsage: 'Quick reference',
@@ -235,7 +226,6 @@ export default {
     author: 'Author',
     license: 'License',
     feedback: 'Feedback',
-    sponsor: 'Support development',
     checkUpdate: 'Check for updates',
     checking: 'Checking...',
     updateAvailable: 'New version v{version} available',

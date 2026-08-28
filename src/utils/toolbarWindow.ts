@@ -34,15 +34,30 @@ export async function refreshToolbarWindowScreenOrigin(): Promise<{ x: number; y
   return cachedToolbarScreenOrigin
 }
 
-/** Logical width of the toolbar panel (must match ToolToolbar / Rust overlay). */
-export const TOOLBAR_PANEL_WIDTH = 320
+/**
+ * Initial estimate of the one-line toolbar bar width; the live width is measured from
+ * the DOM (`fitToolbarWindow`) and cached for popup placement / clamping.
+ */
+export const TOOLBAR_PANEL_WIDTH = 580
 
 /**
- * Compact (default) standalone panel height, measured from live DOM (`.overlay-panel-surface`).
- * Expanded ≈452. Do not use a larger guess for clamp — it lifts the panel away from a
- * bottom-edge pointer (see openToolbarPopupAtPointer).
+ * One-line toolbar bar height (grip + 30px buttons + padding), measured from live DOM.
+ * Flyouts stack on top and raise the measured height; this is the collapsed default.
  */
-export const TOOLBAR_PANEL_HEIGHT_COMPACT = 234
+export const TOOLBAR_PANEL_HEIGHT_COMPACT = 46
+
+let cachedToolbarPanelWidth = TOOLBAR_PANEL_WIDTH
+
+/** Last measured panel width for clamp / space-popup placement. */
+export function getToolbarPanelWidth(): number {
+  return cachedToolbarPanelWidth
+}
+
+export function rememberToolbarPanelWidth(width: number): void {
+  if (width > 0) {
+    cachedToolbarPanelWidth = Math.ceil(width)
+  }
+}
 
 let cachedToolbarPanelHeight = TOOLBAR_PANEL_HEIGHT_COMPACT
 
@@ -79,7 +94,7 @@ export async function restoreToolbarWindowPosition(): Promise<void> {
   const bounds = await fetchOverlayMonitorBounds()
   const panelH = getToolbarPanelHeight()
   const position = bounds
-    ? clampToolbarWindowPosition(logical.left, logical.top, TOOLBAR_PANEL_WIDTH, panelH, bounds)
+    ? clampToolbarWindowPosition(logical.left, logical.top, getToolbarPanelWidth(), panelH, bounds)
     : logical
   await win.setPosition(new LogicalPosition(position.left, position.top))
   if (saved.coordSpace !== 'logical' || position.left !== logical.left || position.top !== logical.top) {
@@ -95,7 +110,7 @@ export async function clampToolbarWindowToOverlay(): Promise<void> {
   const bounds = await fetchOverlayMonitorBounds()
   if (!bounds) return
   const panelH = getToolbarPanelHeight()
-  const position = clampToolbarWindowPosition(logical.x, logical.y, TOOLBAR_PANEL_WIDTH, panelH, bounds)
+  const position = clampToolbarWindowPosition(logical.x, logical.y, getToolbarPanelWidth(), panelH, bounds)
   if (position.left === logical.x && position.top === logical.y) {
     return
   }
@@ -115,6 +130,7 @@ export async function saveToolbarWindowPosition(): Promise<void> {
 
 export async function fitToolbarWindow(width: number, height: number): Promise<void> {
   if (width <= 0 || height <= 0) return
+  rememberToolbarPanelWidth(width)
   rememberToolbarPanelHeight(height)
   emitToolbarPanelHeight(height)
   const win = getCurrentWindow()
@@ -139,7 +155,7 @@ export async function repositionToolbarAfterHeightChange(
   // Match space-popup edge margin (12) so bottom-anchored detection agrees with placement.
   const nextTop = adjustToolbarTopForHeightChange(logical.y, oldHeight, newHeight, bounds, 12)
   if (Math.abs(nextTop - logical.y) < 0.5) return
-  const position = clampToolbarWindowPosition(logical.x, nextTop, TOOLBAR_PANEL_WIDTH, newHeight, bounds, 12)
+  const position = clampToolbarWindowPosition(logical.x, nextTop, getToolbarPanelWidth(), newHeight, bounds, 12)
   await win.setPosition(new LogicalPosition(position.left, position.top))
   if (options?.persist) {
     saveToolbarPosition(position.left, position.top, true)

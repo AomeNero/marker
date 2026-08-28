@@ -10,6 +10,7 @@ import { DEFAULT_ENTRY_MODE_OPTIONS } from '../../utils/entryMode'
 import type { EraserMode } from '../../utils/eraserMode'
 import { ERASER_MODE_OPTIONS } from '../../utils/eraserMode'
 import { STROKE_SMOOTHING_OPTIONS, type StrokeSmoothing } from '../../utils/strokeSmoothing'
+import { WIDTH_PRESET_LABEL_KEYS } from '../../constants/tools'
 import { applyTheme, type ThemePreference } from '../../composables/useAppTheme'
 import { useI18n } from '../../i18n'
 import { isMacOS } from '../../utils/platform'
@@ -82,6 +83,7 @@ const props = defineProps<{
   whiteboardPreserveDrawings: boolean
   autoStartEnabled: boolean
   angleSnapStep: 15 | 30 | 45
+  widthPresets: number[]
 }>()
 
 const emit = defineEmits<{
@@ -94,7 +96,31 @@ const emit = defineEmits<{
   'update:whiteboardPreserveDrawings': [value: boolean]
   'update:autoStartEnabled': [value: boolean]
   'update:angleSnapStep': [value: 15 | 30 | 45]
+  'update:widthPresets': [value: number[]]
 }>()
+
+/** Clamp-edited preset to 1..100px and persist the whole set. */
+async function onWidthPresetChange(index: number, event: Event) {
+  const raw = Number((event.target as HTMLInputElement).value)
+  if (!Number.isFinite(raw)) return
+  const value = Math.max(1, Math.min(100, Math.round(raw)))
+  const next = props.widthPresets.slice()
+  if (next[index] === value) {
+    // Still write back the clamped value so the input reflects reality.
+    ;(event.target as HTMLInputElement).value = String(value)
+    return
+  }
+  next[index] = value
+  emit('update:widthPresets', next)
+  try {
+    const cfg = await invoke<AppConfig>('get_config')
+    if (!cfg.general) return
+    cfg.general.widthPresets = next
+    await invoke('save_general', { general: cfg.general })
+  } catch (error) {
+    console.error('Failed to save width presets:', error)
+  }
+}
 
 async function changeLocale(loc: string) {
   localeOpen.value = false
@@ -411,6 +437,35 @@ async function toggleAngleSnapStep(step: (typeof snapStepOptions)[number]) {
         </div>
       </div>
 
+      <!-- Stroke width presets (toolbar XS/S/M/L/XL) -->
+      <div class="settings-card">
+        <div class="settings-card-row">
+          <span class="settings-text-label">{{ t('settings.widthPresets') }}</span>
+          <div class="flex items-end gap-1.5">
+            <label
+              v-for="(preset, i) in widthPresets"
+              :key="WIDTH_PRESET_LABEL_KEYS[i]"
+              class="flex flex-col items-center gap-1 cursor-pointer"
+            >
+              <span class="text-[10.5px] leading-none settings-text-label">{{
+                t(`widths.${WIDTH_PRESET_LABEL_KEYS[i]}`)
+              }}</span>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                step="1"
+                :value="preset"
+                :aria-label="`${t('settings.widthPresets')} ${WIDTH_PRESET_LABEL_KEYS[i]}`"
+                class="width-preset-input"
+                @change="onWidthPresetChange(i, $event)"
+              />
+            </label>
+          </div>
+        </div>
+        <p class="settings-card-desc">{{ t('settings.widthPresetsDesc') }}</p>
+      </div>
+
       <div v-if="autostartAvailable" class="settings-card">
         <div class="settings-card-row">
           <span class="settings-text-label">{{ t('settings.autoStart') }}</span>
@@ -585,5 +640,30 @@ async function toggleAngleSnapStep(step: (typeof snapStepOptions)[number]) {
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-4px) scale(0.97);
+}
+
+.width-preset-input {
+  width: 52px;
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-control-bg-soft);
+  color: var(--ui-control-text);
+  font-size: 12.5px;
+  text-align: center;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+
+.width-preset-input:hover {
+  border-color: var(--ui-border-strong);
+}
+
+.width-preset-input:focus {
+  outline: none;
+  border-color: var(--ui-accent-border);
+  background: var(--ui-control-bg);
 }
 </style>

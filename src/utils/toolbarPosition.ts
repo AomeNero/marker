@@ -19,6 +19,29 @@ export interface MonitorLogicalBounds {
   height: number
 }
 
+/** Default dock offset (logical px) from a monitor's bottom-right corner — taskbar-safe. */
+export const TOOLBAR_DOCK_MARGIN = { right: 16, bottom: 64 } as const
+
+/** Screen-logical position for the toolbar docked at a monitor's bottom-right corner. */
+export function toolbarDockedScreenPosition(
+  panelWidth: number,
+  panelHeight: number,
+  monitor: MonitorLogicalBounds | null,
+  fallbackViewport?: { width: number; height: number },
+): { left: number; top: number } {
+  if (monitor) {
+    const left = monitor.left + monitor.width - panelWidth - TOOLBAR_DOCK_MARGIN.right
+    const top = monitor.top + monitor.height - panelHeight - TOOLBAR_DOCK_MARGIN.bottom
+    return clampToolbarWindowPosition(left, top, panelWidth, panelHeight, monitor)
+  }
+  const vw = fallbackViewport?.width ?? 1920
+  const vh = fallbackViewport?.height ?? 1080
+  return {
+    left: Math.max(0, vw - panelWidth - TOOLBAR_DOCK_MARGIN.right),
+    top: Math.max(0, vh - panelHeight - TOOLBAR_DOCK_MARGIN.bottom),
+  }
+}
+
 /** Overlay client (CSS) coords → screen logical position for toolbar window placement. */
 export function overlayClientToScreenLogical(
   clientX: number,
@@ -28,30 +51,6 @@ export function overlayClientToScreenLogical(
   return {
     x: monitor.left + clientX,
     y: monitor.top + clientY,
-  }
-}
-
-/** Screen-logical top-left for a space-triggered toolbar popup centered on the pointer. */
-export function toolbarPopupScreenPosition(
-  clientX: number,
-  clientY: number,
-  panelWidth: number,
-  panelHeight: number,
-  monitor: MonitorLogicalBounds | null,
-  fallbackViewport?: { width: number; height: number },
-): { left: number; top: number } {
-  if (monitor) {
-    const anchor = overlayClientToScreenLogical(clientX, clientY, monitor)
-    const left = anchor.x - panelWidth / 2
-    const top = anchor.y - panelHeight / 2
-    return clampToolbarWindowPosition(left, top, panelWidth, panelHeight, monitor, 12)
-  }
-  const vw = fallbackViewport?.width ?? 1920
-  const vh = fallbackViewport?.height ?? 1080
-  const margin = 12
-  return {
-    left: Math.max(margin, Math.min(clientX - panelWidth / 2, vw - panelWidth - margin)),
-    top: Math.max(margin, Math.min(clientY - panelHeight / 2, vh - panelHeight - margin)),
   }
 }
 

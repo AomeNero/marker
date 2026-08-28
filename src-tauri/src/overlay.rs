@@ -219,13 +219,15 @@ pub fn setup_overlay_size(app: &AppHandle) {
     }
 }
 
-const TOOLBAR_WIDTH: f64 = 340.0;
-const TOOLBAR_PANEL_WIDTH: f64 = 320.0;
-/// Compact standalone panel height measured from live DOM (`.overlay-panel-surface`).
-/// Expanded ≈452. Inflating this (e.g. 500) raises maxTop and pulls space-popup away from a
-/// bottom-edge pointer.
-const TOOLBAR_PANEL_HEIGHT_COMPACT: f64 = 234.0;
+const TOOLBAR_WIDTH: f64 = 580.0;
+const TOOLBAR_PANEL_WIDTH: f64 = 580.0;
+/// One-line toolbar bar height (grip + 30px buttons + padding); the live height is
+/// measured from the DOM (`fitToolbarWindow`). Flyouts stack above the bar.
+const TOOLBAR_PANEL_HEIGHT_COMPACT: f64 = 46.0;
 const TOOLBAR_EDGE_MARGIN: f64 = 8.0;
+/// Default dock offset for the always-on toolbar: bottom-right, clear of the taskbar.
+const TOOLBAR_DOCK_RIGHT: i32 = 16;
+const TOOLBAR_DOCK_BOTTOM: i32 = 64;
 
 fn toolbar_panel_height_logical(window: &tauri::WebviewWindow, fallback: f64) -> f64 {
     let scale = window.scale_factor().unwrap_or(1.0);
@@ -233,28 +235,32 @@ fn toolbar_panel_height_logical(window: &tauri::WebviewWindow, fallback: f64) ->
         .outer_size()
         .ok()
         .map(|s| s.height as f64 / scale)
-        .filter(|h| *h >= 64.0)
+        // One-line bar is 46px logical; anything smaller is a stale/zero measurement.
+        .filter(|h| *h >= 40.0)
         .unwrap_or(fallback)
 }
 
+/// Default dock for a fresh (never-dragged) always-on toolbar: bottom-right of the
+/// cursor's monitor, hovering just above the taskbar.
 fn position_toolbar_window(app: &AppHandle) {
     let Some(window) = app.get_webview_window("toolbar") else {
         return;
     };
 
-    if let Some((x, y, w, _h)) = monitor::get_cursor_monitor_rect() {
+    if let Some((x, y, w, h)) = monitor::get_cursor_monitor_rect() {
         #[cfg(target_os = "macos")]
         {
-            let left = x as f64 + w as f64 - TOOLBAR_WIDTH - 16.0;
-            let top = y as f64 + 40.0;
+            let left = x as f64 + w as f64 - TOOLBAR_WIDTH - TOOLBAR_DOCK_RIGHT as f64;
+            let top =
+                y as f64 + h as f64 - TOOLBAR_PANEL_HEIGHT_COMPACT - TOOLBAR_DOCK_BOTTOM as f64;
             window
                 .set_position(tauri::LogicalPosition::new(left, top))
                 .ok();
         }
         #[cfg(not(target_os = "macos"))]
         {
-            let left = x + w as i32 - TOOLBAR_WIDTH as i32 - 16;
-            let top = y + 40;
+            let left = x + w as i32 - TOOLBAR_WIDTH as i32 - TOOLBAR_DOCK_RIGHT;
+            let top = y + h as i32 - TOOLBAR_PANEL_HEIGHT_COMPACT as i32 - TOOLBAR_DOCK_BOTTOM;
             window
                 .set_position(tauri::PhysicalPosition::new(left, top))
                 .ok();

@@ -28,7 +28,14 @@ import {
 import type { AppConfig } from '../types/app'
 import { applyTheme, watchSystemTheme, type ThemePreference } from '../composables/useAppTheme'
 import TextBox from './TextBox.vue'
-import { TOOL_ICON_MAP, WIDTH_PRESETS, eraserLineWidth, resolveLineWidths } from '../constants/tools'
+import {
+  TOOL_ICON_MAP,
+  WIDTH_PRESET_LABEL_KEYS,
+  getWidthPresets,
+  setWidthPresets,
+  eraserLineWidth,
+  resolveLineWidths,
+} from '../constants/tools'
 import {
   cycleStampKind as cycleStampKindState,
   getStampKind,
@@ -58,8 +65,8 @@ import { isToolbarPinned, resolveToolbarVisibility, type ToolbarVisibility } fro
 import { resolveDefaultEntryMode, shouldClearWhiteboardOnEntry, type DefaultEntryMode } from '../utils/entryMode'
 import { logDiagnostic, logSessionEvent, logActionEvent } from '../utils/diagnosticEvents'
 import type { MonitorLogicalBounds } from '../utils/toolbarPosition'
-import { toolbarPopupScreenPosition } from '../utils/toolbarPosition'
-import { TOOLBAR_PANEL_WIDTH, getToolbarPanelHeight, rememberToolbarPanelHeight } from '../utils/toolbarWindow'
+import { toolbarDockedScreenPosition } from '../utils/toolbarPosition'
+import { getToolbarPanelWidth, getToolbarPanelHeight, rememberToolbarPanelHeight } from '../utils/toolbarWindow'
 import { nextEraserMode, resolveEraserMode, type EraserMode } from '../utils/eraserMode'
 import { nextPenCursorStyle, resolvePenCursorStyle, type PenCursorStyle } from '../utils/penCursor'
 import {
@@ -175,7 +182,6 @@ function handleTextBoxContextMenu(e: MouseEvent): boolean {
   textRmbClick = next
   if (!isDouble) return true
 
-  hideToolbarPopupForCanvasInteraction()
   showQuickColors.value = false
   commitCurrentTextBox(false)
   // Double-RMB often delivers an extra contextmenu after the box is gone; block palette briefly.
@@ -287,19 +293,20 @@ function onWheel(e: WheelEvent) {
   if (!active.value || !e.ctrlKey) return
   e.preventDefault()
   const tool = currentTool.value
+  const presets = getWidthPresets()
   const dir = e.deltaY < 0 ? 1 : -1
-  const idx = WIDTH_PRESETS.indexOf(lineWidth.value)
+  const idx = presets.indexOf(lineWidth.value)
   const cur =
     idx !== -1
       ? idx
       : Math.max(
           0,
-          WIDTH_PRESETS.findIndex((v) => v >= lineWidth.value),
+          presets.findIndex((v) => v >= lineWidth.value),
         )
-  const next = Math.max(0, Math.min(WIDTH_PRESETS.length - 1, cur + dir))
+  const next = Math.max(0, Math.min(presets.length - 1, cur + dir))
   // Pass current pointer so mid-gesture eraser resize splits at the cursor (not old path points).
-  setLineWidth(WIDTH_PRESETS[next], { x: lastPointerX, y: lastPointerY })
-  const labelKey = tool === 'text' || tool === 'stamp' ? `textSizes.${lineWidth.value}` : `widths.${lineWidth.value}`
+  setLineWidth(presets[next], { x: lastPointerX, y: lastPointerY })
+  const labelKey = `widths.${WIDTH_PRESET_LABEL_KEYS[next] ?? 'm'}`
   showWidthTip(lineWidth.value, t(labelKey))
   schedulePersistLineWidths()
   // Wheel often does not fire pointermove; re-anchor cursor so eraser scales from center.
@@ -358,7 +365,7 @@ const eraserCursorDiameter = computed(() => Math.min(80, eraserLineWidth(lineWid
 const eraserCursorRadius = computed(() => eraserCursorDiameter.value / 2)
 const textOutline = ref<TextOutlineStyle>(createDefaultTextOutline())
 
-const activeTextBoxColor = ref('#FF0000')
+const activeTextBoxColor = ref('#FF3B30')
 const activeTextBoxFontSize = ref(24)
 const activeTextBoxInitialText = ref('')
 const activeTextBoxOutline = ref<TextOutlineStyle>(createDefaultTextOutline())
@@ -385,11 +392,11 @@ async function ensureOverlayLayoutReady(): Promise<void> {
   await scheduleOverlayResize()
 }
 
-async function openToolbarPopupAtPointer(): Promise<void> {
+async function openToolbarPopupDocked(): Promise<void> {
   await ensureOverlayLayoutReady()
   await seedPointerPosition()
 
-  const panelW = TOOLBAR_PANEL_WIDTH
+  const panelW = getToolbarPanelWidth()
   const panelH = getToolbarPanelHeight()
   let monitorBounds: MonitorLogicalBounds | null = null
   try {
@@ -397,17 +404,14 @@ async function openToolbarPopupAtPointer(): Promise<void> {
   } catch {
     // non-fatal for positioning; still log client-side coords
   }
-  const { left, top } = toolbarPopupScreenPosition(lastPointerX, lastPointerY, panelW, panelH, monitorBounds, {
+  // Space-invoked toolbar docks bottom-right (above the taskbar), not at the pointer.
+  const { left, top } = toolbarDockedScreenPosition(panelW, panelH, monitorBounds, {
     width: window.innerWidth,
     height: window.innerHeight,
   })
-  const anchorScreen = monitorBounds
-    ? { x: monitorBounds.left + lastPointerX, y: monitorBounds.top + lastPointerY }
-    : null
   logActionEvent('toolbar popup opened', {
     pointerClient: { x: lastPointerX, y: lastPointerY },
     pointerScreen: pointerScreenKnown ? { x: lastScreenX, y: lastScreenY } : null,
-    anchorScreen,
     panel: { left, top, width: panelW, height: panelH },
     overlayViewport: { width: window.innerWidth, height: window.innerHeight },
     monitorBounds,
@@ -426,7 +430,7 @@ async function setToolbarPopupVisible(visible: boolean) {
     await invoke('set_toolbar_popup', { visible: false, x: null, y: null })
     return
   }
-  await openToolbarPopupAtPointer()
+  await openToolbarPopupDocked()
 }
 
 function toggleToolbarPopupVisible() {
@@ -456,7 +460,7 @@ async function toggleToolbarPin() {
 
 async function syncOpenToolbarPopupWindow() {
   if (toolbarPinned.value || !showToolbarPopup.value) return
-  await openToolbarPopupAtPointer()
+  await openToolbarPopupDocked()
 }
 
 function applyDefaultEntryFromConfig(general?: AppConfig['general']) {
@@ -480,6 +484,8 @@ function applyStrokeSmoothingFromConfig(general?: AppConfig['general']) {
 }
 
 function applyLineWidthsFromConfig(general?: AppConfig['general']) {
+  // Seed presets first — resolveLineWidths snaps saved widths onto them.
+  setWidthPresets(general?.widthPresets)
   setLineWidths(resolveLineWidths(general?.lineWidths))
 }
 
@@ -1084,7 +1090,6 @@ function onDoubleClick(e: MouseEvent) {
   const clickedActionInfo = findActionAt(pos)
 
   if (clickedActionInfo && clickedActionInfo.action.tool === 'text') {
-    hideToolbarPopupForCanvasInteraction()
     if (textBoxPos.value) {
       commitCurrentTextBox()
     }
@@ -1106,7 +1111,6 @@ function onDoubleClick(e: MouseEvent) {
     })
   } else if (currentTool.value === 'text') {
     // In text mode, double-click on empty area to create new text
-    hideToolbarPopupForCanvasInteraction()
     if (textBoxPos.value) {
       commitCurrentTextBox()
     }
@@ -1335,7 +1339,6 @@ async function onPointerDown(e: PointerEvent) {
     return
   }
 
-  hideToolbarPopupForCanvasInteraction()
 
   if (modDown(e) && e.shiftKey) {
     toolBeforeModifier = currentTool.value
@@ -2066,7 +2069,9 @@ onMounted(async () => {
       applyPenCursorStyleFromConfig(event.payload.general)
       applyCrosshairCursorStyleFromConfig(event.payload.general)
       applyStrokeSmoothingFromConfig(event.payload.general)
-      // lineWidths: overlay is the sole writer; skip echo from our own save_general
+      // widthPresets come from the settings window; applying also snaps lineWidths
+      // (idempotent when the echo is our own save_line_widths).
+      applyLineWidthsFromConfig(event.payload.general)
       preserveDrawings.value = event.payload.general?.preserveDrawings ?? false
       whiteboardPreserveDrawings.value = event.payload.general?.whiteboardPreserveDrawings ?? true
       setAngleSnapStep((event.payload.general?.angleSnapStep as 15 | 30 | 45 | undefined) ?? 15)

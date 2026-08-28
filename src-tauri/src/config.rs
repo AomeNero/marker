@@ -34,21 +34,32 @@ fn default_auto_start() -> bool {
 }
 
 fn default_line_width() -> u32 {
-    3
+    6
 }
 
-const LINE_WIDTH_PRESETS: [u32; 5] = [1, 2, 3, 5, 8];
+/// Five configurable stroke-width presets (XS/S/M/L/XL); default = middle preset.
+const LINE_WIDTH_PRESETS: [u32; 5] = [2, 4, 6, 10, 16];
 
-fn is_valid_line_width(value: u32) -> bool {
-    LINE_WIDTH_PRESETS.contains(&value)
+fn default_width_presets() -> Vec<u32> {
+    LINE_WIDTH_PRESETS.to_vec()
 }
 
-fn normalize_line_width(value: u32) -> u32 {
-    if is_valid_line_width(value) {
-        value
+/// Presets must be exactly five sane pixel values; anything else falls back to defaults.
+fn normalize_width_presets(presets: &[u32]) -> Vec<u32> {
+    if presets.len() == 5 && presets.iter().all(|v| (1..=100).contains(v)) {
+        presets.to_vec()
     } else {
-        default_line_width()
+        default_width_presets()
     }
+}
+
+/// Snap a saved width to the closest preset (ties prefer the larger preset).
+fn normalize_line_width_with(value: u32, presets: &[u32]) -> u32 {
+    presets
+        .iter()
+        .copied()
+        .min_by_key(|p| (p.abs_diff(value), std::cmp::Reverse(*p)))
+        .unwrap_or_else(default_line_width)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -77,11 +88,16 @@ impl Default for LineWidthsConfig {
 
 impl LineWidthsConfig {
     pub fn normalized(self) -> Self {
+        self.normalized_with(&default_width_presets())
+    }
+
+    /// Snap every group width to the closest preset of the active preset set.
+    pub fn normalized_with(self, presets: &[u32]) -> Self {
         Self {
-            stroke: normalize_line_width(self.stroke),
-            highlighter: normalize_line_width(self.highlighter),
-            eraser: normalize_line_width(self.eraser),
-            text: normalize_line_width(self.text),
+            stroke: normalize_line_width_with(self.stroke, presets),
+            highlighter: normalize_line_width_with(self.highlighter, presets),
+            eraser: normalize_line_width_with(self.eraser, presets),
+            text: normalize_line_width_with(self.text, presets),
         }
     }
 }
@@ -192,6 +208,8 @@ pub struct GeneralConfig {
     pub stroke_smoothing: StrokeSmoothing,
     #[serde(default, rename = "lineWidths")]
     pub line_widths: LineWidthsConfig,
+    #[serde(default = "default_width_presets", rename = "widthPresets")]
+    pub width_presets: Vec<u32>,
     #[serde(default = "default_auto_start", rename = "autoStart")]
     pub auto_start: bool,
     #[serde(default, rename = "theme")]
@@ -215,6 +233,7 @@ impl Default for GeneralConfig {
             crosshair_cursor_style: CrosshairCursorStyle::Crosshair,
             stroke_smoothing: StrokeSmoothing::Standard,
             line_widths: LineWidthsConfig::default(),
+            width_presets: default_width_presets(),
             auto_start: default_auto_start(),
             theme: ThemePreference::Dark,
         }
@@ -278,7 +297,8 @@ impl GeneralConfig {
         ) {
             self.stroke_smoothing = StrokeSmoothing::Standard;
         }
-        self.line_widths = self.line_widths.normalized();
+        self.width_presets = normalize_width_presets(&self.width_presets);
+        self.line_widths = self.line_widths.normalized_with(&self.width_presets);
         self
     }
 }
@@ -829,25 +849,58 @@ mod tests {
     fn general_config_defaults_line_widths() {
         let general = GeneralConfig::default();
         assert_eq!(general.line_widths, LineWidthsConfig::default());
-        assert_eq!(general.line_widths.stroke, 3);
+        assert_eq!(general.width_presets, vec![2, 4, 6, 10, 16]);
+        // Default width = middle preset (M).
+        assert_eq!(general.line_widths.stroke, 6);
     }
 
     #[test]
-    fn normalized_clamps_invalid_line_widths() {
+    fn normalized_snaps_line_widths_to_closest_preset() {
         let general = GeneralConfig {
             line_widths: LineWidthsConfig {
-                stroke: 4,
+                stroke: 5,
                 highlighter: 0,
                 eraser: 99,
-                text: 5,
+                text: 12,
             },
             ..GeneralConfig::default()
         };
         let normalized = general.normalized();
-        assert_eq!(normalized.line_widths.stroke, 3);
+        // Presets [2,4,6,10,16]: 5→6 (tie prefers larger), 0→2, 99→16, 12→10.
+        assert_eq!(normalized.line_widths.stroke, 6);
+        assert_eq!(normalized.line_widths.highlighter, 2);
+        assert_eq!(normalized.line_widths.eraser, 16);
+        assert_eq!(normalized.line_widths.text, 10);
+    }
+
+    #[test]
+    fn normalized_snaps_line_widths_to_custom_presets() {
+        let general = GeneralConfig {
+            width_presets: vec![1, 3, 5, 7, 9],
+            line_widths: LineWidthsConfig {
+                stroke: 16,
+                highlighter: 2,
+                eraser: 6,
+                text: 8,
+            },
+            ..GeneralConfig::default()
+        };
+        let normalized = general.normalized();
+        assert_eq!(normalized.width_presets, vec![1, 3, 5, 7, 9]);
+        // 16→9 (upper clamp); 2/6/8 sit between two presets — ties prefer the larger.
+        assert_eq!(normalized.line_widths.stroke, 9);
         assert_eq!(normalized.line_widths.highlighter, 3);
-        assert_eq!(normalized.line_widths.eraser, 3);
-        assert_eq!(normalized.line_widths.text, 5);
+        assert_eq!(normalized.line_widths.eraser, 7);
+        assert_eq!(normalized.line_widths.text, 9);
+    }
+
+    #[test]
+    fn invalid_width_presets_fall_back_to_defaults() {
+        let general = GeneralConfig {
+            width_presets: vec![1, 2, 3],
+            ..GeneralConfig::default()
+        };
+        assert_eq!(general.normalized().width_presets, vec![2, 4, 6, 10, 16]);
     }
 
     #[test]

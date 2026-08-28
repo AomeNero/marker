@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue'
-import { Undo2, Redo2, Trash2, Layout, Copy, MoreHorizontal, ChevronUp, MousePointer2, Pin, X, Pen } from '@lucide/vue'
+import { Undo2, Redo2, Trash2, Layout, Copy, MousePointer2, X, ChevronDown } from '@lucide/vue'
 import type { Tool } from '../composables/useDrawing'
-import { isMacOS } from '../utils/platform'
 import { useI18n } from '../i18n'
-import { DRAWING_TOOL_DEFS, SELECT_TOOL_DEF, WIDTH_PRESETS } from '../constants/tools'
+import {
+  SELECT_TOOL_DEF,
+  WIDTH_PRESET_LABEL_KEYS,
+  getWidthPresets,
+  PEN_GROUP_TOOLS,
+  PEN_GROUP_DEFAULT,
+  SHAPE_GROUP_TOOLS,
+  SHAPE_GROUP_DEFAULT,
+  toolbarGroupOf,
+  toolDefOf,
+  TOOL_ICON_MAP,
+} from '../constants/tools'
 import { COLOR_ROWS } from '../constants/colors'
 import {
   TEXT_OUTLINE_WIDTH_PRESETS,
@@ -12,23 +22,22 @@ import {
   resolveTextOutlineColor,
   resolveAutoTextOutlineColor,
 } from '../constants/textOutline'
-import { loadToolbarPosition, saveToolbarPosition, clampToolbarWindowPosition } from '../utils/toolbarPosition'
+import { saveToolbarPosition, clampToolbarWindowPosition } from '../utils/toolbarPosition'
 import {
   fitToolbarWindow,
   measureToolbarPanelHeight,
   fetchOverlayMonitorBounds,
-  getToolbarWindowScreenOrigin,
   refreshToolbarWindowScreenOrigin,
   repositionToolbarAfterHeightChange,
   getToolbarPanelHeight,
   TOOLBAR_PANEL_WIDTH,
 } from '../utils/toolbarWindow'
 import type { MonitorLogicalBounds } from '../utils/toolbarPosition'
-import { isPointerOverPanelRect } from '../utils/toolbarPanelHover'
 import { LogicalPosition } from '@tauri-apps/api/dpi'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import type { TextOutlineStyle } from '../composables/drawingTypes'
+import { isMacOS } from '../utils/platform'
 
 const { t } = useI18n()
 
@@ -44,8 +53,6 @@ const props = defineProps<{
   canUndo: boolean
   canRedo: boolean
   canClear: boolean
-  anchorX: number
-  anchorY: number
   pointerX: number
   pointerY: number
 }>()
@@ -62,39 +69,74 @@ const emit = defineEmits<{
   toggleWhiteboard: []
   copy: []
   togglePenetration: []
-  togglePin: []
   exitDrawing: []
   panelHover: [hovering: boolean]
   panelDrag: [dragging: boolean]
 }>()
 
-const tools = computed(() => DRAWING_TOOL_DEFS.map((d) => ({ ...d, label: t(`tools.${d.id}`) })))
+const eraserDef = computed(() => ({ ...toolDefOf('eraser'), label: t('tools.eraser') }))
+const textDef = computed(() => ({ ...toolDefOf('text'), label: t('tools.text') }))
 const selectToolLabel = computed(() => t(`tools.${SELECT_TOOL_DEF.id}`))
 const selectToolTitle = computed(() => `${selectToolLabel.value} (${SELECT_TOOL_DEF.key})`)
 const colors = COLOR_ROWS
 const simpleColors = computed(() => colors[0] ?? [])
-const widths = computed(() => WIDTH_PRESETS.map((v) => ({ value: v, label: t(`widths.${v}`) })))
-const outlineWidths = computed(() => TEXT_OUTLINE_WIDTH_PRESETS.map((v) => ({ value: v, label: t(`widths.${v}`) })))
+const widths = computed(() =>
+  getWidthPresets().map((v, i) => ({ value: v, label: t(`widths.${WIDTH_PRESET_LABEL_KEYS[i] ?? 'm'}`) })),
+)
+const outlineWidths = computed(() =>
+  TEXT_OUTLINE_WIDTH_PRESETS.map((_, i) => ({ value: TEXT_OUTLINE_WIDTH_PRESETS[i], label: t(`widths.${WIDTH_PRESET_LABEL_KEYS[i] ?? 'm'}`) })),
+)
 const outlinePreviewColor = computed(() => resolveTextOutlineColor(props.textOutline, props.currentColor))
 const customOutlineColor = computed(() => normalizeTextOutline(props.textOutline).color)
 
-const expanded = ref(false)
-const showFullPanel = computed(() => expanded.value)
+// --- collapsed tool groups -------------------------------------------------
+// Which flyout is open (mutually exclusive): a tool-group menu or the settings panel.
+type MenuKind = 'pen' | 'shape' | 'settings'
+const openMenu = ref<MenuKind | null>(null)
 
-// Keep compact and expanded states the same width so the standalone toolbar never jumps sideways.
-const PANEL_WIDTH = TOOLBAR_PANEL_WIDTH
-const panelW = computed(() => PANEL_WIDTH)
-/** White ✓ on dark swatches; black ✓ on light ones. */
-function needsWhiteCheck(color: string): boolean {
-  return resolveAutoTextOutlineColor(color) === '#FFFFFF'
+/** Last-used sub-tool shown on each collapsed group button. */
+const lastPenTool = ref<Tool>(PEN_GROUP_DEFAULT)
+const lastShapeTool = ref<Tool>(SHAPE_GROUP_DEFAULT)
+
+watch(
+  () => props.currentTool,
+  (tool) => {
+    const group = toolbarGroupOf(tool)
+    if (group === 'pen') lastPenTool.value = tool
+    else if (group === 'shape') lastShapeTool.value = tool
+    // Switching to a standalone tool (eraser/text/select) closes any open flyout.
+    if (!group && openMenu.value && openMenu.value !== 'settings') openMenu.value = null
+  },
+  { immediate: true },
+)
+
+const penGroupTools = computed(() => PEN_GROUP_TOOLS.map((id) => ({ ...toolDefOf(id), label: t(`tools.${id}`) })))
+const shapeGroupTools = computed(() => SHAPE_GROUP_TOOLS.map((id) => ({ ...toolDefOf(id), label: t(`tools.${id}`) })))
+const penGroupIcon = computed(() => TOOL_ICON_MAP[lastPenTool.value])
+const shapeGroupIcon = computed(() => TOOL_ICON_MAP[lastShapeTool.value])
+const penGroupActive = computed(() => toolbarGroupOf(props.currentTool) === 'pen')
+const shapeGroupActive = computed(() => toolbarGroupOf(props.currentTool) === 'shape')
+const penGroupTitle = computed(() => `${t(`tools.${lastPenTool.value}`)} (${toolDefOf(lastPenTool.value).key})`)
+const shapeGroupTitle = computed(() => `${t(`tools.${lastShapeTool.value}`)} (${toolDefOf(lastShapeTool.value).key})`)
+
+function toggleMenu(menu: MenuKind) {
+  openMenu.value = openMenu.value === menu ? null : menu
 }
 
 function selectTool(tool: Tool) {
   emit('selectTool', tool)
+  openMenu.value = null
 }
 
 function selectColor(color: string) {
   emit('selectColor', color)
+  openMenu.value = null
+}
+
+/** Any completed action in the settings flyout returns to the bar. */
+function onCopyClick() {
+  emit('copy')
+  openMenu.value = null
 }
 
 function updateWidth(width: number) {
@@ -109,33 +151,16 @@ function updateCustomTextOutlineColor(color: string) {
   updateTextOutline({ enabled: true, colorMode: 'fixed', color })
 }
 
-function toggleExpanded() {
-  expanded.value = !expanded.value
-  // Click target is inside the panel — keep overlay custom cursor suppressed during resize.
-  emitPanelHover(true)
-  nextTick(() => {
-    initPosition()
-    scheduleSyncStandaloneWindowSize()
-  })
+/** White ✓ on dark swatches; black ✓ on light ones. */
+function needsWhiteCheck(color: string): boolean {
+  return resolveAutoTextOutlineColor(color) === '#FFFFFF'
 }
 
 const panelRef = ref<HTMLDivElement | null>(null)
-const panelLeft = ref(0)
-const panelTop = ref(0)
+/** Panel width follows content (flyouts are narrower than the bar, so it stays constant). */
+const panelW = ref(TOOLBAR_PANEL_WIDTH)
 const positioned = ref(false)
 const isDragging = ref(false)
-const dragOffset = ref({ x: 0, y: 0 })
-
-function clampPosition(left: number, top: number, panelH: number) {
-  if (props.standaloneWindow) {
-    return { left: 0, top: 0 }
-  }
-  const w = panelW.value
-  return {
-    left: Math.max(12, Math.min(left, window.innerWidth - w - 12)),
-    top: Math.max(12, Math.min(top, window.innerHeight - panelH - 12)),
-  }
-}
 
 let syncSizeGeneration = 0
 let syncSizeRafId: number | null = null
@@ -146,7 +171,8 @@ async function syncStandaloneWindowSize() {
   const generation = ++syncSizeGeneration
   await nextTick()
   if (generation !== syncSizeGeneration || !panelRef.value) return
-  const width = panelW.value
+  const width = Math.ceil(panelRef.value.getBoundingClientRect().width)
+  panelW.value = width
   let oldHeight = getToolbarPanelHeight()
   try {
     const win = getCurrentWindow()
@@ -174,16 +200,11 @@ function emitPanelHover(hovering: boolean) {
   emit('panelHover', hovering)
 }
 
-function probePanelHoverAtScreen(screenX: number, screenY: number) {
-  if (!props.standaloneWindow || !panelRef.value || !positioned.value) return
+function probePanelHoverAtScreen(_screenX: number, _screenY: number) {
   // Standalone toolbar: screen-space probe disagrees with pointer enter/leave on
   // multi-monitor / mixed-DPI setups and spuriously hides the overlay pen cursor.
   // Hover is driven by pointer enter/leave on the panel; the overlay clears stale
   // hover when the pointer moves on the canvas (see DrawingOverlay).
-  if (props.standaloneWindow) return
-  const r = panelRef.value.getBoundingClientRect()
-  const origin = getToolbarWindowScreenOrigin()
-  emitPanelHover(isPointerOverPanelRect(screenX, screenY, origin.x, origin.y, r))
 }
 
 function scheduleSyncStandaloneWindowSize() {
@@ -211,30 +232,6 @@ function syncPanelHover() {
 
 function initPosition() {
   nextTick(() => {
-    const panelH = panelRef.value?.offsetHeight ?? 400
-    let left: number
-    let top: number
-    if (props.pinned) {
-      if (!props.standaloneWindow) {
-        const saved = loadToolbarPosition(props.standaloneWindow)
-        if (saved) {
-          left = saved.left
-          top = saved.top
-        } else {
-          left = 12
-          top = 12
-        }
-      } else {
-        left = 0
-        top = 0
-      }
-    } else {
-      left = props.anchorX - panelW.value / 2
-      top = props.anchorY - panelH / 2
-    }
-    const clamped = clampPosition(left, top, panelH)
-    panelLeft.value = clamped.left
-    panelTop.value = clamped.top
     positioned.value = true
     if (props.standaloneWindow && isMacOS()) {
       void refreshToolbarWindowScreenOrigin()
@@ -244,9 +241,7 @@ function initPosition() {
   })
 }
 
-let cachedPanelH = 400
-let lastDragX = 0
-let lastDragY = 0
+let cachedPanelH = 46
 let lastScreenX = 0
 let lastScreenY = 0
 let dragRafId: number | null = null
@@ -267,27 +262,17 @@ function scheduleDragUpdate() {
   dragRafId = requestAnimationFrame(() => {
     dragRafId = null
     if (!isDragging.value) return
-    if (props.standaloneWindow) {
-      const panelH = panelRef.value ? measureToolbarPanelHeight(panelRef.value) : cachedPanelH
-      const rawLeft = lastScreenX - windowDragOffset.x
-      const rawTop = lastScreenY - windowDragOffset.y
-      const clamped = clampStandaloneWindowPosition(rawLeft, rawTop, panelH)
-      void getCurrentWindow().setPosition(new LogicalPosition(clamped.left, clamped.top))
-      return
-    }
-    const w = panelW.value
-    panelLeft.value = Math.max(0, Math.min(lastDragX - dragOffset.value.x, window.innerWidth - w))
-    panelTop.value = Math.max(0, Math.min(lastDragY - dragOffset.value.y, window.innerHeight - cachedPanelH))
+    const panelH = panelRef.value ? measureToolbarPanelHeight(panelRef.value) : cachedPanelH
+    const rawLeft = lastScreenX - windowDragOffset.x
+    const rawTop = lastScreenY - windowDragOffset.y
+    const clamped = clampStandaloneWindowPosition(rawLeft, rawTop, panelH)
+    void getCurrentWindow().setPosition(new LogicalPosition(clamped.left, clamped.top))
   })
 }
 
-function onDrawingModeClick() {
-  if (props.whiteboardMode || !props.penetrationMode) return
-  emit('togglePenetration')
-}
-
+/** Single click-through button toggles both ways (drawing ⇄ penetration). */
 function onPenetrationModeClick() {
-  if (props.whiteboardMode || props.penetrationMode) return
+  if (props.whiteboardMode) return
   emit('togglePenetration')
 }
 
@@ -300,30 +285,18 @@ function startDrag(e: PointerEvent) {
   captureTarget = e.currentTarget as HTMLElement
   captureTarget.setPointerCapture(e.pointerId)
   e.preventDefault()
-  lastDragX = e.clientX
-  lastDragY = e.clientY
   lastScreenX = e.screenX
   lastScreenY = e.screenY
-  if (props.standaloneWindow) {
-    windowDragOffset = { x: e.clientX, y: e.clientY }
-    dragMonitorBounds = null
-    void fetchOverlayMonitorBounds().then((bounds) => {
-      dragMonitorBounds = bounds
-    })
-    return
-  }
-  cachedPanelH = panelRef.value?.offsetHeight ?? 400
-  dragOffset.value = {
-    x: e.clientX - panelLeft.value,
-    y: e.clientY - panelTop.value,
-  }
+  windowDragOffset = { x: e.clientX, y: e.clientY }
+  dragMonitorBounds = null
+  void fetchOverlayMonitorBounds().then((bounds) => {
+    dragMonitorBounds = bounds
+  })
 }
 
 function onPointerMove(e: PointerEvent) {
   if (!isDragging.value) return
   if (dragPointerId !== null && e.pointerId !== dragPointerId) return
-  lastDragX = e.clientX
-  lastDragY = e.clientY
   lastScreenX = e.screenX
   lastScreenY = e.screenY
   scheduleDragUpdate()
@@ -351,30 +324,28 @@ function stopDrag(e?: PointerEvent) {
   }
   releaseDragCapture()
   emit('panelDrag', false)
-  if (props.standaloneWindow) {
-    dragMonitorBounds = null
-    void (async () => {
-      const win = getCurrentWindow()
-      const [pos, scale] = await Promise.all([win.outerPosition(), win.scaleFactor()])
-      const logical = pos.toLogical(scale)
-      saveToolbarPosition(logical.x, logical.y, true)
-      await invoke('raise_toolbar')
-      if (isMacOS()) {
-        await refreshToolbarWindowScreenOrigin()
-      }
-    })()
-    syncPanelHover()
-    return
-  }
-  if (props.pinned) {
-    saveToolbarPosition(panelLeft.value, panelTop.value, props.standaloneWindow)
-  }
+  dragMonitorBounds = null
+  void (async () => {
+    const win = getCurrentWindow()
+    const [pos, scale] = await Promise.all([win.outerPosition(), win.scaleFactor()])
+    const logical = pos.toLogical(scale)
+    saveToolbarPosition(logical.x, logical.y, true)
+    await invoke('raise_toolbar')
+    if (isMacOS()) {
+      await refreshToolbarWindowScreenOrigin()
+    }
+  })()
   syncPanelHover()
 }
 
 function onPanelPointerLeave() {
   if (isDragging.value) return
   emitPanelHover(false)
+}
+
+/** Clicking outside the toolbar window (e.g. drawing on the canvas) collapses flyouts. */
+function closeMenuOnBlur() {
+  openMenu.value = null
 }
 
 function stopDragOnBlur() {
@@ -384,18 +355,17 @@ function stopDragOnBlur() {
 defineExpose({ syncPanelHover, syncStandaloneWindowSize, probePanelHoverAtScreen })
 
 watch(
-  () => [props.pinned, props.standaloneWindow] as const,
+  () => props.pinned,
   () => {
-    expanded.value = false
+    openMenu.value = null
     positioned.value = false
     initPosition()
   },
 )
 
-watch(panelW, () => {
-  if (props.standaloneWindow && positioned.value) {
-    scheduleSyncStandaloneWindowSize()
-  }
+watch(openMenu, () => {
+  // Flyout open/close changes panel height — resize the window and keep the bar anchored.
+  scheduleSyncStandaloneWindowSize()
 })
 
 watch(
@@ -411,6 +381,7 @@ onMounted(() => {
   window.addEventListener('pointerup', stopDrag)
   window.addEventListener('pointercancel', stopDrag)
   window.addEventListener('blur', stopDragOnBlur)
+  window.addEventListener('blur', closeMenuOnBlur)
   if (props.standaloneWindow && typeof ResizeObserver !== 'undefined') {
     panelResizeObserver = new ResizeObserver(() => scheduleSyncStandaloneWindowSize())
     nextTick(() => {
@@ -432,6 +403,7 @@ onUnmounted(() => {
   window.removeEventListener('pointerup', stopDrag)
   window.removeEventListener('pointercancel', stopDrag)
   window.removeEventListener('blur', stopDragOnBlur)
+  window.removeEventListener('blur', closeMenuOnBlur)
   stopDrag()
   if (dragRafId !== null) {
     cancelAnimationFrame(dragRafId)
@@ -441,366 +413,111 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    class="z-100001"
-    :class="
-      standaloneWindow
-        ? 'block w-fit h-fit overflow-hidden'
-        : ['fixed top-0 left-0 w-screen h-screen', pinned ? 'pointer-events-none' : '']
-    "
-    @mousedown.self="!pinned && !standaloneWindow && emit('close')"
-  >
+  <div class="block w-fit h-fit overflow-hidden">
     <div
       ref="panelRef"
-      :class="standaloneWindow ? 'relative' : 'absolute left-0 top-0'"
-      :style="
-        standaloneWindow
-          ? { width: panelW + 'px' }
-          : {
-              width: panelW + 'px',
-              transform: `translate3d(${panelLeft}px,${panelTop}px,0)`,
-              willChange: isDragging ? 'transform' : 'auto',
-              opacity: positioned ? 1 : 0,
-            }
-      "
-      @mousedown.stop
+      class="relative"
+      style="width: fit-content"
       @pointerenter="emitPanelHover(true)"
       @pointerleave="onPanelPointerLeave"
     >
+      <!-- Flyouts render above the bar (in-flow so the window grows upward). -->
       <div
-        class="overlay-panel-surface w-full"
-        :class="standaloneWindow ? 'overlay-panel overlay-panel--standalone' : 'overlay-panel'"
+        v-if="openMenu === 'pen' || openMenu === 'shape'"
+        class="overlay-panel overlay-panel-surface mb-1.5 px-2 py-2"
       >
-        <div
-          class="h-2.5 cursor-grab active:cursor-grabbing"
-          :class="isDragging ? 'cursor-grabbing' : ''"
-          @pointerdown="startDrag"
-        />
-
-        <!-- Actions — same size/gap as compact tools row -->
-        <div class="px-3 pt-1 pb-2">
-          <div class="flex items-center justify-between">
-            <button
-              v-if="standaloneWindow"
-              type="button"
-              class="overlay-toolbar-action"
-              :class="!penetrationMode ? 'overlay-toolbar-action--active' : ''"
-              :title="t('toolbar.drawingMode')"
-              :aria-label="t('toolbar.drawingMode')"
-              :aria-pressed="!penetrationMode"
-              :disabled="whiteboardMode"
-              @click="onDrawingModeClick"
-            >
-              <Pen :size="15" />
-            </button>
-            <button
-              v-if="standaloneWindow"
-              type="button"
-              class="overlay-toolbar-action"
-              :class="penetrationMode ? 'overlay-toolbar-action--active' : ''"
-              :title="t('toolbar.penetrationMode')"
-              :aria-label="t('toolbar.penetrationMode')"
-              :aria-pressed="!!penetrationMode"
-              :disabled="whiteboardMode"
-              @click="onPenetrationModeClick"
-            >
-              <MousePointer2 :size="15" />
-            </button>
-            <button
-              type="button"
-              class="overlay-toolbar-action"
-              :class="currentTool === 'select' ? 'overlay-toolbar-action--active' : ''"
-              :title="selectToolTitle"
-              :aria-label="selectToolTitle"
-              :aria-pressed="currentTool === 'select'"
-              @click="selectTool('select')"
-            >
-              <component :is="SELECT_TOOL_DEF.icon" :size="15" />
-            </button>
-            <button
-              type="button"
-              class="overlay-toolbar-action"
-              :disabled="!canUndo"
-              :title="t('toolbar.undo')"
-              :aria-label="t('toolbar.undo')"
-              @click="emit('undo')"
-            >
-              <Undo2 :size="15" />
-            </button>
-            <button
-              type="button"
-              class="overlay-toolbar-action"
-              :disabled="!canRedo"
-              :title="t('toolbar.redo')"
-              :aria-label="t('toolbar.redo')"
-              @click="emit('redo')"
-            >
-              <Redo2 :size="15" />
-            </button>
-            <button
-              type="button"
-              class="overlay-toolbar-action"
-              :disabled="!canClear"
-              :title="t('toolbar.clear')"
-              :aria-label="t('toolbar.clear')"
-              @click="emit('clearAll')"
-            >
-              <Trash2 :size="15" />
-            </button>
-            <button
-              type="button"
-              class="overlay-toolbar-action"
-              :class="whiteboardMode ? 'overlay-toolbar-action--active' : ''"
-              :title="whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')"
-              :aria-label="whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')"
-              @click="emit('toggleWhiteboard')"
-            >
-              <Layout :size="15" />
-            </button>
-            <button
-              type="button"
-              class="overlay-toolbar-action"
-              :title="t('toolbar.copy')"
-              :aria-label="t('toolbar.copy')"
-              @click="emit('copy')"
-            >
-              <Copy :size="15" />
-            </button>
-            <button
-              v-if="standaloneWindow"
-              type="button"
-              class="overlay-toolbar-action"
-              :class="pinned ? 'overlay-toolbar-action--active' : ''"
-              :title="pinned ? t('toolbar.unpin') : t('toolbar.pin')"
-              :aria-label="pinned ? t('toolbar.unpin') : t('toolbar.pin')"
-              :aria-pressed="pinned"
-              @click="emit('togglePin')"
-            >
-              <Pin :size="15" />
-            </button>
-            <button
-              v-if="standaloneWindow"
-              type="button"
-              class="overlay-toolbar-action"
-              :title="t('toolbar.exit')"
-              :aria-label="t('toolbar.exit')"
-              @click="emit('exitDrawing')"
-            >
-              <X :size="15" />
-            </button>
-          </div>
+        <div class="flex items-center gap-1">
+          <button
+            v-for="tool in openMenu === 'pen' ? penGroupTools : shapeGroupTools"
+            :key="tool.id"
+            type="button"
+            class="overlay-flyout-tool"
+            :class="currentTool === tool.id ? 'overlay-tool-btn--active' : 'overlay-tool-btn'"
+            :aria-label="`${tool.label} (${tool.key})`"
+            :aria-pressed="currentTool === tool.id"
+            :title="`${tool.label} (${tool.key})`"
+            @click="selectTool(tool.id)"
+          >
+            <component :is="tool.icon" :size="16" />
+            <span class="text-[10.5px] leading-none font-sans">{{ tool.label }}</span>
+          </button>
         </div>
+      </div>
 
-        <!-- Simple compact tools -->
-        <div v-if="!showFullPanel" class="px-3 pb-2">
-          <div class="flex items-center justify-between">
-            <button
-              v-for="tool in tools"
-              :key="tool.id"
-              :aria-label="`${tool.label} (${tool.key})`"
-              :aria-pressed="currentTool === tool.id"
-              class="overlay-toolbar-action"
-              :class="currentTool === tool.id ? 'overlay-tool-btn--active' : 'overlay-tool-btn'"
-              :title="`${tool.label} (${tool.key})`"
-              @click="selectTool(tool.id)"
+      <div
+        v-else-if="openMenu === 'settings'"
+        class="overlay-panel overlay-panel-surface mb-1.5 px-3 py-2.5"
+        style="width: 260px"
+      >
+        <!-- Colors -->
+        <div class="flex items-center justify-between pb-2.5">
+          <button
+            v-for="color in simpleColors"
+            :key="color"
+            class="size-7 p-0 border-none rounded-full bg-transparent cursor-pointer relative flex items-center justify-center transition-transform duration-120"
+            :class="currentColor === color ? 'scale-[1.18]' : 'hover:scale-[1.18]'"
+            :title="t(`colors.${color}`)"
+            @click="selectColor(color)"
+          >
+            <span
+              class="w-5.5 h-5.5 rounded-full color-swatch-ring transition-[border-color] duration-120"
+              :class="{ 'color-swatch-ring--active': currentColor === color }"
+              :style="{ backgroundColor: color }"
+            />
+            <span
+              v-if="currentColor === color"
+              class="absolute text-[11px] font-bold pointer-events-none"
+              :class="
+                needsWhiteCheck(color)
+                  ? 'text-white [text-shadow:0_0_2px_rgba(0,0,0,0.5)]'
+                  : 'text-black [text-shadow:0_0_2px_rgba(255,255,255,0.5)]'
+              "
+              >✓</span
             >
-              <component :is="tool.icon" :size="15" />
-            </button>
-          </div>
-        </div>
-
-        <!-- Detailed tools -->
-        <div v-else class="px-3.5 pt-0 pb-2.5">
-          <div class="flex items-center justify-between mb-2 cursor-default" @pointerdown="startDrag">
-            <span class="text-[11px] font-semibold overlay-text-section tracking-[0.5px] font-sans">{{
-              t('panel.tools')
-            }}</span>
-            <span class="text-[10px] overlay-text-hint font-sans">{{ t('panel.toolsHint') }}</span>
-          </div>
-          <div class="grid grid-cols-5 gap-1">
-            <button
-              v-for="tool in tools"
-              :key="tool.id"
-              :aria-label="`${tool.label} (${tool.key})`"
-              :aria-pressed="currentTool === tool.id"
-              class="flex flex-col items-center gap-0.75 pt-2 px-0.5 pb-1.5 border-none rounded-[10px] cursor-pointer relative transition-all duration-150"
-              :class="currentTool === tool.id ? 'overlay-tool-btn--active' : 'overlay-tool-btn'"
-              :title="`${tool.label} (${tool.key})`"
-              @click="selectTool(tool.id)"
+          </button>
+          <label
+            class="size-7 p-0 border-none rounded-full bg-transparent cursor-pointer relative flex items-center justify-center transition-transform duration-120 hover:scale-[1.18]"
+            :title="t('panel.customColor')"
+            :aria-label="t('panel.customColor')"
+          >
+            <input
+              type="color"
+              class="absolute w-0 h-0 opacity-0 pointer-events-none"
+              :value="currentColor"
+              @input="selectColor(($event.target as HTMLInputElement).value)"
+            />
+            <span
+              class="w-5.5 h-5.5 rounded-full color-picker-ring pointer-events-none flex items-center justify-center shadow-[inset_0_0_2px_rgba(0,0,0,0.5)]"
+              style="
+                background: conic-gradient(
+                  from 90deg,
+                  #ff0000,
+                  #ff8000,
+                  #ffff00,
+                  #80ff00,
+                  #00ff00,
+                  #00ff80,
+                  #00ffff,
+                  #0080ff,
+                  #0000ff,
+                  #8000ff,
+                  #ff00ff,
+                  #ff0080,
+                  #ff0000
+                );
+              "
             >
-              <component :is="tool.icon" :size="18" />
-              <span class="text-[10px] leading-none font-sans">{{ tool.label }}</span>
               <span
-                class="absolute top-0.75 right-1.25 text-[8px] font-sans"
-                :class="currentTool === tool.id ? 'overlay-text-key--active' : 'overlay-text-key'"
-                >{{ tool.key }}</span
+                class="text-white text-[11px] leading-none font-light"
+                style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6)"
+                >+</span
               >
-            </button>
-          </div>
+            </span>
+          </label>
         </div>
 
-        <!-- Simple colors -->
-        <div v-if="!showFullPanel" class="px-3 py-2 ui-divider-h">
-          <div class="flex items-center justify-between">
-            <button
-              v-for="color in simpleColors"
-              :key="color"
-              class="size-7 p-0 border-none rounded-full bg-transparent cursor-pointer relative flex items-center justify-center transition-transform duration-120"
-              :class="currentColor === color ? 'scale-[1.18]' : 'hover:scale-[1.18]'"
-              :title="t(`colors.${color}`)"
-              @click="selectColor(color)"
-            >
-              <span
-                class="w-5.5 h-5.5 rounded-full color-swatch-ring transition-[border-color] duration-120"
-                :class="{ 'color-swatch-ring--active': currentColor === color }"
-                :style="{ backgroundColor: color }"
-              />
-            </button>
-            <label
-              class="size-7 p-0 border-none rounded-full bg-transparent cursor-pointer relative flex items-center justify-center transition-transform duration-120 hover:scale-[1.18]"
-              :title="t('panel.customColor')"
-              :aria-label="t('panel.customColor')"
-            >
-              <input
-                type="color"
-                class="absolute w-0 h-0 opacity-0 pointer-events-none"
-                :value="currentColor"
-                @input="selectColor(($event.target as HTMLInputElement).value)"
-              />
-              <span
-                class="w-5.5 h-5.5 rounded-full color-picker-ring pointer-events-none flex items-center justify-center shadow-[inset_0_0_2px_rgba(0,0,0,0.5)]"
-                style="
-                  background: conic-gradient(
-                    from 90deg,
-                    #ff0000,
-                    #ff8000,
-                    #ffff00,
-                    #80ff00,
-                    #00ff00,
-                    #00ff80,
-                    #00ffff,
-                    #0080ff,
-                    #0000ff,
-                    #8000ff,
-                    #ff00ff,
-                    #ff0080,
-                    #ff0000
-                  );
-                "
-              >
-                <span
-                  class="text-white text-[11px] leading-none font-light"
-                  style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6)"
-                  >+</span
-                >
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Detailed colors -->
-        <div v-else class="px-3.5 py-2.5 ui-divider-h">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-[11px] font-semibold overlay-text-section tracking-[0.5px] font-sans">{{
-              t('panel.colors')
-            }}</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <button
-              v-for="color in simpleColors"
-              :key="color"
-              class="w-7.5 h-7.5 p-0 border-none rounded-full bg-transparent cursor-pointer relative flex items-center justify-center transition-transform duration-120"
-              :class="currentColor === color ? 'scale-[1.18]' : 'hover:scale-[1.18]'"
-              :title="t(`colors.${color}`)"
-              @click="selectColor(color)"
-            >
-              <span
-                class="w-6 h-6 rounded-full color-swatch-ring transition-[border-color] duration-120"
-                :class="{ 'color-swatch-ring--active': currentColor === color }"
-                :style="{ backgroundColor: color }"
-              />
-              <span
-                v-if="currentColor === color"
-                class="absolute text-[11px] font-bold pointer-events-none"
-                :class="
-                  needsWhiteCheck(color)
-                    ? 'text-white [text-shadow:0_0_2px_rgba(0,0,0,0.5)]'
-                    : 'text-black [text-shadow:0_0_2px_rgba(255,255,255,0.5)]'
-                "
-                >✓</span
-              >
-            </button>
-            <label
-              class="w-7.5 h-7.5 p-0 border-none rounded-full bg-transparent cursor-pointer relative flex items-center justify-center transition-transform duration-120 hover:scale-[1.18]"
-              :title="t('panel.customColor')"
-              :aria-label="t('panel.customColor')"
-            >
-              <input
-                type="color"
-                class="absolute w-0 h-0 opacity-0 pointer-events-none"
-                :value="currentColor"
-                @input="selectColor(($event.target as HTMLInputElement).value)"
-              />
-              <span
-                class="w-6 h-6 rounded-full color-picker-ring pointer-events-none flex items-center justify-center shadow-[inset_0_0_2px_rgba(0,0,0,0.5)]"
-                style="
-                  background: conic-gradient(
-                    from 90deg,
-                    #ff0000,
-                    #ff8000,
-                    #ffff00,
-                    #80ff00,
-                    #00ff00,
-                    #00ff80,
-                    #00ffff,
-                    #0080ff,
-                    #0000ff,
-                    #8000ff,
-                    #ff00ff,
-                    #ff0080,
-                    #ff0000
-                  );
-                "
-              >
-                <span
-                  class="text-white text-sm leading-none font-light"
-                  style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6)"
-                  >+</span
-                >
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Stroke width -->
-        <div class="py-2.5 ui-divider-h" :class="showFullPanel ? 'px-3.5' : 'px-3'">
-          <div v-if="showFullPanel" class="flex items-center justify-between mb-2">
-            <span class="text-[11px] font-semibold overlay-text-section tracking-[0.5px] font-sans">{{
-              t('panel.strokeWidth')
-            }}</span>
-          </div>
-          <div class="flex gap-1">
-            <button
-              v-for="w in widths"
-              :key="w.value"
-              class="group flex-1 flex items-center justify-center h-8 border-none rounded-lg cursor-pointer transition-all duration-120"
-              :class="lineWidth === w.value ? 'overlay-width-btn--active' : 'overlay-width-btn'"
-              :title="w.label"
-              @click="updateWidth(w.value)"
-            >
-              <span
-                class="w-[70%] rounded-full transition-transform duration-120 group-hover:scale-x-110"
-                :class="lineWidth === w.value ? 'overlay-width-line--active' : 'overlay-width-line'"
-                :style="{
-                  height: Math.max(1.5, w.value * 1.2) + 'px',
-                }"
-              />
-            </button>
-          </div>
-        </div>
-
-        <!-- Text outline -->
-        <div v-if="showFullPanel && currentTool === 'text'" class="px-3.5 py-2.5 ui-divider-h">
+        <!-- Text outline (text tool only) -->
+        <div v-if="currentTool === 'text'" class="pt-2.5 ui-divider-h">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[11px] font-semibold overlay-text-section tracking-[0.5px] font-sans">{{
               t('panel.textOutline')
@@ -879,16 +596,188 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- More / collapse -->
-        <div class="pb-3" :class="showFullPanel ? 'px-3.5' : 'px-3'">
+        <!-- Copy -->
+        <div class="pt-2.5 ui-divider-h">
           <button
             type="button"
             class="w-full flex items-center justify-center gap-1.5 h-8 border-none rounded-lg cursor-pointer overlay-tool-btn text-[11px] font-sans"
-            @click="toggleExpanded"
+            :title="t('toolbar.copy')"
+            @click="onCopyClick"
           >
-            <component :is="expanded ? ChevronUp : MoreHorizontal" :size="14" />
-            {{ expanded ? t('toolbar.less') : t('toolbar.more') }}
+            <Copy :size="14" />
+            {{ t('toolbar.copy') }}
           </button>
+        </div>
+      </div>
+
+      <!-- One-line toolbar bar -->
+      <div class="overlay-panel overlay-panel-surface overlay-panel--standalone">
+        <div class="flex items-center gap-0.5 px-1.5 py-2" :class="isDragging ? 'cursor-grabbing' : ''" @mousedown.stop>
+          <!-- Drag grip -->
+          <div
+            class="toolbar-grip cursor-grab active:cursor-grabbing"
+            :class="isDragging ? 'cursor-grabbing' : ''"
+            title="⠿"
+            @pointerdown="startDrag"
+          />
+
+          <!-- Tools -->
+          <button
+            type="button"
+            class="overlay-toolbar-action"
+            :class="currentTool === 'select' ? 'overlay-toolbar-action--active' : ''"
+            :title="selectToolTitle"
+            :aria-label="selectToolTitle"
+            :aria-pressed="currentTool === 'select'"
+            @click="selectTool('select')"
+          >
+            <component :is="SELECT_TOOL_DEF.icon" :size="15" />
+          </button>
+          <button
+            type="button"
+            class="overlay-toolbar-action overlay-toolbar-flyout"
+            :class="penGroupActive ? 'overlay-tool-btn--active' : 'overlay-tool-btn'"
+            :title="penGroupTitle"
+            :aria-label="penGroupTitle"
+            :aria-pressed="penGroupActive"
+            :aria-expanded="openMenu === 'pen'"
+            @click="toggleMenu('pen')"
+          >
+            <component :is="penGroupIcon" :size="15" />
+            <ChevronDown class="toolbar-flyout-caret" :size="9" />
+          </button>
+          <button
+            type="button"
+            class="overlay-toolbar-action overlay-toolbar-flyout"
+            :class="shapeGroupActive ? 'overlay-tool-btn--active' : 'overlay-tool-btn'"
+            :title="shapeGroupTitle"
+            :aria-label="shapeGroupTitle"
+            :aria-pressed="shapeGroupActive"
+            :aria-expanded="openMenu === 'shape'"
+            @click="toggleMenu('shape')"
+          >
+            <component :is="shapeGroupIcon" :size="15" />
+            <ChevronDown class="toolbar-flyout-caret" :size="9" />
+          </button>
+          <button
+            v-for="tool in [eraserDef, textDef]"
+            :key="tool.id"
+            type="button"
+            class="overlay-toolbar-action"
+            :class="currentTool === tool.id ? 'overlay-tool-btn--active' : 'overlay-tool-btn'"
+            :aria-label="`${tool.label} (${tool.key})`"
+            :aria-pressed="currentTool === tool.id"
+            :title="`${tool.label} (${tool.key})`"
+            @click="selectTool(tool.id)"
+          >
+            <component :is="tool.icon" :size="15" />
+          </button>
+
+          <span class="ui-divider-v h-5.5 mx-1.5" />
+
+          <!-- Color + stroke width -->
+          <button
+            type="button"
+            class="overlay-toolbar-action overlay-toolbar-flyout"
+            :class="openMenu === 'settings' ? 'overlay-toolbar-action--active' : ''"
+            :title="t('panel.colors')"
+            :aria-label="t('panel.colors')"
+            :aria-expanded="openMenu === 'settings'"
+            @click="toggleMenu('settings')"
+          >
+            <span class="w-4 h-4 rounded-full color-swatch-ring" :style="{ backgroundColor: currentColor }" />
+            <ChevronDown class="toolbar-flyout-caret" :size="9" />
+          </button>
+          <button
+            v-for="w in widths"
+            :key="w.value"
+            type="button"
+            class="group overlay-width-btn"
+            :class="lineWidth === w.value ? 'overlay-width-btn--active' : ''"
+            :title="w.label"
+            :aria-pressed="lineWidth === w.value"
+            @click="updateWidth(w.value)"
+          >
+            <span
+              class="w-[70%] rounded-full transition-transform duration-120 group-hover:scale-x-110"
+              :class="lineWidth === w.value ? 'overlay-width-line--active' : 'overlay-width-line'"
+              :style="{ height: Math.max(1.5, w.value * 1.2) + 'px' }"
+            />
+          </button>
+
+          <span class="ui-divider-v h-5.5 mx-1.5" />
+
+          <!-- Edit actions -->
+          <button
+            type="button"
+            class="overlay-toolbar-action"
+            :disabled="!canUndo"
+            :title="t('toolbar.undo')"
+            :aria-label="t('toolbar.undo')"
+            @click="emit('undo')"
+          >
+            <Undo2 :size="15" />
+          </button>
+          <button
+            type="button"
+            class="overlay-toolbar-action"
+            :disabled="!canRedo"
+            :title="t('toolbar.redo')"
+            :aria-label="t('toolbar.redo')"
+            @click="emit('redo')"
+          >
+            <Redo2 :size="15" />
+          </button>
+          <button
+            type="button"
+            class="overlay-toolbar-action"
+            :disabled="!canClear"
+            :title="t('toolbar.clear')"
+            :aria-label="t('toolbar.clear')"
+            @click="emit('clearAll')"
+          >
+            <Trash2 :size="15" />
+          </button>
+
+          <span class="ui-divider-v h-5.5 mx-1.5" />
+
+          <!-- Mode -->
+          <button
+            type="button"
+            class="overlay-toolbar-action"
+            :class="whiteboardMode ? 'overlay-toolbar-action--active' : ''"
+            :title="whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')"
+            :aria-label="whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')"
+            @click="emit('toggleWhiteboard')"
+          >
+            <Layout :size="15" />
+          </button>
+          <button
+            v-if="standaloneWindow"
+            type="button"
+            class="overlay-toolbar-action"
+            :class="penetrationMode ? 'overlay-toolbar-action--active' : ''"
+            :title="t('toolbar.penetrationMode')"
+            :aria-label="t('toolbar.penetrationMode')"
+            :aria-pressed="!!penetrationMode"
+            :disabled="whiteboardMode"
+            @click="onPenetrationModeClick"
+          >
+            <MousePointer2 :size="15" />
+          </button>
+
+          <template v-if="standaloneWindow">
+            <span class="ui-divider-v h-5.5 mx-1.5" />
+            <button
+              type="button"
+              class="overlay-toolbar-action"
+              :title="t('toolbar.exit')"
+              :aria-label="t('toolbar.exit')"
+              @click="emit('exitDrawing')"
+            >
+              <X :size="15" />
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -896,13 +785,18 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Sharper corners for the toolbar bar and its flyouts (panel default is 16px). */
+.overlay-panel {
+  border-radius: 8px;
+}
+
 .overlay-toolbar-action {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: 9px;
   cursor: pointer;
@@ -950,5 +844,91 @@ onUnmounted(() => {
   background: var(--ui-accent-bg-active);
   color: var(--ui-tool-text-active);
   box-shadow: inset 0 0 0 1px var(--ui-accent-border);
+}
+
+/* Buttons that open a flyout carry a tiny caret. */
+.overlay-toolbar-flyout {
+  position: relative;
+}
+
+.toolbar-flyout-caret {
+  position: absolute;
+  right: 1px;
+  bottom: 0.5px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Stroke width buttons in the bar (compact geometry). */
+.overlay-width-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 30px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  background: var(--ui-control-bg-soft);
+  transition:
+    background 0.12s,
+    box-shadow 0.12s;
+}
+
+.overlay-width-btn:hover {
+  background: var(--ui-control-bg-hover);
+}
+
+.overlay-width-btn--active {
+  background: var(--ui-accent-bg-active);
+  box-shadow: inset 0 0 0 1px var(--ui-accent-border);
+}
+
+/* Flyout menu rows (icon + label). */
+.overlay-flyout-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  color: var(--ui-tool-text);
+  background: var(--ui-control-bg-soft);
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.overlay-flyout-tool.overlay-tool-btn:hover {
+  background: var(--ui-control-bg-hover);
+  color: var(--ui-tool-text-hover);
+}
+
+.overlay-flyout-tool.overlay-tool-btn--active {
+  background: var(--ui-accent-bg-active);
+  color: var(--ui-tool-text-active);
+  box-shadow: inset 0 0 0 1px var(--ui-accent-border);
+}
+
+/* Drag grip at the left end of the bar. */
+.toolbar-grip {
+  width: 12px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 4px 4px;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--ui-text-icon);
+  opacity: 0.4;
+  margin-right: 2px;
+}
+
+.toolbar-grip:hover {
+  opacity: 0.8;
 }
 </style>

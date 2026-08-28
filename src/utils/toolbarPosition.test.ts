@@ -4,7 +4,8 @@ import {
   adjustToolbarTopForHeightChange,
   migratePhysicalToLogical,
   overlayClientToScreenLogical,
-  toolbarPopupScreenPosition,
+  toolbarDockedScreenPosition,
+  TOOLBAR_DOCK_MARGIN,
 } from './toolbarPosition'
 
 describe('overlayClientToScreenLogical', () => {
@@ -17,31 +18,26 @@ describe('overlayClientToScreenLogical', () => {
   })
 })
 
-describe('toolbarPopupScreenPosition', () => {
-  it('centers popup on pointer in screen logical space', () => {
+describe('toolbarDockedScreenPosition', () => {
+  it('docks the bar at the monitor bottom-right with taskbar-safe margins', () => {
     const monitor = { left: -283.3333333333333, top: -1440, width: 2560, height: 1440 }
-    const pos = toolbarPopupScreenPosition(1310, 494, 272, 234, monitor)
-    expect(pos.left).toBeCloseTo(890.6666666666667, 4)
-    // anchorY=-946, top = -946 - 117 = -1063 (within monitor)
-    expect(pos.top).toBeCloseTo(-1063, 4)
+    const pos = toolbarDockedScreenPosition(580, 46, monitor)
+    expect(pos.left).toBeCloseTo(-283.3333333333333 + 2560 - 580 - TOOLBAR_DOCK_MARGIN.right, 4)
+    expect(pos.top).toBeCloseTo(-1440 + 1440 - 46 - TOOLBAR_DOCK_MARGIN.bottom, 4)
   })
 
-  it('falls back to viewport clamping when monitor bounds are unknown', () => {
-    expect(toolbarPopupScreenPosition(400, 300, 272, 234, null, { width: 1920, height: 1080 })).toEqual({
-      left: 264,
-      top: 183,
+  it('falls back to the viewport bottom-right when monitor bounds are unknown', () => {
+    expect(toolbarDockedScreenPosition(580, 46, null, { width: 1920, height: 1080 })).toEqual({
+      left: 1920 - 580 - TOOLBAR_DOCK_MARGIN.right,
+      top: 1080 - 46 - TOOLBAR_DOCK_MARGIN.bottom,
     })
   })
 
-  it('with measured compact height 234, bottom pointer can place panel lower than inflated 500', () => {
-    const monitor = { left: 0, top: 0, width: 1920, height: 1080 }
-    const pointerY = 1040
-    const with500 = toolbarPopupScreenPosition(960, pointerY, 300, 500, monitor)
-    const with234 = toolbarPopupScreenPosition(960, pointerY, 300, 234, monitor)
-    // maxTop = height - panelH - 12
-    expect(with500.top).toBe(1080 - 500 - 12)
-    expect(with234.top).toBe(1080 - 234 - 12)
-    expect(with234.top - with500.top).toBe(266)
+  it('clamps inside the monitor when the bar is wider than the free space', () => {
+    const monitor = { left: 0, top: 0, width: 640, height: 360 }
+    const pos = toolbarDockedScreenPosition(700, 46, monitor)
+    expect(pos.left).toBeGreaterThanOrEqual(0)
+    expect(pos.top + 46).toBeLessThanOrEqual(360)
   })
 })
 

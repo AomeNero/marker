@@ -8,6 +8,7 @@ import { applyTheme, watchSystemTheme, type ThemePreference } from '../composabl
 import { resolveDefaultEntryMode, type DefaultEntryMode } from '../utils/entryMode'
 import { resolveEraserMode, type EraserMode } from '../utils/eraserMode'
 import { resolveStrokeSmoothing, type StrokeSmoothing } from '../utils/strokeSmoothing'
+import { DEFAULT_WIDTH_PRESETS, resolveWidthPresets } from '../constants/tools'
 import { isEnabled } from '@tauri-apps/plugin-autostart'
 import { reconcileAutoStartState, resolveAutoStart } from '../utils/autoStart'
 import { isInstalledMode, supportsAutostart } from '../utils/portable'
@@ -219,6 +220,7 @@ const dragMode = ref<DragMode>('off')
 const defaultEntryMode = ref<DefaultEntryMode>('screen')
 const eraserMode = ref<EraserMode>('stroke')
 const strokeSmoothing = ref<StrokeSmoothing>('standard')
+const widthPresets = ref<number[]>(DEFAULT_WIDTH_PRESETS.slice())
 const preserveDrawings = ref(false)
 const whiteboardPreserveDrawings = ref(true)
 const angleSnapStep = ref<15 | 30 | 45>(15)
@@ -250,6 +252,7 @@ onMounted(async () => {
   defaultEntryMode.value = resolveDefaultEntryMode(cfg.general)
   eraserMode.value = resolveEraserMode(cfg.general)
   strokeSmoothing.value = resolveStrokeSmoothing(cfg.general)
+  widthPresets.value = resolveWidthPresets(cfg.general?.widthPresets)
   preserveDrawings.value = cfg.general?.preserveDrawings ?? false
   whiteboardPreserveDrawings.value = cfg.general?.whiteboardPreserveDrawings ?? true
   angleSnapStep.value = (cfg.general?.angleSnapStep as 15 | 30 | 45 | undefined) ?? 15
@@ -271,6 +274,7 @@ onMounted(async () => {
     defaultEntryMode.value = resolveDefaultEntryMode(general)
     eraserMode.value = resolveEraserMode(general)
     strokeSmoothing.value = resolveStrokeSmoothing(general)
+    widthPresets.value = resolveWidthPresets(general?.widthPresets)
     preserveDrawings.value = general?.preserveDrawings ?? false
     whiteboardPreserveDrawings.value = general?.whiteboardPreserveDrawings ?? true
     angleSnapStep.value = (general?.angleSnapStep as 15 | 30 | 45 | undefined) ?? 15
@@ -511,6 +515,7 @@ onUnmounted(() => {
         :default-entry-mode="defaultEntryMode"
         :eraser-mode="eraserMode"
         :stroke-smoothing="strokeSmoothing"
+        :width-presets="widthPresets"
         :preserve-drawings="preserveDrawings"
         :whiteboard-preserve-drawings="whiteboardPreserveDrawings"
         :auto-start-enabled="autoStartEnabled"
@@ -520,6 +525,7 @@ onUnmounted(() => {
         @update:default-entry-mode="defaultEntryMode = $event"
         @update:eraser-mode="eraserMode = $event"
         @update:stroke-smoothing="strokeSmoothing = $event"
+        @update:width-presets="widthPresets = $event"
         @update:preserve-drawings="preserveDrawings = $event"
         @update:whiteboard-preserve-drawings="whiteboardPreserveDrawings = $event"
         @update:auto-start-enabled="autoStartEnabled = $event"

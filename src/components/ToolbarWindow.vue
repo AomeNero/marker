@@ -19,6 +19,7 @@ import {
   type OverlayPointerScreen,
 } from '../composables/overlayBridge'
 import { isToolbarPinned, resolveToolbarVisibility, type ToolbarVisibility } from '../utils/toolbarSettings'
+import { setWidthPresets } from '../constants/tools'
 import {
   restoreToolbarWindowPosition,
   refreshToolbarWindowScreenOrigin,
@@ -31,7 +32,7 @@ import type { AppConfig } from '../types/app'
 import { applyTheme, watchSystemTheme, type ThemePreference } from '../composables/useAppTheme'
 
 const currentTool = ref<Tool>('pen')
-const currentColor = ref('#FFCC02')
+const currentColor = ref('#FF3B30')
 const lineWidth = ref(3)
 const textOutline = ref<TextOutlineStyle>(createDefaultTextOutline())
 const whiteboardMode = ref(false)
@@ -135,6 +136,7 @@ onMounted(async () => {
   try {
     const cfg = await invoke<AppConfig>('get_config')
     toolbarVisibility.value = resolveToolbarVisibility(cfg.general)
+    setWidthPresets(cfg.general?.widthPresets)
     currentTheme = resolveThemePref(cfg.general)
     await applyTheme(currentTheme)
     stopThemeWatch = watchSystemTheme(() => currentTheme)
@@ -178,6 +180,7 @@ onMounted(async () => {
   unlisteners.push(
     await listen<AppConfig>('config-changed', (event) => {
       toolbarVisibility.value = resolveToolbarVisibility(event.payload.general)
+      setWidthPresets(event.payload.general?.widthPresets)
       currentTheme = resolveThemePref(event.payload.general)
       void applyTheme(currentTheme)
     }),
@@ -237,8 +240,6 @@ onUnmounted(() => {
       :can-undo="canUndo"
       :can-redo="canRedo"
       :can-clear="canClear"
-      :anchor-x="pointerX"
-      :anchor-y="pointerY"
       :pointer-x="pointerX"
       :pointer-y="pointerY"
       @select-tool="emitToolbarAction({ type: 'selectTool', tool: $event })"
@@ -251,7 +252,6 @@ onUnmounted(() => {
       @toggle-whiteboard="emitToolbarAction({ type: 'toggleWhiteboard' })"
       @copy="emitToolbarAction({ type: 'copy' })"
       @toggle-penetration="onTogglePenetration"
-      @toggle-pin="emitToolbarAction({ type: 'togglePin' })"
       @exit-drawing="emitToolbarAction({ type: 'exitDrawing' })"
       @close="onToolbarClose"
       @panel-hover="onPanelHover"

@@ -1,5 +1,6 @@
 import { ref, computed, type Ref, type ComputedRef } from 'vue'
 import type { Tool } from './drawingTypes'
+import { WIDTH_PRESET_LABEL_KEYS, getWidthPresets } from '../constants/tools'
 
 const TOOLTIP_DURATION_MS = 1200
 const TIP_DURATION_MS = 1500
@@ -58,8 +59,11 @@ export function useTooltip(options: UseTooltipOptions) {
   }
 
   function showWidth(w: number, label?: string) {
-    const resolved = t(`widths.${w}`)
-    text.value = label ?? (resolved !== `widths.${w}` ? resolved : `${w}px`)
+    // Resolve the positional label (XS/S/M/L/XL) for the active preset set.
+    const idx = getWidthPresets().indexOf(w)
+    const key = `widths.${WIDTH_PRESET_LABEL_KEYS[idx] ?? 'm'}`
+    const resolved = t(key)
+    text.value = label ?? (resolved !== key ? resolved : `${w}px`)
     tool.value = null
     color.value = null
     width.value = w

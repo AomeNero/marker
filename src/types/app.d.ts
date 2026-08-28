@@ -28,6 +28,8 @@ export interface AppConfig {
       eraser: number
       text: number
     }
+    /** Five stroke-width presets (XS/S/M/L/XL); invalid arrays fall back to defaults. */
+    widthPresets?: number[]
     autoStart?: boolean
     theme?: 'dark' | 'light' | 'system'
   }

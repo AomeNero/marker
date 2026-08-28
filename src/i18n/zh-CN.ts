@@ -42,8 +42,7 @@ export default {
     '#FFFFFF': '白色',
     '#000000': '黑色',
   },
-  widths: { 1: '极细', 2: '细', 3: '中', 5: '粗', 8: '极粗' },
-  textSizes: { 1: '极小', 2: '小', 3: '中', 5: '大', 8: '极大' },
+  widths: { xs: '极细', s: '细', m: '中', l: '粗', xl: '极粗' },
   panel: {
     tools: '工具',
     toolsHint: '按 V / 1-8 / T / N 切换',
@@ -82,11 +81,6 @@ export default {
       about: '关于',
     },
     sidebarOpenSource: '开源',
-    creditsRoll: {
-      title: '致谢',
-      sponsorsEmpty: '爱发电上的每一位赞助者',
-      closing: '感谢每一份支持',
-    },
     shortcutLabels: {
       toggleDrawing: '开始标注',
       clearDrawing: '清除标注',
@@ -144,6 +138,8 @@ export default {
     eraserModeDesc:
       '轨迹擦除：按路径局部擦除像素（可撤销）。对象擦除：划过图形或文字时删除整个元素（可撤销）。标注中选中橡皮擦后再按 7（或再点工具栏橡皮擦）可切换模式。使用橡皮擦时不会触发元素拖拽，即使已开启悬停拖动。',
     strokeSmoothing: '笔迹平滑',
+    widthPresets: '笔粗档位',
+    widthPresetsDesc: '自定义工具栏五个粗细档位的像素值（极细 / 细 / 中 / 粗 / 极粗）。已有笔迹保持不变；当前粗细自动归入最接近的档位。',
     strokeSmoothingOff: '关闭',
     strokeSmoothingStandard: '标准',
     strokeSmoothingStrong: '强',
@@ -157,13 +153,8 @@ export default {
     whiteboard: '白板',
     exitWhiteboard: '退出白板',
     copy: '复制',
-    drawingMode: '绘制模式',
     penetrationMode: '穿透模式',
-    pin: '固定工具栏',
-    unpin: '取消固定',
     exit: '退出标注',
-    more: '展开',
-    less: '收起',
   },
   help: {
     basicUsage: '快捷键速查',
@@ -231,7 +222,6 @@ export default {
     author: '作者',
     license: '开源协议',
     feedback: '反馈问题',
-    sponsor: '赞助开发',
     checkUpdate: '检查更新',
     checking: '正在检查...',
     updateAvailable: '发现新版本 v{version}',

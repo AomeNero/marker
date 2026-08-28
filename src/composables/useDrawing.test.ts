@@ -94,41 +94,41 @@ describe('useDrawing', () => {
     })
 
     it('starts with default color as red', () => {
-      expect(drawing.currentColor.value).toBe('#FF0000')
+      expect(drawing.currentColor.value).toBe('#FF3B30')
     })
 
-    it('starts with default line width of 3', () => {
-      expect(drawing.lineWidth.value).toBe(3)
+    it('starts with default line width of 6 (middle preset)', () => {
+      expect(drawing.lineWidth.value).toBe(6)
     })
 
     it('applies persisted line widths per group', () => {
-      drawing.setLineWidths({ stroke: 8, highlighter: 5, eraser: 2, text: 1 })
+      drawing.setLineWidths({ stroke: 10, highlighter: 6, eraser: 4, text: 2 })
       drawing.currentTool.value = 'pen'
-      expect(drawing.lineWidth.value).toBe(8)
+      expect(drawing.lineWidth.value).toBe(10)
       drawing.currentTool.value = 'highlighter'
-      expect(drawing.lineWidth.value).toBe(5)
+      expect(drawing.lineWidth.value).toBe(6)
       drawing.currentTool.value = 'eraser'
-      expect(drawing.lineWidth.value).toBe(2)
+      expect(drawing.lineWidth.value).toBe(4)
       drawing.currentTool.value = 'text'
-      expect(drawing.lineWidth.value).toBe(1)
+      expect(drawing.lineWidth.value).toBe(2)
     })
 
     it('shares stroke width across pen and shapes; eraser is independent', () => {
       drawing.currentTool.value = 'pen'
-      drawing.lineWidth.value = 8
+      drawing.lineWidth.value = 10
       drawing.currentTool.value = 'arrow'
-      expect(drawing.lineWidth.value).toBe(8)
+      expect(drawing.lineWidth.value).toBe(10)
       drawing.currentTool.value = 'rect'
-      expect(drawing.lineWidth.value).toBe(8)
+      expect(drawing.lineWidth.value).toBe(10)
       drawing.currentTool.value = 'highlighter'
-      expect(drawing.lineWidth.value).toBe(3)
+      expect(drawing.lineWidth.value).toBe(6)
       drawing.currentTool.value = 'eraser'
-      expect(drawing.lineWidth.value).toBe(3)
-      drawing.lineWidth.value = 2
+      expect(drawing.lineWidth.value).toBe(6)
+      drawing.lineWidth.value = 4
       drawing.currentTool.value = 'pen'
-      expect(drawing.lineWidth.value).toBe(8)
+      expect(drawing.lineWidth.value).toBe(10)
       drawing.currentTool.value = 'eraser'
-      expect(drawing.lineWidth.value).toBe(2)
+      expect(drawing.lineWidth.value).toBe(4)
     })
 
     it('starts not drawing', () => {
