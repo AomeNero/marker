@@ -2396,7 +2396,7 @@ function exitDrawing(reason: 'keyboard' | 'toolbar' | 'unknown' = 'unknown') {
         xmlns="http://www.w3.org/2000/svg"
         style="display: block; overflow: visible; filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3))"
       >
-        <g transform="rotate(15 388 846)">
+        <g transform="rotate(110 388 846)">
           <path d="M482.9 279.5L357.6 694.1l45.3 152.5 121.9-102L650 330z" fill="#FFDCB3"></path>
           <path d="M490.435 254.311l167.144 50.477L532.37 719.395l-167.145-50.477z" fill="#FECD44"></path>
           <path d="M388.3 797.1l14.6 49.5 39.6-33.1z" fill="#AEABA8"></path>
