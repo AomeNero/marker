@@ -19,20 +19,24 @@ export interface MonitorLogicalBounds {
   height: number
 }
 
-/** Default dock offset (logical px) from a monitor's bottom-right corner — taskbar-safe. */
-export const TOOLBAR_DOCK_MARGIN = { right: 16, bottom: 64 } as const
+/**
+ * Dock offset (logical px) from the monitor work area's bottom-right corner.
+ * The work area already excludes the taskbar (Win32 rc_work), so this just
+ * clears the work-area edge.
+ */
+export const TOOLBAR_DOCK_MARGIN = { right: 32, bottom: 16 } as const
 
-/** Screen-logical position for the toolbar docked at a monitor's bottom-right corner. */
+/** Screen-logical position for the toolbar docked at a work area's bottom-right corner. */
 export function toolbarDockedScreenPosition(
   panelWidth: number,
   panelHeight: number,
-  monitor: MonitorLogicalBounds | null,
+  workArea: MonitorLogicalBounds | null,
   fallbackViewport?: { width: number; height: number },
 ): { left: number; top: number } {
-  if (monitor) {
-    const left = monitor.left + monitor.width - panelWidth - TOOLBAR_DOCK_MARGIN.right
-    const top = monitor.top + monitor.height - panelHeight - TOOLBAR_DOCK_MARGIN.bottom
-    return clampToolbarWindowPosition(left, top, panelWidth, panelHeight, monitor)
+  if (workArea) {
+    const left = workArea.left + workArea.width - panelWidth - TOOLBAR_DOCK_MARGIN.right
+    const top = workArea.top + workArea.height - panelHeight - TOOLBAR_DOCK_MARGIN.bottom
+    return clampToolbarWindowPosition(left, top, panelWidth, panelHeight, workArea)
   }
   const vw = fallbackViewport?.width ?? 1920
   const vh = fallbackViewport?.height ?? 1080

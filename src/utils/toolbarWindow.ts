@@ -85,6 +85,15 @@ export async function fetchOverlayMonitorBounds(): Promise<MonitorLogicalBounds 
   }
 }
 
+/** Work-area bounds (taskbar excluded) of the overlay monitor, for bottom anchoring. */
+export async function fetchOverlayMonitorWorkBounds(): Promise<MonitorLogicalBounds | null> {
+  try {
+    return await invoke<MonitorLogicalBounds | null>('get_overlay_monitor_work_logical_bounds')
+  } catch {
+    return null
+  }
+}
+
 export async function restoreToolbarWindowPosition(): Promise<void> {
   const saved = loadToolbarPosition(true)
   if (!saved) return
@@ -138,8 +147,8 @@ export async function fitToolbarWindow(width: number, height: number): Promise<v
 }
 
 /**
- * After a standalone toolbar height change (更多/收起), shift Y so bottom-edge panels
- * grow upward instead of expanding off-screen.
+ * After a standalone toolbar height change (flyout open/close), shift Y so bottom-edge
+ * panels grow upward instead of expanding off-screen — and settle back on collapse.
  */
 export async function repositionToolbarAfterHeightChange(
   oldHeight: number,
@@ -150,12 +159,13 @@ export async function repositionToolbarAfterHeightChange(
   const win = getCurrentWindow()
   const [pos, scale] = await Promise.all([win.outerPosition(), win.scaleFactor()])
   const logical = pos.toLogical(scale)
-  const bounds = await fetchOverlayMonitorBounds()
+  // Bottom-anchored detection must run against the WORK area: the dock sits above the
+  // taskbar, so full-monitor bounds miss it by the taskbar height and the bar drifts.
+  const bounds = (await fetchOverlayMonitorWorkBounds()) ?? (await fetchOverlayMonitorBounds())
   if (!bounds) return
-  // Match space-popup edge margin (12) so bottom-anchored detection agrees with placement.
-  const nextTop = adjustToolbarTopForHeightChange(logical.y, oldHeight, newHeight, bounds, 12)
+  const nextTop = adjustToolbarTopForHeightChange(logical.y, oldHeight, newHeight, bounds, 16)
   if (Math.abs(nextTop - logical.y) < 0.5) return
-  const position = clampToolbarWindowPosition(logical.x, nextTop, getToolbarPanelWidth(), newHeight, bounds, 12)
+  const position = clampToolbarWindowPosition(logical.x, nextTop, getToolbarPanelWidth(), newHeight, bounds, 16)
   await win.setPosition(new LogicalPosition(position.left, position.top))
   if (options?.persist) {
     saveToolbarPosition(position.left, position.top, true)

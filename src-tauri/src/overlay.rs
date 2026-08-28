@@ -153,7 +153,7 @@ pub fn setup_overlay_size(app: &AppHandle) {
     }
 
     if let Some(window) = app.get_webview_window("overlay") {
-        if let Some((x, y, w, h)) = monitor::get_cursor_monitor_rect() {
+        if let Some((x, y, w, h)) = monitor::get_cursor_monitor_work_rect() {
             #[cfg(target_os = "macos")]
             {
                 window.set_size(tauri::LogicalSize::new(w, h)).ok();
@@ -225,9 +225,10 @@ const TOOLBAR_PANEL_WIDTH: f64 = 580.0;
 /// measured from the DOM (`fitToolbarWindow`). Flyouts stack above the bar.
 const TOOLBAR_PANEL_HEIGHT_COMPACT: f64 = 46.0;
 const TOOLBAR_EDGE_MARGIN: f64 = 8.0;
-/// Default dock offset for the always-on toolbar: bottom-right, clear of the taskbar.
-const TOOLBAR_DOCK_RIGHT: i32 = 16;
-const TOOLBAR_DOCK_BOTTOM: i32 = 64;
+/// Dock offset for the always-on toolbar: bottom-right of the monitor WORK area
+/// (taskbar already excluded by rc_work), so 16px simply clears the work-area edge.
+const TOOLBAR_DOCK_RIGHT: i32 = 32;
+const TOOLBAR_DOCK_BOTTOM: i32 = 16;
 
 fn toolbar_panel_height_logical(window: &tauri::WebviewWindow, fallback: f64) -> f64 {
     let scale = window.scale_factor().unwrap_or(1.0);

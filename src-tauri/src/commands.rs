@@ -74,6 +74,13 @@ pub fn get_overlay_monitor_logical_bounds(
 }
 
 #[tauri::command]
+pub fn get_overlay_monitor_work_logical_bounds(
+    app: AppHandle,
+) -> Option<crate::monitor::MonitorLogicalBounds> {
+    crate::monitor::get_overlay_monitor_work_logical_bounds(&app)
+}
+
+#[tauri::command]
 pub fn is_pointer_over_toolbar_panel(app: AppHandle) -> bool {
     crate::overlay::is_pointer_over_toolbar_panel(&app)
 }

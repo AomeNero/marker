@@ -176,6 +176,45 @@ pub fn get_monitor_rect_at_point_win32(x: i32, y: i32) -> Option<(i32, i32, u32,
     monitor_rect_from_point(x, y)
 }
 
+/// Work-area rect (excludes the taskbar) of the monitor containing (x, y).
+pub fn get_monitor_work_rect_at_point_win32(x: i32, y: i32) -> Option<(i32, i32, u32, u32)> {
+    work_rect_from_point(x, y)
+}
+
+pub fn get_cursor_monitor_work_rect_win32() -> Option<(i32, i32, u32, u32)> {
+    unsafe {
+        let mut pt = POINT { x: 0, y: 0 };
+        if GetCursorPos(&mut pt) == 0 {
+            return None;
+        }
+        work_rect_from_point(pt.x, pt.y)
+    }
+}
+
+fn work_rect_from_point(x: i32, y: i32) -> Option<(i32, i32, u32, u32)> {
+    unsafe {
+        let pt = POINT { x, y };
+        let hmon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+        if hmon == 0 {
+            return None;
+        }
+
+        let mut info: MONITORINFO = std::mem::zeroed();
+        info.cb_size = std::mem::size_of::<MONITORINFO>() as u32;
+        if GetMonitorInfoW(hmon, &mut info) == 0 {
+            return None;
+        }
+
+        let rc = &info.rc_work;
+        Some((
+            rc.left,
+            rc.top,
+            (rc.right - rc.left) as u32,
+            (rc.bottom - rc.top) as u32,
+        ))
+    }
+}
+
 /// Create an `HICON` from premultiplied-capable RGBA bytes (row-major).
 /// Caller owns the handle and must eventually `DestroyIcon`.
 pub fn create_hicon_from_rgba(

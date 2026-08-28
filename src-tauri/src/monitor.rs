@@ -158,6 +158,19 @@ pub fn get_cursor_monitor_rect() -> Option<(i32, i32, u32, u32)> {
     crate::win32::get_cursor_monitor_rect_win32()
 }
 
+/// Work area (taskbar/Dock excluded) of the monitor containing the cursor.
+#[cfg(target_os = "windows")]
+pub fn get_cursor_monitor_work_rect() -> Option<(i32, i32, u32, u32)> {
+    crate::win32::get_cursor_monitor_work_rect_win32()
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_cursor_monitor_work_rect() -> Option<(i32, i32, u32, u32)> {
+    // Approximation: the Dock sits at the bottom edge; keep a fixed allowance.
+    let (x, y, w, h) = get_cursor_monitor_rect()?;
+    Some((x, y, w, h.saturating_sub(64)))
+}
+
 #[cfg(target_os = "macos")]
 pub fn get_cursor_monitor_rect() -> Option<(i32, i32, u32, u32)> {
     #[repr(C)]
@@ -236,6 +249,35 @@ pub fn get_overlay_monitor_logical_bounds(app: &AppHandle) -> Option<MonitorLogi
         width: size.width as f64 / scale,
         height: size.height as f64 / scale,
     })
+}
+
+/// Work-area bounds of the overlay monitor (taskbar excluded) in logical coords,
+/// for docking the toolbar just above the taskbar.
+pub fn get_overlay_monitor_work_logical_bounds(app: &AppHandle) -> Option<MonitorLogicalBounds> {
+    #[cfg(target_os = "windows")]
+    {
+        let window = app.get_webview_window("overlay")?;
+        let pos = window.outer_position().ok()?;
+        let size = window.outer_size().ok()?;
+        let cx = pos.x + (size.width as i32 / 2);
+        let cy = pos.y + (size.height as i32 / 2);
+        let (x, y, w, h) = crate::win32::get_monitor_work_rect_at_point_win32(cx, cy)?;
+        let scale = window.scale_factor().ok()?;
+        return Some(MonitorLogicalBounds {
+            left: x as f64 / scale,
+            top: y as f64 / scale,
+            width: w as f64 / scale,
+            height: h as f64 / scale,
+        });
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let b = get_overlay_monitor_logical_bounds(app)?;
+        Some(MonitorLogicalBounds {
+            height: (b.height - 64.0).max(b.height * 0.5),
+            ..b
+        })
+    }
 }
 
 pub fn clamp_logical_position_to_monitor(

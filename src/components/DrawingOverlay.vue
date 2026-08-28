@@ -30,7 +30,7 @@ import { applyTheme, watchSystemTheme, type ThemePreference } from '../composabl
 import TextBox from './TextBox.vue'
 import {
   TOOL_ICON_MAP,
-  WIDTH_PRESET_LABEL_KEYS,
+  getWidthOptions,
   getWidthPresets,
   setWidthPresets,
   eraserLineWidth,
@@ -293,7 +293,9 @@ function onWheel(e: WheelEvent) {
   if (!active.value || !e.ctrlKey) return
   e.preventDefault()
   const tool = currentTool.value
-  const presets = getWidthPresets()
+  // Eraser cycles its own 3-step subset; other tools use the full preset set.
+  const options = getWidthOptions(tool)
+  const presets = options.map((o) => o.value)
   const dir = e.deltaY < 0 ? 1 : -1
   const idx = presets.indexOf(lineWidth.value)
   const cur =
@@ -306,8 +308,7 @@ function onWheel(e: WheelEvent) {
   const next = Math.max(0, Math.min(presets.length - 1, cur + dir))
   // Pass current pointer so mid-gesture eraser resize splits at the cursor (not old path points).
   setLineWidth(presets[next], { x: lastPointerX, y: lastPointerY })
-  const labelKey = `widths.${WIDTH_PRESET_LABEL_KEYS[next] ?? 'm'}`
-  showWidthTip(lineWidth.value, t(labelKey))
+  showWidthTip(lineWidth.value, t(options[next]?.labelKey ?? 'widths.m'))
   schedulePersistLineWidths()
   // Wheel often does not fire pointermove; re-anchor cursor so eraser scales from center.
   updateCursorEl(lastPointerX, lastPointerY)
@@ -398,14 +399,15 @@ async function openToolbarPopupDocked(): Promise<void> {
 
   const panelW = getToolbarPanelWidth()
   const panelH = getToolbarPanelHeight()
-  let monitorBounds: MonitorLogicalBounds | null = null
+  let workBounds: MonitorLogicalBounds | null = null
   try {
-    monitorBounds = await invoke<MonitorLogicalBounds | null>('get_overlay_monitor_logical_bounds')
+    // Work area excludes the taskbar, so the dock sits right above it.
+    workBounds = await invoke<MonitorLogicalBounds | null>('get_overlay_monitor_work_logical_bounds')
   } catch {
     // non-fatal for positioning; still log client-side coords
   }
   // Space-invoked toolbar docks bottom-right (above the taskbar), not at the pointer.
-  const { left, top } = toolbarDockedScreenPosition(panelW, panelH, monitorBounds, {
+  const { left, top } = toolbarDockedScreenPosition(panelW, panelH, workBounds, {
     width: window.innerWidth,
     height: window.innerHeight,
   })
@@ -414,7 +416,7 @@ async function openToolbarPopupDocked(): Promise<void> {
     pointerScreen: pointerScreenKnown ? { x: lastScreenX, y: lastScreenY } : null,
     panel: { left, top, width: panelW, height: panelH },
     overlayViewport: { width: window.innerWidth, height: window.innerHeight },
-    monitorBounds,
+    monitorBounds: workBounds,
     devicePixelRatio: window.devicePixelRatio,
   })
   await invoke('set_toolbar_popup', { visible: true, x: left, y: top, height: panelH })
