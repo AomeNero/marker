@@ -4,8 +4,8 @@ export type CrosshairCursorStyle = 'crosshair' | 'dot'
 
 export const CROSSHAIR_CURSOR_STYLE_OPTIONS: CrosshairCursorStyle[] = ['crosshair', 'dot']
 
-/** Tools that use the crosshair (or compact dot) custom cursor. */
-export const CROSSHAIR_CURSOR_TOOLS: readonly Tool[] = ['arrow', 'rect', 'ellipse', 'line', 'laser']
+/** Tools that use the crosshair (or compact dot) custom cursor. Laser has its own pointer. */
+export const CROSSHAIR_CURSOR_TOOLS: readonly Tool[] = ['arrow', 'rect', 'ellipse', 'line']
 
 export function usesCrosshairCursor(tool: Tool): boolean {
   return (CROSSHAIR_CURSOR_TOOLS as readonly string[]).includes(tool)

@@ -853,7 +853,35 @@ export function useDrawing(
     previewDirty = false
   }
 
+  /** Hide-all-ink toggle: rendering is skipped and both canvases cleared. */
+  const inkVisible = ref(true)
+
+  function setInkVisible(visible: boolean) {
+    if (inkVisible.value === visible) return
+    inkVisible.value = visible
+    if (!visible) {
+      for (const canvas of [historyCanvasRef.value, previewCanvasRef.value]) {
+        const ctx = canvas?.getContext('2d')
+        if (canvas && ctx) {
+          ctx.save()
+          ctx.setTransform(1, 0, 0, 1, 0, 0)
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+          ctx.restore()
+        }
+      }
+      historyDirty = false
+      previewDirty = false
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId)
+        rafId = null
+      }
+    } else {
+      redrawAll()
+    }
+  }
+
   function renderFrame() {
+    if (!inkVisible.value) return
     if (historyDirty) renderHistoryFrame()
     if (previewDirty) renderPreviewFrame()
   }
@@ -1781,6 +1809,8 @@ export function useDrawing(
     exportAsDataURL,
     hardReset,
     redrawAll,
+    inkVisible,
+    setInkVisible,
     beginDrag,
     beginDragMany,
     updateDragOffset,

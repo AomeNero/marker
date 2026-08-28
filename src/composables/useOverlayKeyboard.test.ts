@@ -171,10 +171,11 @@ describe('useOverlayKeyboard', () => {
       expect(actions.calls.showToolTip).toHaveLength(0)
     })
 
-    it('key 8 while on laser cycles crosshair cursor style', () => {
+    it('key 8 while on laser is a no-op (laser has its own pointer)', () => {
       ctx.currentTool.value = 'laser'
       handler(key('8'))
-      expect(actions.calls.cycleCrosshairCursorStyle).toHaveLength(1)
+      expect(actions.calls.cycleCrosshairCursorStyle).toHaveLength(0)
+      expect(ctx.currentTool.value).toBe('laser')
     })
 
     it('key 7 selects eraser and shows eraser tip', () => {
@@ -217,8 +218,8 @@ describe('useOverlayKeyboard', () => {
     it('key 8 selects laser', () => {
       handler(key('8'))
       expect(ctx.currentTool.value).toBe('laser')
-      expect(actions.calls.showCrosshairTip).toHaveLength(1)
-      expect(actions.calls.showToolTip).toHaveLength(0)
+      expect(actions.calls.showToolTip).toHaveLength(1)
+      expect(actions.calls.showCrosshairTip).toHaveLength(0)
     })
 
     it('key T selects text', () => {

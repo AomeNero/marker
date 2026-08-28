@@ -155,6 +155,8 @@ export default {
     exitWhiteboard: '退出白板',
     copy: '复制',
     penetrationMode: '穿透模式',
+    showInk: '显示标注',
+    hideInk: '隐藏标注',
     exit: '退出标注',
   },
   help: {

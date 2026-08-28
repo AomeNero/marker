@@ -158,6 +158,8 @@ export default {
     exitWhiteboard: 'Exit whiteboard',
     copy: 'Copy',
     penetrationMode: 'Click-through mode',
+    showInk: 'Show annotations',
+    hideInk: 'Hide annotations',
     exit: 'Exit annotation',
   },
   help: {

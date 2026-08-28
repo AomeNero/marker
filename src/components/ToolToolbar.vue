@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue'
-import { Undo2, Redo2, Trash2, Layout, Copy, MousePointer2, X, ChevronDown } from '@lucide/vue'
+import { Undo2, Redo2, Trash2, Layout, Copy, MousePointer2, X, ChevronDown, Eye, EyeOff } from '@lucide/vue'
 import type { Tool } from '../composables/useDrawing'
 import { useI18n } from '../i18n'
 import {
@@ -50,6 +50,7 @@ const props = defineProps<{
   textOutline: TextOutlineStyle
   whiteboardMode: boolean
   penetrationMode?: boolean
+  inkVisible: boolean
   canUndo: boolean
   canRedo: boolean
   canClear: boolean
@@ -67,6 +68,7 @@ const emit = defineEmits<{
   redo: []
   clearAll: []
   toggleWhiteboard: []
+  toggleInkVisible: []
   copy: []
   togglePenetration: []
   exitDrawing: []
@@ -782,6 +784,18 @@ onUnmounted(() => {
             @click="emit('toggleWhiteboard')"
           >
             <Layout :size="15" />
+          </button>
+          <button
+            type="button"
+            class="overlay-toolbar-action"
+            :class="!inkVisible ? 'overlay-toolbar-action--active' : ''"
+            :title="inkVisible ? t('toolbar.hideInk') : t('toolbar.showInk')"
+            :aria-label="inkVisible ? t('toolbar.hideInk') : t('toolbar.showInk')"
+            :aria-pressed="!inkVisible"
+            @click="emit('toggleInkVisible')"
+          >
+            <EyeOff v-if="inkVisible" :size="15" />
+            <Eye v-else :size="15" />
           </button>
           <button
             v-if="standaloneWindow"

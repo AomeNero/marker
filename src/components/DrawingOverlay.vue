@@ -353,6 +353,8 @@ const {
   exportAsDataURL,
   hardReset,
   redrawAll,
+  inkVisible,
+  setInkVisible,
   beginDrag,
   beginDragMany,
   updateDragOffset,
@@ -1713,6 +1715,8 @@ function getCursorHotspot(): { x: number; y: number } {
   // Eraser uses CSS translate(-50%, -50%) so size changes stay centered on the pointer.
   if (tool === 'eraser') return { x: 0, y: 0 }
   if (usesCrosshairCursor(tool) && crosshairCursorStyle.value === 'dot') return { x: 8, y: 8 }
+  // Laser pointer: arrow tip at (5,2) in 24-space → (7, 3) at 32px.
+  if (tool === 'laser') return { x: 7, y: 3 }
   return { x: 14, y: 14 }
 }
 
@@ -1831,6 +1835,7 @@ function syncOverlayStateToToolbar() {
     textOutline: textOutline.value,
     whiteboardMode: whiteboardMode.value,
     penetrationMode: penetrationMode.value,
+    inkVisible: inkVisible.value,
     canUndo: canUndo.value,
     canRedo: canRedo.value,
     canClear: canClear.value,
@@ -1938,6 +1943,12 @@ async function handleToolbarAction(action: ToolbarAction) {
         activeTextBoxOutline.value = normalizeTextOutline(action.textOutline)
       }
       break
+    case 'toggleInkVisible': {
+      setInkVisible(!inkVisible.value)
+      logActionEvent('ink visibility toggled', { reason: 'toolbar', visible: inkVisible.value })
+      syncOverlayStateToToolbar()
+      break
+    }
     case 'undo':
       undo()
       break
@@ -2127,6 +2138,8 @@ onMounted(async () => {
         }
         if (previousMode === 'hidden') {
           currentTool.value = 'pen'
+          // A fresh session always starts with ink visible.
+          if (!inkVisible.value) setInkVisible(true)
           applyDefaultEntryOnActivate()
         }
         void (async () => {
@@ -2548,6 +2561,23 @@ function exitDrawing(reason: 'keyboard' | 'toolbar' | 'unknown' = 'unknown') {
           stroke="white"
           stroke-width="1"
           stroke-linecap="round"
+        />
+      </svg>
+      <!-- Laser: large pointer arrow tinted with the current color -->
+      <svg
+        v-else-if="currentTool === 'laser'"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        style="display: block; overflow: visible; filter: drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.35))"
+      >
+        <path
+          d="M5 2 L5 19.5 L9.4 15.4 L12.2 21.8 L15.2 20.4 L12.4 14 L18.6 14 Z"
+          :fill="currentColor"
+          :stroke="currentColor.toUpperCase() === '#FFFFFF' ? '#333333' : '#FFFFFF'"
+          stroke-width="1.1"
+          stroke-linejoin="round"
         />
       </svg>
       <!-- Shape/laser: crosshair (default) or compact color dot (re-press tool key to cycle) -->

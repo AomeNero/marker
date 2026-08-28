@@ -45,7 +45,7 @@ describe('resolveToolbarSelectTool', () => {
   })
 
   describe('crosshair cursor cycle (toolbar re-click)', () => {
-    const crosshairTools: Tool[] = ['arrow', 'rect', 'ellipse', 'line', 'laser']
+    const crosshairTools: Tool[] = ['arrow', 'rect', 'ellipse', 'line']
 
     it.each(crosshairTools)('selects %s with crosshair tip from another tool', (tool) => {
       expect(resolveToolbarSelectTool({ isDrawing: false, currentTool: 'pen', nextTool: tool })).toEqual({

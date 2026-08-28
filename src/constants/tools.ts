@@ -4,7 +4,7 @@ import {
   SquareDashedMousePointer,
   Pen,
   Highlighter,
-  Crosshair,
+  Pencil,
   ArrowUpRight,
   Square,
   Circle,
@@ -33,7 +33,7 @@ export const TOOL_DEFS: ToolDef[] = [
   { id: 'ellipse', icon: Circle, key: '5' },
   { id: 'line', icon: Minus, key: '6' },
   { id: 'eraser', icon: Eraser, key: '7' },
-  { id: 'laser', icon: Crosshair, key: '8' },
+  { id: 'laser', icon: Pencil, key: '8' },
   { id: 'text', icon: Type, key: 'T' },
   { id: 'stamp', icon: ListOrdered, key: 'N' },
 ]
