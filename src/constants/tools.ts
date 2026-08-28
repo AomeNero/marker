@@ -101,6 +101,29 @@ export function defaultLineWidth(): number {
   return widthPresetsState.value[2] ?? DEFAULT_WIDTH_PRESETS[2]
 }
 
+/** Eraser uses a compact 3-step size picker (XS/M/XL of the active presets). */
+export const ERASER_PRESET_INDEXES = [0, 2, 4] as const
+
+/** Width options for a tool: eraser gets 3 steps, everything else 5. */
+export function getWidthOptions(tool: Tool): { value: number; labelKey: string }[] {
+  const presets = getWidthPresets()
+  const indexes: readonly number[] = tool === 'eraser' ? ERASER_PRESET_INDEXES : [0, 1, 2, 3, 4]
+  const options: { value: number; labelKey: string }[] = []
+  for (const i of indexes) {
+    const value = presets[i]
+    if (typeof value === 'number') {
+      options.push({ value, labelKey: `widths.${WIDTH_PRESET_LABEL_KEYS[i] ?? 'm'}` })
+    }
+  }
+  return options
+}
+
+/** Eraser widths snap to their own 3-step subset. */
+export function eraserWidthPresets(): number[] {
+  const presets = getWidthPresets()
+  return ERASER_PRESET_INDEXES.map((i) => presets[i]).filter((v): v is number => typeof v === 'number')
+}
+
 /** Pen + shapes share one preset; highlighter / eraser / text are separate. */
 export type LineWidthGroup = 'stroke' | 'highlighter' | 'eraser' | 'text'
 
@@ -135,12 +158,11 @@ export function createDefaultLineWidths(): ToolLineWidths {
   }
 }
 
-/** Snap a width to the closest active preset (ties prefer the larger preset). */
-export function normalizeLineWidth(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return defaultLineWidth()
+/** Snap a width to the closest preset of a set (ties prefer the larger preset). */
+function snapToClosest(value: number, presets: number[]): number {
   let best = defaultLineWidth()
   let bestDistance = Infinity
-  for (const preset of getWidthPresets()) {
+  for (const preset of presets) {
     const distance = Math.abs(preset - value)
     if (distance < bestDistance || (distance === bestDistance && preset > best)) {
       best = preset
@@ -150,14 +172,25 @@ export function normalizeLineWidth(value: unknown): number {
   return best
 }
 
+/** Snap a width to the closest active preset (ties prefer the larger preset). */
+export function normalizeLineWidth(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return defaultLineWidth()
+  return snapToClosest(value, getWidthPresets())
+}
+
 /** Resolve persisted line widths; missing/invalid values fall back to defaults. */
 export function resolveLineWidths(partial?: Partial<ToolLineWidths> | null): ToolLineWidths {
   const defaults = createDefaultLineWidths()
   if (!partial) return defaults
+  const eraserPresets = eraserWidthPresets()
+  const normalizeEraser = (value: unknown): number =>
+    typeof value === 'number' && Number.isFinite(value)
+      ? snapToClosest(value, eraserPresets)
+      : defaults.eraser
   return {
     stroke: normalizeLineWidth(partial.stroke ?? defaults.stroke),
     highlighter: normalizeLineWidth(partial.highlighter ?? defaults.highlighter),
-    eraser: normalizeLineWidth(partial.eraser ?? defaults.eraser),
+    eraser: normalizeEraser(partial.eraser ?? defaults.eraser),
     text: normalizeLineWidth(partial.text ?? defaults.text),
   }
 }

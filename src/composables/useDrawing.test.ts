@@ -102,13 +102,14 @@ describe('useDrawing', () => {
     })
 
     it('applies persisted line widths per group', () => {
+      // Eraser 4 snaps within its 3-step subset [2,6,16] to 6 (tie → larger).
       drawing.setLineWidths({ stroke: 10, highlighter: 6, eraser: 4, text: 2 })
       drawing.currentTool.value = 'pen'
       expect(drawing.lineWidth.value).toBe(10)
       drawing.currentTool.value = 'highlighter'
       expect(drawing.lineWidth.value).toBe(6)
       drawing.currentTool.value = 'eraser'
-      expect(drawing.lineWidth.value).toBe(4)
+      expect(drawing.lineWidth.value).toBe(6)
       drawing.currentTool.value = 'text'
       expect(drawing.lineWidth.value).toBe(2)
     })

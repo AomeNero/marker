@@ -48,6 +48,7 @@ export default {
     toolsHint: '按 V / 1-8 / T / N 切换',
     colors: '颜色',
     customColor: '自定义颜色',
+    close: '关闭',
     strokeWidth: '线宽',
     drag: '拖动',
     rectShape: '矩形',

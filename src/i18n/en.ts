@@ -48,6 +48,7 @@ export default {
     toolsHint: 'Press V / 1-8 / T / N',
     colors: 'Colors',
     customColor: 'Custom color',
+    close: 'Close',
     strokeWidth: 'Stroke',
     drag: 'Drag',
     rectShape: 'Rect',

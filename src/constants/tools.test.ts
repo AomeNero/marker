@@ -4,6 +4,7 @@ import {
   defaultLineWidth,
   eraserLineWidth,
   ERASER_WIDTH_SCALE,
+  getWidthOptions,
   highlighterLineWidth,
   HIGHLIGHTER_WIDTH_SCALE,
   normalizeLineWidth,
@@ -62,13 +63,23 @@ describe('line width helpers', () => {
 
   it('resolves persisted line widths with fallbacks', () => {
     expect(resolveLineWidths()).toEqual(createDefaultLineWidths())
-    // 8 snaps to 10 (equidistant to 6/10 → larger); 4 stays 4.
+    // 8 snaps to 10 (equidistant to 6/10 → larger); eraser 4 snaps within its
+    // 3-step subset [2,6,16] to 6 (equidistant → larger).
     expect(resolveLineWidths({ stroke: 8, eraser: 4 })).toEqual({
       stroke: 10,
       highlighter: defaultLineWidth(),
-      eraser: 4,
+      eraser: 6,
       text: defaultLineWidth(),
     })
+  })
+
+  it('gives the eraser a compact 3-step width picker', () => {
+    const options = getWidthOptions('eraser')
+    expect(options.map((o) => o.value)).toEqual([2, 6, 16])
+    expect(options.map((o) => o.labelKey)).toEqual(['widths.xs', 'widths.m', 'widths.xl'])
+    // Other tools keep the full 5-step set.
+    expect(getWidthOptions('pen').map((o) => o.value)).toEqual([2, 4, 6, 10, 16])
+    expect(getWidthOptions('text').map((o) => o.value)).toEqual([2, 4, 6, 10, 16])
   })
 
   it('resolves width presets with fallbacks for invalid arrays', () => {

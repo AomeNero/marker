@@ -92,12 +92,15 @@ impl LineWidthsConfig {
     }
 
     /// Snap every group width to the closest preset of the active preset set.
+    /// The eraser snaps to its own compact 3-step subset (XS/M/XL).
     pub fn normalized_with(self, presets: &[u32]) -> Self {
+        let presets = normalize_width_presets(presets);
+        let eraser_presets = [presets[0], presets[2], presets[4]];
         Self {
-            stroke: normalize_line_width_with(self.stroke, presets),
-            highlighter: normalize_line_width_with(self.highlighter, presets),
-            eraser: normalize_line_width_with(self.eraser, presets),
-            text: normalize_line_width_with(self.text, presets),
+            stroke: normalize_line_width_with(self.stroke, &presets),
+            highlighter: normalize_line_width_with(self.highlighter, &presets),
+            eraser: normalize_line_width_with(self.eraser, &eraser_presets),
+            text: normalize_line_width_with(self.text, &presets),
         }
     }
 }
@@ -890,7 +893,8 @@ mod tests {
         // 16→9 (upper clamp); 2/6/8 sit between two presets — ties prefer the larger.
         assert_eq!(normalized.line_widths.stroke, 9);
         assert_eq!(normalized.line_widths.highlighter, 3);
-        assert_eq!(normalized.line_widths.eraser, 7);
+        // Eraser snaps inside its 3-step subset [1,5,9]: 6→5.
+        assert_eq!(normalized.line_widths.eraser, 5);
         assert_eq!(normalized.line_widths.text, 9);
     }
 

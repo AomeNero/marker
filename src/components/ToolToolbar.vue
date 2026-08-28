@@ -6,7 +6,7 @@ import { useI18n } from '../i18n'
 import {
   SELECT_TOOL_DEF,
   WIDTH_PRESET_LABEL_KEYS,
-  getWidthPresets,
+  getWidthOptions,
   PEN_GROUP_TOOLS,
   PEN_GROUP_DEFAULT,
   SHAPE_GROUP_TOOLS,
@@ -75,16 +75,21 @@ const emit = defineEmits<{
 }>()
 
 const eraserDef = computed(() => ({ ...toolDefOf('eraser'), label: t('tools.eraser') }))
+/** Eraser size dots (visual px) for its 3-step picker, small → large. */
+const ERASER_DOT_SIZES = [8, 14, 22]
 const textDef = computed(() => ({ ...toolDefOf('text'), label: t('tools.text') }))
 const selectToolLabel = computed(() => t(`tools.${SELECT_TOOL_DEF.id}`))
 const selectToolTitle = computed(() => `${selectToolLabel.value} (${SELECT_TOOL_DEF.key})`)
 const colors = COLOR_ROWS
 const simpleColors = computed(() => colors[0] ?? [])
 const widths = computed(() =>
-  getWidthPresets().map((v, i) => ({ value: v, label: t(`widths.${WIDTH_PRESET_LABEL_KEYS[i] ?? 'm'}`) })),
+  getWidthOptions(props.currentTool).map(({ value, labelKey }) => ({ value, label: t(labelKey) })),
 )
 const outlineWidths = computed(() =>
-  TEXT_OUTLINE_WIDTH_PRESETS.map((_, i) => ({ value: TEXT_OUTLINE_WIDTH_PRESETS[i], label: t(`widths.${WIDTH_PRESET_LABEL_KEYS[i] ?? 'm'}`) })),
+  TEXT_OUTLINE_WIDTH_PRESETS.map((_, i) => ({
+    value: TEXT_OUTLINE_WIDTH_PRESETS[i],
+    label: t(`widths.${WIDTH_PRESET_LABEL_KEYS[i] ?? 'm'}`),
+  })),
 )
 const outlinePreviewColor = computed(() => resolveTextOutlineColor(props.textOutline, props.currentColor))
 const customOutlineColor = computed(() => normalizeTextOutline(props.textOutline).color)
@@ -441,6 +446,15 @@ onUnmounted(() => {
             <component :is="tool.icon" :size="16" />
             <span class="text-[10.5px] leading-none font-sans">{{ tool.label }}</span>
           </button>
+          <button
+            type="button"
+            class="overlay-flyout-tool overlay-flyout-tool--close"
+            :title="t('panel.close')"
+            :aria-label="t('panel.close')"
+            @click="openMenu = null"
+          >
+            <X :size="15" />
+          </button>
         </div>
       </div>
 
@@ -449,7 +463,7 @@ onUnmounted(() => {
         class="overlay-panel overlay-panel-surface mb-1.5 px-3 py-2.5"
         style="width: 260px"
       >
-        <!-- Colors -->
+        <!-- Colors (close button aligned in-row with the swatches) -->
         <div class="flex items-center justify-between pb-2.5">
           <button
             v-for="color in simpleColors"
@@ -514,6 +528,15 @@ onUnmounted(() => {
               >
             </span>
           </label>
+          <button
+            type="button"
+            class="overlay-flyout-close size-7 transition-transform duration-120 hover:scale-[1.18]"
+            :title="t('panel.close')"
+            :aria-label="t('panel.close')"
+            @click="openMenu = null"
+          >
+            <X :size="12" />
+          </button>
         </div>
 
         <!-- Text outline (text tool only) -->
@@ -689,7 +712,7 @@ onUnmounted(() => {
             <ChevronDown class="toolbar-flyout-caret" :size="9" />
           </button>
           <button
-            v-for="w in widths"
+            v-for="(w, i) in widths"
             :key="w.value"
             type="button"
             class="group overlay-width-btn"
@@ -698,7 +721,15 @@ onUnmounted(() => {
             :aria-pressed="lineWidth === w.value"
             @click="updateWidth(w.value)"
           >
+            <!-- Eraser sizes read as growing circles (dot = actual erase footprint). -->
             <span
+              v-if="currentTool === 'eraser'"
+              class="rounded-full transition-transform duration-120 group-hover:scale-110"
+              :class="lineWidth === w.value ? 'overlay-width-line--active' : 'overlay-width-line'"
+              :style="{ width: ERASER_DOT_SIZES[i] + 'px', height: ERASER_DOT_SIZES[i] + 'px' }"
+            />
+            <span
+              v-else
               class="w-[70%] rounded-full transition-transform duration-120 group-hover:scale-x-110"
               :class="lineWidth === w.value ? 'overlay-width-line--active' : 'overlay-width-line'"
               :style="{ height: Math.max(1.5, w.value * 1.2) + 'px' }"
@@ -911,6 +942,36 @@ onUnmounted(() => {
   background: var(--ui-accent-bg-active);
   color: var(--ui-tool-text-active);
   box-shadow: inset 0 0 0 1px var(--ui-accent-border);
+}
+
+/* Icon-only twin of a flyout tool button (same geometry, no label). */
+.overlay-flyout-tool--close {
+  width: 32px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* Close button in the settings flyout: swatch-sized round button. */
+.overlay-flyout-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--ui-tool-text);
+  background: var(--ui-control-bg-soft);
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.overlay-flyout-close:hover {
+  background: var(--ui-control-bg-strong);
+  color: var(--ui-tool-text-hover);
 }
 
 /* Drag grip at the left end of the bar. */
