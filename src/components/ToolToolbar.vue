@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue'
-import { Undo2, Redo2, Trash2, Layout, Copy, MousePointer2, X, ChevronDown, Eye, EyeOff } from '@lucide/vue'
+import { Undo2, Redo2, Trash2, Squircle, Copy, MousePointer2, X, ChevronDown, Eye, EyeOff } from '@lucide/vue'
 import type { Tool } from '../composables/useDrawing'
 import { useI18n } from '../i18n'
 import {
@@ -783,7 +783,7 @@ onUnmounted(() => {
             :aria-label="`${whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')} (W)`"
             @click="emit('toggleWhiteboard')"
           >
-            <Layout :size="15" />
+            <Squircle :size="15" />
           </button>
           <button
             v-if="standaloneWindow"
