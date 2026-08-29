@@ -32,16 +32,16 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ2Q0FBMzUzMkQyRDg0NTcKUldSWGhDMHRVNlBLUm1xZHVJSVp4cGkvVU0ybDZLT3RMOWxqVnQ4L25ON01hR2xwdndMOFFLYWkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdFN0ZERDQwRjkyMDkwMzcKUldRM2tDRDVRTjEvZnBZQzJIY2krYk1uVGx4ckFKb2JhTE0vWTd0QXFSTGwvMHZOdTI3d1hYL1kK",
       "endpoints": [
-        "https://github.com/AomeNero/marker/releases/latest/download/latest.json"
+        "https://marker.aomenero.com/latest.json"
       ]
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "createUpdaterArtifacts": "v1Compatible",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

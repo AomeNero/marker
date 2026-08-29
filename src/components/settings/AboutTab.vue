@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import { getVersion } from '@tauri-apps/api/app'
 import { useI18n } from '../../i18n'
 import { useUpdater } from '../../composables/useUpdater'
 import { resolvePortableMode } from '../../utils/portable'
@@ -8,6 +9,7 @@ import { resolvePortableMode } from '../../utils/portable'
 const { t } = useI18n()
 
 const portableMode = ref<boolean | null>(null)
+const appVersion = ref('')
 const { status, newVersion, progress, checkForUpdate, downloadAndInstall } = useUpdater()
 
 const updateUiExpanded = computed(
@@ -21,6 +23,11 @@ const updateUiExpanded = computed(
 
 onMounted(async () => {
   portableMode.value = await resolvePortableMode()
+  try {
+    appVersion.value = await getVersion()
+  } catch (error) {
+    console.error('Failed to read app version:', error)
+  }
 })
 
 async function openUrl(url: string) {
@@ -56,12 +63,15 @@ async function openUrl(url: string) {
         {{ t('about.tagline') }}
       </p>
 
+      <p v-if="appVersion" class="settings-text-subtle text-center text-xs m-0" :class="updateUiExpanded ? 'mb-2' : 'mb-3'">
+        {{ t('about.currentVersion') }} {{ appVersion }}
+      </p>
+
       <div class="flex flex-col items-center gap-2 w-full" :class="updateUiExpanded ? 'mb-3' : 'mb-6'">
         <p v-if="portableMode === true" class="settings-text-subtle text-center text-xs leading-relaxed m-0 px-2">
           {{ t('about.portableUpdateHint') }}
         </p>
 
-        <!-- Update check disabled for the self-hosted build.
         <template v-else-if="portableMode === false">
           <button
             v-if="status === 'idle' || status === 'error'"
@@ -103,7 +113,6 @@ async function openUrl(url: string) {
             {{ t('about.upToDate') }}
           </span>
         </template>
-        -->
       </div>
     </div>
 

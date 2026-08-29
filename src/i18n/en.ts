@@ -226,6 +226,7 @@ export default {
   },
   about: {
     tagline: 'Lightweight screen annotation tool',
+    currentVersion: 'Current version',
     author: 'Author',
     license: 'License',
     feedback: 'Feedback',

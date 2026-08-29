@@ -59,3 +59,6 @@ NUL
 # Brainstorm / agent session artifacts
 .superpowers/
 .worktrees/
+
+# Updater artifacts staged for the release server (MSI + .sig + latest.json)
+updater-dist/
