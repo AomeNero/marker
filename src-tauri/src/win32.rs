@@ -30,6 +30,8 @@ pub struct MONITORINFO {
 pub const MONITOR_DEFAULTTONEAREST: u32 = 2;
 
 pub const HWND_TOPMOST: isize = -1;
+pub const HWND_NOTOPMOST: isize = -2;
+pub const SW_RESTORE: i32 = 9;
 pub const SWP_NOMOVE: u32 = 0x0002;
 pub const SWP_NOSIZE: u32 = 0x0001;
 pub const SWP_NOACTIVATE: u32 = 0x0010;
@@ -52,6 +54,8 @@ extern "system" {
         u_flags: u32,
     ) -> i32;
     fn SetWindowDisplayAffinity(h_wnd: isize, dw_affinity: u32) -> i32;
+    fn SetForegroundWindow(h_wnd: isize) -> i32;
+    fn ShowWindow(h_wnd: isize, n_cmd_show: i32) -> i32;
 }
 
 /// Exclude (or re-include) a window from desktop BitBlt / screen capture.
@@ -77,6 +81,27 @@ pub fn raise_window_topmost_no_activate(hwnd: isize) {
             0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
         );
+    }
+}
+
+/// Bring a window to the foreground with keyboard focus even when the caller is
+/// a background process (e.g. a tray menu handler): restore if minimized, bounce
+/// the z-order TOPMOST → NOTOPMOST to defeat Windows' foreground lock, then
+/// SetForegroundWindow for focus.
+pub fn force_window_foreground(hwnd: isize) {
+    unsafe {
+        ShowWindow(hwnd, SW_RESTORE);
+        SetWindowPos(
+            hwnd,
+            HWND_TOPMOST,
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+        );
+        SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        SetForegroundWindow(hwnd);
     }
 }
 

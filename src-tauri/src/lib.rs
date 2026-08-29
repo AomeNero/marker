@@ -84,6 +84,12 @@ fn focus_settings_window(app: &AppHandle, tab: Option<&str>) {
     macos::activate_for_settings(app);
     win.show().ok();
     win.set_focus().ok();
+    // Windows denies foreground to background processes: the tray menu handler
+    // needs the win32 z-order bounce to reliably surface an existing window.
+    #[cfg(windows)]
+    if let Ok(hwnd) = win.hwnd() {
+        crate::win32::force_window_foreground(hwnd.0 as isize);
+    }
     if let Some(t) = tab {
         app.emit_to("settings", "switch-tab", t).ok();
     }

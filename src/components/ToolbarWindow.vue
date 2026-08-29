@@ -45,6 +45,8 @@ const toolbarVisibility = ref<ToolbarVisibility>('space')
 const toolbarPinned = computed(() => isToolbarPinned(toolbarVisibility.value))
 /** Configured global clear-all shortcut — shown in the clear button tooltip. */
 const clearShortcut = ref('Alt+E')
+/** Configured global click-through shortcut — shown in the penetration button tooltip. */
+const penetrationShortcut = ref('Alt+M')
 const toolToolbarRef = ref<InstanceType<typeof ToolToolbar> | null>(null)
 const pointerX = ref(0)
 const pointerY = ref(0)
@@ -141,6 +143,7 @@ onMounted(async () => {
     const cfg = await invoke<AppConfig>('get_config')
     toolbarVisibility.value = resolveToolbarVisibility(cfg.general)
     clearShortcut.value = cfg.shortcuts?.clearDrawing || 'Alt+E'
+    penetrationShortcut.value = cfg.shortcuts?.togglePenetration || 'Alt+M'
     setWidthPresets(cfg.general?.widthPresets)
     currentTheme = resolveThemePref(cfg.general)
     await applyTheme(currentTheme)
@@ -186,6 +189,7 @@ onMounted(async () => {
     await listen<AppConfig>('config-changed', (event) => {
       toolbarVisibility.value = resolveToolbarVisibility(event.payload.general)
       clearShortcut.value = event.payload.shortcuts?.clearDrawing || 'Alt+E'
+      penetrationShortcut.value = event.payload.shortcuts?.togglePenetration || 'Alt+M'
       setWidthPresets(event.payload.general?.widthPresets)
       currentTheme = resolveThemePref(event.payload.general)
       void applyTheme(currentTheme)
@@ -238,6 +242,7 @@ onUnmounted(() => {
       standalone-window
       :pinned="toolbarPinned"
       :clear-shortcut="clearShortcut"
+      :penetration-shortcut="penetrationShortcut"
       :current-tool="currentTool"
       :current-color="currentColor"
       :line-width="lineWidth"

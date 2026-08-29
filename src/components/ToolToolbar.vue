@@ -44,6 +44,7 @@ const props = defineProps<{
   pinned: boolean
   standaloneWindow?: boolean
   clearShortcut?: string
+  penetrationShortcut?: string
   currentTool: Tool
   currentColor: string
   lineWidth: number
@@ -789,8 +790,8 @@ onUnmounted(() => {
             type="button"
             class="overlay-toolbar-action"
             :class="penetrationMode ? 'overlay-toolbar-action--active' : ''"
-            :title="t('toolbar.penetrationMode')"
-            :aria-label="t('toolbar.penetrationMode')"
+            :title="`${t('toolbar.penetrationMode')} (${props.penetrationShortcut || 'Alt+M'})`"
+            :aria-label="`${t('toolbar.penetrationMode')} (${props.penetrationShortcut || 'Alt+M'})`"
             :aria-pressed="!!penetrationMode"
             :disabled="whiteboardMode"
             @click="onPenetrationModeClick"
