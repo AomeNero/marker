@@ -4,7 +4,6 @@ import { Undo2, Redo2, Trash2, Layout, Copy, MousePointer2, X, ChevronDown, Eye,
 import type { Tool } from '../composables/useDrawing'
 import { useI18n } from '../i18n'
 import {
-  SELECT_TOOL_DEF,
   WIDTH_PRESET_LABEL_KEYS,
   getWidthOptions,
   PEN_GROUP_TOOLS,
@@ -80,8 +79,6 @@ const eraserDef = computed(() => ({ ...toolDefOf('eraser'), label: t('tools.eras
 /** Eraser size dots (visual px) for its 3-step picker, small → large. */
 const ERASER_DOT_SIZES = [8, 14, 22]
 const textDef = computed(() => ({ ...toolDefOf('text'), label: t('tools.text') }))
-const selectToolLabel = computed(() => t(`tools.${SELECT_TOOL_DEF.id}`))
-const selectToolTitle = computed(() => `${selectToolLabel.value} (${SELECT_TOOL_DEF.key})`)
 const colors = COLOR_ROWS
 const simpleColors = computed(() => colors[0] ?? [])
 const widths = computed(() =>
@@ -649,17 +646,6 @@ onUnmounted(() => {
           <!-- Tools -->
           <button
             type="button"
-            class="overlay-toolbar-action"
-            :class="currentTool === 'select' ? 'overlay-toolbar-action--active' : ''"
-            :title="selectToolTitle"
-            :aria-label="selectToolTitle"
-            :aria-pressed="currentTool === 'select'"
-            @click="selectTool('select')"
-          >
-            <component :is="SELECT_TOOL_DEF.icon" :size="15" />
-          </button>
-          <button
-            type="button"
             class="overlay-toolbar-action overlay-toolbar-flyout"
             :class="penGroupActive ? 'overlay-tool-btn--active' : 'overlay-tool-btn'"
             :title="penGroupTitle"
@@ -696,6 +682,18 @@ onUnmounted(() => {
             @click="selectTool(tool.id)"
           >
             <component :is="tool.icon" :size="15" />
+          </button>
+          <button
+            type="button"
+            class="overlay-toolbar-action"
+            :class="!inkVisible ? 'overlay-toolbar-action--active' : ''"
+            :title="`${inkVisible ? t('toolbar.hideInk') : t('toolbar.showInk')} (V)`"
+            :aria-label="`${inkVisible ? t('toolbar.hideInk') : t('toolbar.showInk')} (V)`"
+            :aria-pressed="!inkVisible"
+            @click="emit('toggleInkVisible')"
+          >
+            <EyeOff v-if="inkVisible" :size="15" />
+            <Eye v-else :size="15" />
           </button>
 
           <span class="ui-divider-v h-5.5 mx-1.5" />
@@ -784,18 +782,6 @@ onUnmounted(() => {
             @click="emit('toggleWhiteboard')"
           >
             <Layout :size="15" />
-          </button>
-          <button
-            type="button"
-            class="overlay-toolbar-action"
-            :class="!inkVisible ? 'overlay-toolbar-action--active' : ''"
-            :title="inkVisible ? t('toolbar.hideInk') : t('toolbar.showInk')"
-            :aria-label="inkVisible ? t('toolbar.hideInk') : t('toolbar.showInk')"
-            :aria-pressed="!inkVisible"
-            @click="emit('toggleInkVisible')"
-          >
-            <EyeOff v-if="inkVisible" :size="15" />
-            <Eye v-else :size="15" />
           </button>
           <button
             v-if="standaloneWindow"

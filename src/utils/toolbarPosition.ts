@@ -24,7 +24,7 @@ export interface MonitorLogicalBounds {
  * The work area already excludes the taskbar (Win32 rc_work), so this just
  * clears the work-area edge.
  */
-export const TOOLBAR_DOCK_MARGIN = { right: 32, bottom: 16 } as const
+export const TOOLBAR_DOCK_MARGIN = { right: 64, bottom: 16 } as const
 
 /** Screen-logical position for the toolbar docked at a work area's bottom-right corner. */
 export function toolbarDockedScreenPosition(

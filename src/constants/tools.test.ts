@@ -10,9 +10,31 @@ import {
   normalizeLineWidth,
   resolveLineWidths,
   resolveWidthPresets,
+  SELECT_TOOL_DEF,
   setWidthPresets,
+  TOOL_DEFS,
   toolLineWidthGroup,
 } from './tools'
+
+describe('tool shortcut keys', () => {
+  it('maps tools to the 1-7 + letter layout', () => {
+    expect(SELECT_TOOL_DEF.key).toBe('S')
+    const keys = Object.fromEntries(TOOL_DEFS.map((d) => [d.id, d.key]))
+    expect(keys).toEqual({
+      select: 'S',
+      pen: '1',
+      highlighter: '2',
+      laser: '3',
+      arrow: '4',
+      rect: '5',
+      ellipse: '6',
+      line: '7',
+      eraser: 'E',
+      text: 'T',
+      stamp: 'N',
+    })
+  })
+})
 
 describe('line width helpers', () => {
   it('defaults every width group to the middle preset', () => {

@@ -4,7 +4,7 @@ import { isMacOS } from '../utils/platform'
 import { usesCrosshairCursor } from '../utils/crosshairCursor'
 import { logActionEvent } from '../utils/diagnosticEvents'
 
-const TOOL_KEYS: Tool[] = ['pen', 'highlighter', 'arrow', 'rect', 'ellipse', 'line', 'eraser', 'laser']
+const TOOL_KEYS: Tool[] = ['pen', 'highlighter', 'laser', 'arrow', 'rect', 'ellipse', 'line']
 
 /** True while pointer is down for draw/drag — modifier keys serve drawing, not copy. */
 let pointerGestureActive = false
@@ -36,7 +36,7 @@ export interface KeyboardActions {
   showStampTip?: () => void
   cycleStampKind?: () => void
   resetStampCounter?: () => void
-  /** Press 7 again while eraser is selected: stroke ↔ object. */
+  /** Press E again while eraser is selected: stroke ↔ object. */
   cycleEraserMode?: () => void
   /** Tip for eraser including current mode (first select). */
   showEraserTip?: () => void
@@ -60,6 +60,7 @@ export interface KeyboardActions {
   copyScreen: () => void
   copyWhiteboard: () => void
   toggleToolbarPopupVisible: () => void
+  toggleInkVisible: () => void
   commitCurrentTextBox: (cancel?: boolean) => void
 }
 
@@ -147,7 +148,7 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
       } else if (e.key === 'q' || e.key === 'Q') {
         logActionEvent('color cycled', { reason: 'keyboard', direction: -1, context: 'quick-colors' })
         actions.cycleColor(-1)
-      } else if (e.key === 'e' || e.key === 'E') {
+      } else if (e.key === 'r' || e.key === 'R') {
         logActionEvent('color cycled', { reason: 'keyboard', direction: 1, context: 'quick-colors' })
         actions.cycleColor(1)
       } else if (e.key === ' ') {
@@ -169,9 +170,8 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
       return
     }
 
-    // Toolbar popup toggle (Space) — skipped when toolbar is pinned always-on
+    // Toolbar popup toggle (Space) — also recalls the bar after draw-hide in pinned mode
     if (e.key === ' ') {
-      if (ctx.toolbarPinned.value) return
       e.preventDefault()
       logActionEvent('toolbar popup toggled', { reason: 'keyboard' })
       ctx.mousePos.value = { x: ctx.lastPointerX(), y: ctx.lastPointerY() }
@@ -185,18 +185,34 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
       actions.cycleColor(-1)
       return
     }
-    if (e.key === 'e' || e.key === 'E') {
+    if (e.key === 'r' || e.key === 'R') {
       logActionEvent('color cycled', { reason: 'keyboard', direction: 1 })
       actions.cycleColor(1)
       return
     }
 
-    // Select tool
+    // Ink show/hide toggle — V (pairs with the toolbar eye button)
     if ((e.key === 'v' || e.key === 'V') && !modDown(e)) {
       if (ctx.isDrawing.value) return
-      logActionEvent('tool selected', { reason: 'keyboard', tool: 'select' })
-      ctx.currentTool.value = 'select'
-      actions.showToolTip('select')
+      logActionEvent('ink visibility toggled', { reason: 'keyboard' })
+      actions.toggleInkVisible()
+      return
+    }
+
+    // Eraser — E selects; E again cycles stroke ↔ object mode
+    if (e.key === 'e' || e.key === 'E') {
+      if (ctx.isDrawing.value) return
+      if (ctx.currentTool.value === 'eraser') {
+        actions.cycleEraserMode?.()
+        return
+      }
+      logActionEvent('tool selected', { reason: 'keyboard', tool: 'eraser' })
+      ctx.currentTool.value = 'eraser'
+      if (actions.showEraserTip) {
+        actions.showEraserTip()
+      } else {
+        actions.showToolTip('eraser')
+      }
       return
     }
 
@@ -231,17 +247,13 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
       return
     }
 
-    // Tool switching (1-8). Pen/eraser/crosshair tools: re-press cycles style or mode.
+    // Tool switching (1-7). Pen/crosshair tools: re-press cycles style.
     // Ignore all tool changes while a stroke is active — action.tool is fixed at pointer-down.
-    if (e.key >= '1' && e.key <= '8') {
+    if (e.key >= '1' && e.key <= '7') {
       if (ctx.isDrawing.value) return
       const tool = TOOL_KEYS[parseInt(e.key) - 1]
       if (tool === 'pen' && ctx.currentTool.value === 'pen') {
         actions.cyclePenCursorStyle?.()
-        return
-      }
-      if (tool === 'eraser' && ctx.currentTool.value === 'eraser') {
-        actions.cycleEraserMode?.()
         return
       }
       if (usesCrosshairCursor(tool) && ctx.currentTool.value === tool) {

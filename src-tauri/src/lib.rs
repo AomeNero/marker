@@ -246,37 +246,43 @@ pub fn run() {
             rebuild_tray_menu(&handle).ok();
 
             if let Some(tray) = app.tray_by_id("main") {
-                tray.on_menu_event(move |app, event| match event.id().as_ref() {
-                    "settings" => open_settings(app),
-                    "help" => open_settings_tab(app, Some("help")),
-                    "about" => open_settings_tab(app, Some("about")),
-                    "quit" => app.exit(0),
-                    _ => {}
+                tray.on_menu_event(move |app, event| {
+                    // Any menu action dismisses the menu — restore the resident toolbar.
+                    crate::overlay::show_toolbar_after_tray_menu(app);
+                    match event.id().as_ref() {
+                        "settings" => open_settings(app),
+                        "help" => open_settings_tab(app, Some("help")),
+                        "about" => open_settings_tab(app, Some("about")),
+                        "quit" => app.exit(0),
+                        _ => {}
+                    }
                 });
                 let handle_click = handle.clone();
+                let handle_menu = handle.clone();
                 tray.on_tray_icon_event(move |_tray, event| {
                     if let TrayIconEvent::Click {
-                        button: tauri::tray::MouseButton::Left,
+                        button,
                         button_state: tauri::tray::MouseButtonState::Up,
                         ..
                     } = event
                     {
-                        let state = handle_click.state::<AppState>();
-                        log_backend_event(
-                            &state,
-                            "session",
-                            "toggle drawing requested",
-                            Some(serde_json::json!({ "reason": "tray" })),
-                            "info",
-                        );
-                        toggle_drawing(&handle_click);
-                        // Entering annotation from the tray should surface the toolbar bar.
-                        if crate::overlay::current_mode(&state)
-                            == crate::overlay::OverlayMode::Drawing
-                        {
-                            if let Err(e) = handle_click.emit("tray-toolbar-request", ()) {
-                                warn!("Failed to emit tray-toolbar-request: {}", e);
+                        match button {
+                            tauri::tray::MouseButton::Left => {
+                                let state = handle_click.state::<AppState>();
+                                log_backend_event(
+                                    &state,
+                                    "session",
+                                    "toggle drawing requested",
+                                    Some(serde_json::json!({ "reason": "tray" })),
+                                    "info",
+                                );
+                                toggle_drawing(&handle_click);
                             }
+                            tauri::tray::MouseButton::Right => {
+                                // The context menu must not be covered by the topmost toolbar bar.
+                                crate::overlay::hide_toolbar_for_tray_menu(&handle_menu);
+                            }
+                            _ => {}
                         }
                     }
                 });

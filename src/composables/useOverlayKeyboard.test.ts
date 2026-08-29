@@ -63,6 +63,7 @@ function createActions(): KeyboardActions & { calls: Record<string, unknown[][]>
     copyScreen: make('copyScreen') as KeyboardActions['copyScreen'],
     copyWhiteboard: make('copyWhiteboard') as KeyboardActions['copyWhiteboard'],
     toggleToolbarPopupVisible: make('toggleToolbarPopupVisible') as KeyboardActions['toggleToolbarPopupVisible'],
+    toggleInkVisible: make('toggleInkVisible') as KeyboardActions['toggleInkVisible'],
     commitCurrentTextBox: make('commitCurrentTextBox') as KeyboardActions['commitCurrentTextBox'],
   }
 }
@@ -120,26 +121,33 @@ describe('useOverlayKeyboard', () => {
       expect(ctx.currentTool.value).toBe('highlighter')
     })
 
-    it('key 3 selects arrow', () => {
+    it('key 3 selects laser (laser has its own pointer, no crosshair tip)', () => {
       handler(key('3'))
+      expect(ctx.currentTool.value).toBe('laser')
+      expect(actions.calls.showToolTip).toHaveLength(1)
+      expect(actions.calls.showCrosshairTip).toHaveLength(0)
+    })
+
+    it('key 4 selects arrow', () => {
+      handler(key('4'))
       expect(ctx.currentTool.value).toBe('arrow')
       expect(actions.calls.showCrosshairTip).toHaveLength(1)
     })
 
-    it('key 4 selects rect', () => {
-      handler(key('4'))
+    it('key 5 selects rect', () => {
+      handler(key('5'))
       expect(ctx.currentTool.value).toBe('rect')
       expect(actions.calls.showCrosshairTip).toHaveLength(1)
     })
 
-    it('key 5 selects ellipse', () => {
-      handler(key('5'))
+    it('key 6 selects ellipse', () => {
+      handler(key('6'))
       expect(ctx.currentTool.value).toBe('ellipse')
       expect(actions.calls.showCrosshairTip).toHaveLength(1)
     })
 
-    it('key 6 selects line', () => {
-      handler(key('6'))
+    it('key 7 selects line', () => {
+      handler(key('7'))
       expect(ctx.currentTool.value).toBe('line')
       expect(actions.calls.showCrosshairTip).toHaveLength(1)
     })
@@ -162,43 +170,43 @@ describe('useOverlayKeyboard', () => {
       expect(actions.calls.showToolTip).toHaveLength(0)
     })
 
-    it('key 3 while on arrow cycles crosshair cursor style', () => {
+    it('key 4 while on arrow cycles crosshair cursor style', () => {
       ctx.currentTool.value = 'arrow'
-      handler(key('3'))
+      handler(key('4'))
       expect(ctx.currentTool.value).toBe('arrow')
       expect(actions.calls.cycleCrosshairCursorStyle).toHaveLength(1)
       expect(actions.calls.showCrosshairTip).toHaveLength(0)
       expect(actions.calls.showToolTip).toHaveLength(0)
     })
 
-    it('key 8 while on laser is a no-op (laser has its own pointer)', () => {
+    it('key 3 while on laser is a no-op (laser has its own pointer)', () => {
       ctx.currentTool.value = 'laser'
-      handler(key('8'))
+      handler(key('3'))
       expect(actions.calls.cycleCrosshairCursorStyle).toHaveLength(0)
       expect(ctx.currentTool.value).toBe('laser')
     })
 
-    it('key 7 selects eraser and shows eraser tip', () => {
-      handler(key('7'))
+    it('key E selects eraser and shows eraser tip', () => {
+      handler(key('e'))
       expect(ctx.currentTool.value).toBe('eraser')
       expect(actions.calls.showEraserTip).toHaveLength(1)
       expect(actions.calls.showToolTip).toHaveLength(0)
       expect(actions.calls.cycleEraserMode).toHaveLength(0)
     })
 
-    it('key 7 while on eraser cycles eraser mode', () => {
+    it('key E while on eraser cycles eraser mode', () => {
       ctx.currentTool.value = 'eraser'
-      handler(key('7'))
+      handler(key('e'))
       expect(ctx.currentTool.value).toBe('eraser')
       expect(actions.calls.cycleEraserMode).toHaveLength(1)
       expect(actions.calls.showEraserTip).toHaveLength(0)
       expect(actions.calls.showToolTip).toHaveLength(0)
     })
 
-    it('key 7 while erasing does not cycle mid-stroke', () => {
+    it('key E while erasing does not cycle mid-stroke', () => {
       ctx.currentTool.value = 'eraser'
       ctx.isDrawing.value = true
-      handler(key('7'))
+      handler(key('e'))
       expect(actions.calls.cycleEraserMode).toHaveLength(0)
       expect(ctx.currentTool.value).toBe('eraser')
     })
@@ -209,17 +217,21 @@ describe('useOverlayKeyboard', () => {
       handler(key('2'))
       handler(key('t'))
       handler(key('n'))
+      handler(key('e'))
+      handler(key('v'))
+      handler(key('s'))
       expect(ctx.currentTool.value).toBe('pen')
       expect(actions.calls.showToolTip).toHaveLength(0)
       expect(actions.calls.showStampTip).toHaveLength(0)
       expect(actions.calls.cycleStampKind).toHaveLength(0)
+      expect(actions.calls.showEraserTip).toHaveLength(0)
+      expect(actions.calls.toggleInkVisible).toHaveLength(0)
     })
 
-    it('key 8 selects laser', () => {
+    it('key 8 is unbound (no tool change)', () => {
       handler(key('8'))
-      expect(ctx.currentTool.value).toBe('laser')
-      expect(actions.calls.showToolTip).toHaveLength(1)
-      expect(actions.calls.showCrosshairTip).toHaveLength(0)
+      expect(ctx.currentTool.value).toBe('pen')
+      expect(actions.calls.showToolTip).toHaveLength(0)
     })
 
     it('key T selects text', () => {
@@ -228,17 +240,23 @@ describe('useOverlayKeyboard', () => {
       expect(actions.calls.showToolTip[0]).toEqual(['text'])
     })
 
-    it('key V selects select tool', () => {
-      handler(key('v'))
-      expect(ctx.currentTool.value).toBe('select')
-      expect(actions.calls.showToolTip[0]).toEqual(['select'])
+    it('key S is unbound (cursor/annotate toggle removed)', () => {
+      handler(key('s'))
+      expect(actions.calls.exitDrawing).toHaveLength(0)
+      expect(actions.calls.showToolTip).toHaveLength(0)
+      expect(ctx.currentTool.value).toBe('pen')
     })
 
-    it('ignores V while drawing', () => {
-      ctx.isDrawing.value = true
+    it('key V toggles ink visibility', () => {
       handler(key('v'))
+      expect(actions.calls.toggleInkVisible).toHaveLength(1)
       expect(ctx.currentTool.value).toBe('pen')
-      expect(actions.calls.showToolTip).toHaveLength(0)
+    })
+
+    it('V still toggles ink while the select tool is active', () => {
+      ctx.currentTool.value = 'select'
+      handler(key('v'))
+      expect(actions.calls.toggleInkVisible).toHaveLength(1)
     })
 
     it('key N selects stamp and shows stamp tip', () => {
@@ -370,8 +388,8 @@ describe('useOverlayKeyboard', () => {
       expect(actions.calls.cycleColor[0]).toEqual([-1])
     })
 
-    it('E cycles color forward', () => {
-      handler(key('e'))
+    it('R cycles color forward (E now selects the eraser)', () => {
+      handler(key('r'))
       expect(actions.calls.cycleColor[0]).toEqual([1])
     })
   })
@@ -382,10 +400,10 @@ describe('useOverlayKeyboard', () => {
       expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(1)
     })
 
-    it('space does nothing when toolbar is pinned', () => {
+    it('space toggles toolbar even when pinned (recall after draw-hide)', () => {
       ;(ctx.toolbarPinned as Ref<boolean>).value = true
       handler(key(' '))
-      expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(0)
+      expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(1)
     })
 
     it('space updates mousePos from lastPointer', () => {
@@ -474,10 +492,10 @@ describe('useOverlayKeyboard', () => {
       expect(ctx.showQuickColors.value).toBe(false)
     })
 
-    it('Q/E cycles colors in quick color mode', () => {
+    it('Q/R cycles colors in quick color mode', () => {
       handler(key('q'))
       expect(actions.calls.cycleColor[0]).toEqual([-1])
-      handler(key('e'))
+      handler(key('r'))
       expect(actions.calls.cycleColor[1]).toEqual([1])
     })
 

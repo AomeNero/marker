@@ -46,7 +46,7 @@ winget install --id 9N6623X973JV --source msstore
 
 1. **Install and launch** — Marker runs in the **system tray**; no window appears.
 2. **Enter annotation mode** — press <kbd>Alt</kbd> + <kbd>G</kbd>.
-3. **Draw, then click through** — use number keys and <kbd>V</kbd> (Select) for tools; press <kbd>X</kbd> to interact with apps below while keeping annotations visible; press <kbd>Esc</kbd> to exit.
+3. **Draw, then click through** — use number keys plus <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> for tools; press <kbd>X</kbd> to interact with apps below while keeping annotations visible; press <kbd>Esc</kbd> to exit.
 
 > **New here?** Press <kbd>Space</kbd> for the toolbar. See [Keyboard Shortcuts](#keyboard-shortcuts) for the full list.
 
@@ -54,9 +54,8 @@ winget install --id 9N6623X973JV --source msstore
 
 - **Lightweight & fast** — ~1.5 MB installer (Rust + Canvas), minimal memory; runs quietly in the system tray (no extra daemons or telemetry)
 - **Annotate anywhere** — draw over any app, including the taskbar
-- **11 tools** — select, pen, highlighter, laser, arrow, rectangle, ellipse, line, eraser, text, stamp
-- **Marquee batch edit** — press <kbd>V</kbd> for Select: box/click select, group drag, <kbd>Delete</kbd> to remove
-- **Flexible toolbar** — press <kbd>Space</kbd> to toggle, or enable **always-on** in Settings; compact panel with **Expand** for full options, undo, copy, and whiteboard actions in-panel; **independent floating window** with drawing / click-through toggles
+- **10 tools** — pen, highlighter, laser, arrow, rectangle, ellipse, line, eraser, text, stamp
+- **Flexible toolbar** — shows when you enter annotation, **auto-hides while you draw**, <kbd>Space</kbd> recalls / toggles it, or enable **always-on** in Settings; compact panel with **Expand** for full options, undo, copy, and whiteboard actions in-panel; **independent floating window** with drawing / click-through toggles
 - **Click-through mode** — interact with apps below while staying in the session; toggle via toolbar buttons, <kbd>Alt</kbd>+<kbd>M</kbd> (global), or <kbd>X</kbd> while drawing; disabled in whiteboard mode
 - **Full keyboard control** — every action has a shortcut, no menus needed
 - **Preserve drawings** — enable **Keep after exit** under Whiteboard & content to resume on re-enter
@@ -90,21 +89,20 @@ On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd
 
 | Key | Tool | Key | Tool |
 | :---: | :--- | :---: | :--- |
-| <kbd>V</kbd> | Select | <kbd>5</kbd> | Ellipse |
-| <kbd>1</kbd> | Pen | <kbd>6</kbd> | Line |
-| <kbd>2</kbd> | Highlighter | <kbd>7</kbd> | Eraser |
-| <kbd>3</kbd> | Arrow | <kbd>8</kbd> | Laser |
-| <kbd>4</kbd> | Rectangle | <kbd>T</kbd> | Text |
-|  |  | <kbd>N</kbd> | Stamp |
+| <kbd>V</kbd> | Hide / show annotations | <kbd>6</kbd> | Ellipse |
+| <kbd>1</kbd> | Pen | <kbd>7</kbd> | Line |
+| <kbd>2</kbd> | Highlighter | <kbd>E</kbd> | Eraser |
+| <kbd>3</kbd> | Laser | <kbd>T</kbd> | Text |
+| <kbd>4</kbd> | Arrow | <kbd>N</kbd> | Stamp |
+| <kbd>5</kbd> | Rectangle |  |  |
 
 ### Common Actions
 
 | Action | Windows | macOS |
 | :--- | :--- | :--- |
-| Toolbar (toggle) | <kbd>Space</kbd> | <kbd>Space</kbd> |
-| Delete selection | <kbd>Delete</kbd> / <kbd>Backspace</kbd> | <kbd>Delete</kbd> / <kbd>Backspace</kbd> |
+| Toolbar (toggle) | <kbd>Space</kbd> (auto-hides while drawing) | <kbd>Space</kbd> (auto-hides while drawing) |
 | Click-through (while drawing) | <kbd>X</kbd> | <kbd>X</kbd> |
-| Cycle eraser mode (stroke / object) | <kbd>7</kbd> again while eraser selected | <kbd>7</kbd> again while eraser selected |
+| Cycle eraser mode (stroke / object) | <kbd>E</kbd> again while eraser selected | <kbd>E</kbd> again while eraser selected |
 | Toolbar always-on / layout | Settings → General | Settings → General |
 | Copy screen / whiteboard | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
 | Whiteboard toggle | <kbd>W</kbd> | <kbd>W</kbd> |
@@ -131,7 +129,6 @@ On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd
 
 | Action | Effect |
 | :--- | :--- |
-| Select tool (<kbd>V</kbd>) | Marquee or click to select; drag selection as a group; <kbd>Delete</kbd> / <kbd>Backspace</kbd> to remove; <kbd>Esc</kbd> clears selection |
 | Element dragging | In General settings: **Off** / **Hover drag** / **Hold Ctrl to drag** |
 | Double-click existing text | Re-enter **edit mode** for that text |
 | Double-click empty area in <kbd>T</kbd> mode | Create a new text input at cursor position |
@@ -140,7 +137,7 @@ On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd
 
 | Action | Effect |
 | :--- | :--- |
-| <kbd>Q</kbd> / <kbd>E</kbd> | Previous / Next color |
+| <kbd>Q</kbd> / <kbd>R</kbd> | Previous / Next color |
 | Right-click | Hold to erase; release restores the previous tool |
 
 #### Other
@@ -158,7 +155,7 @@ In **Settings → General** (toolbar display, click-through, and stroke width �
 
 - **Whiteboard & content** — default entry (screen / whiteboard), keep after exit, keep on <kbd>W</kbd> toggle
 - **Element dragging** — off, hover to drag, or hold <kbd>Ctrl</kbd>/<kbd>Command</kbd> to drag (disabled while eraser is selected)
-- **Eraser mode** — stroke (local erase) or object (delete whole elements); with eraser selected, press <kbd>7</kbd> again (or click the toolbar eraser again) to switch
+- **Eraser mode** — stroke (local erase) or object (delete whole elements); with eraser selected, press <kbd>E</kbd> again (or click the toolbar eraser again) to switch
 - **Angle snap step** — snap interval for straight lines drawn with <kbd>Alt</kbd>
 - **Auto start** — launch the app automatically at system startup
 

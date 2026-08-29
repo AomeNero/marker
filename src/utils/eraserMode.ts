@@ -6,7 +6,7 @@ export function resolveEraserMode(general?: { eraserMode?: EraserMode }): Eraser
   return general?.eraserMode ?? 'stroke'
 }
 
-/** Toggle stroke ↔ object (session shortcut: press 7 again while eraser is selected). */
+/** Toggle stroke ↔ object (session shortcut: press E again while eraser is selected). */
 export function nextEraserMode(mode: EraserMode): EraserMode {
   return mode === 'stroke' ? 'object' : 'stroke'
 }

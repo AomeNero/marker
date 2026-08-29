@@ -202,7 +202,7 @@ onMounted(async () => {
       const hidden = mode === 'hidden'
       document.body.style.visibility = hidden ? 'hidden' : 'visible'
       penetrationMode.value = mode === 'penetration'
-      // Always-on: re-clamp only when entering drawing from hidden (Ctrl+Shift+D).
+      // Always-on: re-clamp only when entering drawing from hidden (Alt+G).
       // Click-through toggle must not move a panel the user already placed.
       if (mode === 'drawing' && toolbarPinned.value && fromHidden) {
         void clampToolbarWindowToOverlay()

@@ -234,7 +234,7 @@ async function onRmbPointerDown(e: PointerEvent) {
   lastPointerX = e.clientX
   lastPointerY = e.clientY
   invalidateCopyModifierForPointerInteraction()
-  hideToolbarPopupForCanvasInteraction()
+  hideToolbarForCanvasInteraction()
   currentTool.value = 'eraser'
   capturePointer(e)
   startDraw({
@@ -425,7 +425,6 @@ async function openToolbarPopupDocked(): Promise<void> {
 }
 
 async function setToolbarPopupVisible(visible: boolean) {
-  if (toolbarPinned.value) return
   if (showToolbarPopup.value === visible) return
   showToolbarPopup.value = visible
   if (!visible) {
@@ -438,12 +437,12 @@ async function setToolbarPopupVisible(visible: boolean) {
 }
 
 function toggleToolbarPopupVisible() {
-  if (toolbarPinned.value) return
   void setToolbarPopupVisible(!showToolbarPopup.value)
 }
 
-function hideToolbarPopupForCanvasInteraction() {
-  if (!toolbarPinned.value && showToolbarPopup.value) {
+/** Any canvas interaction hides the bar (all visibility modes) so strokes get the full screen. */
+function hideToolbarForCanvasInteraction() {
+  if (showToolbarPopup.value) {
     void setToolbarPopupVisible(false)
   }
 }
@@ -1245,8 +1244,10 @@ async function onPointerDown(e: PointerEvent) {
   lastPointerX = e.clientX
   lastPointerY = e.clientY
 
+  // Any stroke/drag start hides the bar (resident or popup) — Space recalls it.
+  hideToolbarForCanvasInteraction()
+
   if (textBoxPos.value) {
-    hideToolbarPopupForCanvasInteraction()
     commitCurrentTextBox()
     return
   }
@@ -1265,7 +1266,6 @@ async function onPointerDown(e: PointerEvent) {
   // Select tool: click/marquee select, drag selected group (ignores dragMode).
   // Drag starts from stroke hit OR anywhere inside a selected action's bbox.
   if (currentTool.value === 'select') {
-    hideToolbarPopupForCanvasInteraction()
     const pos = { x: e.clientX, y: e.clientY }
     // Always hit-test at down position — hoveredActionInfo can be a frame stale after await.
     const strokeHit = findActionAt(pos)
@@ -1322,7 +1322,6 @@ async function onPointerDown(e: PointerEvent) {
 
   // Drag when over an element; optional: require Ctrl/Command (scheme A — modifier on element wins over rect draw)
   if (canStartElementDrag(e)) {
-    hideToolbarPopupForCanvasInteraction()
     isDragging = true
     dragStartX = e.clientX
     dragStartY = e.clientY
@@ -1338,7 +1337,6 @@ async function onPointerDown(e: PointerEvent) {
 
   // Stamp: single click places the next number/letter badge
   if (currentTool.value === 'stamp') {
-    hideToolbarPopupForCanvasInteraction()
     placeStampAt(e.clientX, e.clientY)
     return
   }
@@ -1688,6 +1686,10 @@ const onKeyDown = createKeyDownHandler(
       void copyWhiteboard('keyboard')
     },
     toggleToolbarPopupVisible,
+    toggleInkVisible: () => {
+      setInkVisible(!inkVisible.value)
+      logActionEvent('ink visibility toggled', { reason: 'keyboard', visible: inkVisible.value })
+    },
     commitCurrentTextBox,
     exitDrawing: () => {
       exitDrawing('keyboard')
@@ -1988,6 +1990,7 @@ watch(
     textOutline,
     whiteboardMode,
     penetrationMode,
+    inkVisible,
     canUndo,
     canRedo,
     canClear,
@@ -2196,9 +2199,9 @@ onMounted(async () => {
     }),
   )
 
-  // Tray click that enters annotation surfaces the docked toolbar bar (space mode).
+  // Entering annotation (tray / Alt+G / relaunch) surfaces the docked toolbar bar (space mode).
   unlisteners.push(
-    await listen('tray-toolbar-request', () => {
+    await listen('surface-toolbar-request', () => {
       if (!toolbarPinned.value && sessionActive.value) {
         void setToolbarPopupVisible(true)
       }

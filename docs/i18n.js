@@ -12,11 +12,11 @@
     return `<span class="kbd-combo">${keysHtml}</span>`;
   }
 
-  const enterCombo = kbdCombo(['Ctrl', 'Shift', 'D']);
+  const enterCombo = kbdCombo(['Alt', 'G']);
   const enterComboMac = kbdCombo(['⌘', '⇧', 'D']);
-  const clearCombo = kbdCombo(['Ctrl', 'Shift', 'C']);
+  const clearCombo = kbdCombo(['Alt', 'E']);
   const clearComboMac = kbdCombo(['⌘', '⇧', 'C']);
-  const clickThroughCombo = kbdCombo(['Ctrl', 'Shift', 'X']);
+  const clickThroughCombo = kbdCombo(['Alt', 'M']);
   const clickThroughComboMac = kbdCombo(['⌘', '⇧', 'X']);
   const undoCombo = kbdCombo(['Ctrl', 'Z']);
   const undoComboMac = kbdCombo(['⌘', 'Z']);
@@ -41,7 +41,7 @@
       'helpPage.meta.description':
         'Marker keyboard shortcuts and help: global hotkeys, drawing tools, click-through mode, whiteboard, and modifier tips for Windows and macOS.',
       'helpPage.meta.keywords':
-        'Marker help, screen annotation shortcuts, click-through mode, whiteboard shortcuts, Ctrl+Shift+D, keyboard drawing',
+        'Marker help, screen annotation shortcuts, click-through mode, whiteboard shortcuts, Alt+G, keyboard drawing',
       'helpPage.meta.ogTitle': 'Marker Help & Shortcuts',
       'helpPage.meta.ogDescription':
         'Learn Marker shortcuts: enter annotation, switch tools, toggle click-through, whiteboard, colors, and drag tips.',
@@ -108,10 +108,7 @@
       'helpPage.tools.eyebrow': '03',
       'helpPage.tools.title': 'In-session tools',
       'helpPage.tools.lead':
-        'Number keys and letter shortcuts switch tools. Press <kbd>V</kbd> for Select to marquee-select and batch move or delete.',
-      'helpPage.tools.select': 'Select',
-      'helpPage.tools.selectDesc':
-        'Marquee or click to select; drag to move as a group; <kbd>Delete</kbd> / <kbd>Backspace</kbd> removes; <kbd>Esc</kbd> clears selection',
+        'Number keys and letter shortcuts switch tools. Press <kbd>V</kbd> to hide or show your annotations without leaving the session.',
       'helpPage.tools.pen': 'Pen',
       'helpPage.tools.penDesc': 'Freehand drawing with smooth curves',
       'helpPage.tools.highlighter': 'Highlighter',
@@ -126,7 +123,7 @@
       'helpPage.tools.lineDesc': 'Straight line segment',
       'helpPage.tools.eraser': 'Eraser',
       'helpPage.tools.eraserDesc':
-        'Separate width; press <kbd>7</kbd> again while selected to switch stroke / object erase (also in Settings → General)',
+        'Separate width; press <kbd>E</kbd> again while selected to switch stroke / object erase (also in Settings → General)',
       'helpPage.tools.laser': 'Laser',
       'helpPage.tools.laserDesc': 'Temporary ink that fades from the oldest tip first',
       'helpPage.tools.text': 'Text',
@@ -136,8 +133,7 @@
         'Click to place numbered or lettered markers; press <kbd>N</kbd> again to toggle; <kbd>Shift</kbd>+<kbd>N</kbd> resets the counter',
       'helpPage.session.tableAria': 'In-session edit shortcuts',
       'helpPage.session.toolbar': 'Toolbar',
-      'helpPage.session.delete': 'Delete selection',
-      'helpPage.session.deleteKeys': '<kbd>Delete</kbd> / <kbd>Backspace</kbd>',
+      'helpPage.session.hideInk': 'Hide / show annotations',
       'helpPage.session.undo': 'Undo',
       'helpPage.session.undoKeys': `${undoCombo} <span class="help-key-sep" aria-hidden="true">/</span> ${undoComboMac}`,
       'helpPage.session.redo': 'Redo',
@@ -166,7 +162,7 @@
       'helpPage.draw.arrowKeys': '<kbd>Ctrl</kbd>+<kbd>Shift</kbd> / <kbd>⌘</kbd>+<kbd>⇧</kbd> + drag',
       'helpPage.draw.colorsTitle': 'Colors',
       'helpPage.draw.colorsPrevNext': 'Prev / next color',
-      'helpPage.draw.colorsKeys': '<kbd>Q</kbd> / <kbd>E</kbd>',
+      'helpPage.draw.colorsKeys': '<kbd>Q</kbd> / <kbd>R</kbd>',
       'helpPage.draw.rightClick': 'Hold to erase (release restores tool)',
       'helpPage.draw.rightClickKeys': 'Hold right-click',
       'helpPage.draw.boardTitle': 'Whiteboard',
@@ -176,7 +172,7 @@
       'helpPage.draw.boardExit': 'Exit whiteboard',
       'helpPage.settings.eraserTitle': 'Eraser modes',
       'helpPage.settings.eraserBody':
-        'Stroke: erase pixels along the drag path (undoable). Object: delete entire shapes or text when you pass over them (undoable). Element dragging is disabled while the eraser is selected, even with hover drag on. Switch in Settings → General, or press <kbd>7</kbd> again while the eraser is selected.',
+        'Stroke: erase pixels along the drag path (undoable). Object: delete entire shapes or text when you pass over them (undoable). Element dragging is disabled while the eraser is selected, even with hover drag on. Switch in Settings → General, or press <kbd>E</kbd> again while the eraser is selected.',
       'helpPage.settings.boardTitle': 'Whiteboard & content',
       'helpPage.settings.boardBody':
         'Default entry chooses screen overlay or whiteboard. Keep after exit restores your last session when you re-enter. Keep on W toggle preserves drawings when switching modes without exiting; turn off to start with a blank whiteboard each time you press W. Configure these in Settings → General.',
@@ -185,17 +181,14 @@
       'helpPage.tips.lead': 'Keep marks on screen while you present — then move or edit when needed.',
       'helpPage.tips.throughTitle': 'Click-through mode',
       'helpPage.tips.throughBody': `Toggle from the toolbar, with ${clickThroughCombo} (global), or <kbd>X</kbd> while drawing. Marks stay visible; clicks reach the app below.`,
-      'helpPage.tips.selectTitle': 'Select & batch edit',
-      'helpPage.tips.selectBody':
-        'Press <kbd>V</kbd> for Select. Marquee or click to select (hold <kbd>Shift</kbd> to add). Drag the selection to move; <kbd>Delete</kbd> / <kbd>Backspace</kbd> to remove; <kbd>Esc</kbd> clears selection.',
       'helpPage.tips.dragTitle': 'Drag elements',
       'helpPage.tips.dragBody':
-        'In General settings: off, hover to drag, or hold Ctrl/Command to drag. Disabled while eraser is selected. Prefer Select (<kbd>V</kbd>) for moving several marks at once.',
+        'In General settings: off, hover to drag, or hold Ctrl/Command to drag. Disabled while eraser is selected.',
       'helpPage.tips.textTitle': 'Edit text',
       'helpPage.tips.textBody': `Double-click text to re-edit; in <kbd>T</kbd> mode, double-click empty area to create. Confirm with ${confirmCombo} (macOS: ${confirmComboMac}) or double right-click.`,
       'helpPage.tips.toolbarTitle': 'Toolbar',
       'helpPage.tips.toolbarBody':
-        'Press Space for the floating toolbar. Panel actions keep it open; canvas actions collapse it. Pin to stay visible. Pen / pointer switch drawing and click-through.',
+        'Press Space for the floating toolbar. It auto-hides while you draw; Space brings it back. Pin to stay visible. Pen / pointer switch drawing and click-through.',
       'helpPage.cta.copy': 'Ready to annotate? Download Marker and start with the tray shortcut.',
       'helpPage.cta.download': 'Download Latest',
       'helpPage.cta.home': 'Back to home',
@@ -235,21 +228,21 @@
       'features.clickThroughBody': `Toggle from the toolbar or with ${clickThroughCombo}. Annotations stay visible while clicks, scrolls, and typing reach the app underneath.`,
       'features.keyboardTitle': 'Keyboard-first tools',
       'features.keyboardBody':
-        'Number keys and <kbd>V</kbd> (Select) switch tools. <kbd>Ctrl</kbd>+scroll adjusts width. <kbd>Q</kbd>/<kbd>E</kbd> cycle colors. Copy and clear without opening menus.',
+        'Number keys plus <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> switch tools. <kbd>Ctrl</kbd>+scroll adjusts width. <kbd>Q</kbd>/<kbd>R</kbd> cycle colors. Copy and clear without opening menus.',
       'features.whiteboardTitle': 'Whiteboard when needed',
       'features.whiteboardBody':
         'Press <kbd>W</kbd> for a clean board, keep content between sessions, and copy as an image for docs or chats.',
       'showcase.surfaceEyebrow': 'Product surface',
       'showcase.toolsTitle': 'Annotation tools',
       'showcase.toolsAlt': 'Marker annotation tools',
-      'showcase.toolsCaption': 'Select, pen, highlighter, laser, arrow, shapes, eraser, text, stamp, and colors.',
+      'showcase.toolsCaption': 'Pen, highlighter, laser, arrow, shapes, eraser, text, stamp, and colors.',
       'showcase.settingsTitle': 'Settings panel',
       'showcase.settingsAlt': 'Marker settings panel',
       'showcase.settingsCaption': 'Toolbar, whiteboard, drag modes, shortcuts, and startup.',
       'showcase.demoEyebrow': 'Live demo',
       'showcase.demoTitle': 'Click-through mode',
       'showcase.demoAlt':
-        'Click-through demo: draw on screen, press Ctrl+Shift+X, then select text in the app below while annotations remain visible',
+        'Click-through demo: draw on screen, press Alt+M, then select text in the app below while annotations remain visible',
       'showcase.demoCaption': `Draw, press ${clickThroughCombo}, then keep working underneath.`,
       'shortcuts.aria': 'Essential shortcuts',
       'shortcuts.enter': 'Enter',
@@ -294,7 +287,7 @@
       'helpPage.meta.description':
         'Marker 快捷键与使用帮助：全局热键、绘画工具、穿透模式、白板与修饰键提示，适用于 Windows 和 macOS。',
       'helpPage.meta.keywords':
-        'Marker 帮助, 屏幕标注快捷键, 穿透模式, 白板快捷键, Ctrl+Shift+D, 键盘绘画',
+        'Marker 帮助, 屏幕标注快捷键, 穿透模式, 白板快捷键, Alt+G, 键盘绘画',
       'helpPage.meta.ogTitle': 'Marker 帮助与快捷键',
       'helpPage.meta.ogDescription':
         '查阅 Marker 快捷键：进入标注、切换工具、穿透模式、白板、颜色与拖拽技巧。',
@@ -361,10 +354,7 @@
       'helpPage.tools.eyebrow': '03',
       'helpPage.tools.title': '标注模式内工具',
       'helpPage.tools.lead':
-        '数字键与字母快捷键切换工具。按 <kbd>V</kbd> 进入选择，可框选后批量移动或删除。',
-      'helpPage.tools.select': '选择',
-      'helpPage.tools.selectDesc':
-        '框选或点选；拖动整组移动；<kbd>Delete</kbd> / <kbd>Backspace</kbd> 删除；<kbd>Esc</kbd> 清空选中',
+        '数字键与字母快捷键切换工具。按 <kbd>V</kbd> 可在不退出标注的情况下隐藏 / 显示标注。',
       'helpPage.tools.pen': '画笔',
       'helpPage.tools.penDesc': '自由绘画，贝塞尔曲线平滑',
       'helpPage.tools.highlighter': '荧光笔',
@@ -379,7 +369,7 @@
       'helpPage.tools.lineDesc': '直线段',
       'helpPage.tools.eraser': '橡皮擦',
       'helpPage.tools.eraserDesc':
-        '独立线宽；选中后再按 <kbd>7</kbd> 切换轨迹 / 对象擦除（也可在「设置 → 常规」中切换）',
+        '独立线宽；选中后再按 <kbd>E</kbd> 切换轨迹 / 对象擦除（也可在「设置 → 常规」中切换）',
       'helpPage.tools.laser': '激光笔',
       'helpPage.tools.laserDesc': '临时笔迹，先画的部分先淡出',
       'helpPage.tools.text': '文字',
@@ -389,8 +379,7 @@
         '单击放置数字或字母标记；再按 <kbd>N</kbd> 切换数字/字母；<kbd>Shift</kbd>+<kbd>N</kbd> 重置计数',
       'helpPage.session.tableAria': '标注模式内编辑快捷键',
       'helpPage.session.toolbar': '工具栏',
-      'helpPage.session.delete': '删除选中',
-      'helpPage.session.deleteKeys': '<kbd>Delete</kbd> / <kbd>Backspace</kbd>',
+      'helpPage.session.hideInk': '隐藏 / 显示标注',
       'helpPage.session.undo': '撤销',
       'helpPage.session.undoKeys': `${undoCombo} <span class="help-key-sep" aria-hidden="true">/</span> ${undoComboMac}`,
       'helpPage.session.redo': '重做',
@@ -419,7 +408,7 @@
       'helpPage.draw.arrowKeys': '<kbd>Ctrl</kbd>+<kbd>Shift</kbd> / <kbd>⌘</kbd>+<kbd>⇧</kbd> + 拖动',
       'helpPage.draw.colorsTitle': '颜色',
       'helpPage.draw.colorsPrevNext': '上一个 / 下一个颜色',
-      'helpPage.draw.colorsKeys': '<kbd>Q</kbd> / <kbd>E</kbd>',
+      'helpPage.draw.colorsKeys': '<kbd>Q</kbd> / <kbd>R</kbd>',
       'helpPage.draw.rightClick': '按住擦除（松开恢复原工具）',
       'helpPage.draw.rightClickKeys': '按住右键',
       'helpPage.draw.boardTitle': '白板',
@@ -429,7 +418,7 @@
       'helpPage.draw.boardExit': '退出白板',
       'helpPage.settings.eraserTitle': '橡皮擦模式',
       'helpPage.settings.eraserBody':
-        '轨迹擦除：按路径局部擦除像素（可撤销）。对象擦除：划过图形或文字时删除整个元素（可撤销）。使用橡皮擦时不会触发元素拖拽，即使已开启悬停拖动。可在「设置 → 常规」中切换，或在已选中橡皮擦时再按 <kbd>7</kbd>。',
+        '轨迹擦除：按路径局部擦除像素（可撤销）。对象擦除：划过图形或文字时删除整个元素（可撤销）。使用橡皮擦时不会触发元素拖拽，即使已开启悬停拖动。可在「设置 → 常规」中切换，或在已选中橡皮擦时再按 <kbd>E</kbd>。',
       'helpPage.settings.boardTitle': '白板与内容',
       'helpPage.settings.boardBody':
         '默认进入选择屏幕叠加或白底画布。退出标注后保留：再次进入时恢复上次内容。按 W 切换时保留：在标注模式内切换屏幕/白板时不重置画布；关闭后每次按 W 进入白板均为空白画布。可在「设置 → 常规」中配置。',
@@ -438,17 +427,14 @@
       'helpPage.tips.lead': '演示时让标注留在屏幕上 — 需要时再移动或编辑。',
       'helpPage.tips.throughTitle': '穿透模式',
       'helpPage.tips.throughBody': `在工具栏切换，或按 ${clickThroughCombo}（全局）、绘制中按 <kbd>X</kbd>。标注保持可见，点击可到达下层应用。`,
-      'helpPage.tips.selectTitle': '选择与批量编辑',
-      'helpPage.tips.selectBody':
-        '按 <kbd>V</kbd> 进入选择。框选或点选（按住 <kbd>Shift</kbd> 追加）。拖动选中区域整组移动；<kbd>Delete</kbd> / <kbd>Backspace</kbd> 删除；<kbd>Esc</kbd> 清空选中。',
       'helpPage.tips.dragTitle': '拖拽元素',
       'helpPage.tips.dragBody':
-        '「常规」中可选：关闭、悬停拖动，或按住 Ctrl/Command 拖动。选中橡皮擦时不触发。批量移动请用选择工具（<kbd>V</kbd>）。',
+        '「常规」中可选：关闭、悬停拖动，或按住 Ctrl/Command 拖动。选中橡皮擦时不触发。',
       'helpPage.tips.textTitle': '编辑文字',
       'helpPage.tips.textBody': `双击文字可重新编辑；<kbd>T</kbd> 模式下双击空白处新建。确认用 ${confirmCombo}（macOS：${confirmComboMac}），或双击右键。`,
       'helpPage.tips.toolbarTitle': '工具栏',
       'helpPage.tips.toolbarBody':
-        '按 Space 呼出浮动工具栏。面板内操作保持打开，画布操作后收起；可图钉固定。画笔 / 指针切换绘制与穿透。',
+        '按 Space 呼出浮动工具栏；落笔画线时自动隐藏，再按 Space 召回；可图钉固定。画笔 / 指针切换绘制与穿透。',
       'helpPage.cta.copy': '准备好标注了？下载 Marker，用托盘快捷键开始。',
       'helpPage.cta.download': '下载最新版',
       'helpPage.cta.home': '返回首页',
@@ -488,20 +474,20 @@
       'features.clickThroughBody': `在工具栏或按 ${clickThroughCombo} 切换。标注保持可见，点击、滚动与输入可到达下层应用。`,
       'features.keyboardTitle': '快捷键优先',
       'features.keyboardBody':
-        '数字键与 <kbd>V</kbd>（选择）切换工具。<kbd>Ctrl</kbd>+滚轮调整线宽。<kbd>Q</kbd>/<kbd>E</kbd> 切换颜色。复制与清空无需打开菜单。',
+        '数字键与 <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> 切换工具。<kbd>Ctrl</kbd>+滚轮调整线宽。<kbd>Q</kbd>/<kbd>R</kbd> 切换颜色。复制与清空无需打开菜单。',
       'features.whiteboardTitle': '需要时使用白板',
       'features.whiteboardBody':
         '按 <kbd>W</kbd> 打开干净白板，内容可跨会话保留，并复制为图片用于文档或聊天。',
       'showcase.surfaceEyebrow': '产品界面',
       'showcase.toolsTitle': '标注工具',
       'showcase.toolsAlt': 'Marker 标注工具',
-      'showcase.toolsCaption': '选择、画笔、荧光笔、激光笔、箭头、形状、橡皮擦、文字、序号与颜色。',
+      'showcase.toolsCaption': '画笔、荧光笔、激光笔、箭头、形状、橡皮擦、文字、序号与颜色。',
       'showcase.settingsTitle': '设置面板',
       'showcase.settingsAlt': 'Marker 设置面板',
       'showcase.settingsCaption': '工具栏、白板、拖拽模式、快捷键与启动项。',
       'showcase.demoEyebrow': '动态演示',
       'showcase.demoTitle': '穿透模式',
-      'showcase.demoAlt': '穿透模式演示：在屏幕上绘画，按 Ctrl+Shift+X 后可在保留标注的同时操作下层应用',
+      'showcase.demoAlt': '穿透模式演示：在屏幕上绘画，按 Alt+M 后可在保留标注的同时操作下层应用',
       'showcase.demoCaption': `绘画后按 ${clickThroughCombo}，继续操作下层内容。`,
       'shortcuts.aria': '常用快捷键',
       'shortcuts.enter': '进入',

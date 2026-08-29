@@ -227,7 +227,7 @@ const TOOLBAR_PANEL_HEIGHT_COMPACT: f64 = 46.0;
 const TOOLBAR_EDGE_MARGIN: f64 = 8.0;
 /// Dock offset for the always-on toolbar: bottom-right of the monitor WORK area
 /// (taskbar already excluded by rc_work), so 16px simply clears the work-area edge.
-const TOOLBAR_DOCK_RIGHT: i32 = 32;
+const TOOLBAR_DOCK_RIGHT: i32 = 64;
 const TOOLBAR_DOCK_BOTTOM: i32 = 16;
 
 fn toolbar_panel_height_logical(window: &tauri::WebviewWindow, fallback: f64) -> f64 {
@@ -542,6 +542,26 @@ pub fn hide_toolbar_window(app: &AppHandle) {
     }
 }
 
+/// The tray context menu must render above the topmost toolbar bar: hide the bar
+/// while the menu is open, restore on any menu action or after a short fallback
+/// (menu dismissed with Esc has no callback).
+pub fn hide_toolbar_for_tray_menu(app: &AppHandle) {
+    hide_toolbar_window(app);
+    let app = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(5000));
+        let app_for_thread = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            set_toolbar_window_visible(&app_for_thread, true);
+        });
+    });
+}
+
+/// Menu was acted upon (or the fallback fired) — bring the resident bar back.
+pub fn show_toolbar_after_tray_menu(app: &AppHandle) {
+    set_toolbar_window_visible(app, true);
+}
+
 pub fn deactivate_drawing(app: &AppHandle, state: &AppState) {
     if current_mode(state) == OverlayMode::Hidden {
         return;
@@ -717,7 +737,13 @@ pub fn toggle_penetration_mode(app: &AppHandle, state: &AppState) {
 pub fn toggle_drawing(app: &AppHandle) {
     let state = app.state::<AppState>();
     match current_mode(&state) {
-        OverlayMode::Hidden => activate_drawing(app, &state),
+        OverlayMode::Hidden => {
+            activate_drawing(app, &state);
+            // Entering annotation should surface the docked toolbar bar (space mode).
+            if let Err(e) = app.emit("surface-toolbar-request", ()) {
+                warn!("Failed to emit surface-toolbar-request: {}", e);
+            }
+        }
         OverlayMode::Drawing | OverlayMode::Penetration => deactivate_drawing(app, &state),
     }
 }

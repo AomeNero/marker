@@ -48,15 +48,15 @@ const helpGlobalKeys = computed(() => ({
 }))
 
 const helpTools = [
-  { key: 'V', name: 'tools.select', desc: 'toolDesc.select' },
+  { key: 'S', name: 'tools.select', desc: 'toolDesc.select' },
   { key: '1', name: 'tools.pen', desc: 'toolDesc.pen' },
   { key: '2', name: 'tools.highlighter', desc: 'toolDesc.highlighter' },
-  { key: '3', name: 'tools.arrow', desc: 'toolDesc.arrow' },
-  { key: '4', name: 'tools.rect', desc: 'toolDesc.rect' },
-  { key: '5', name: 'tools.ellipse', desc: 'toolDesc.ellipse' },
-  { key: '6', name: 'tools.line', desc: 'toolDesc.line' },
-  { key: '7', name: 'tools.eraser', desc: 'toolDesc.eraser' },
-  { key: '8', name: 'tools.laser', desc: 'toolDesc.laser' },
+  { key: '3', name: 'tools.laser', desc: 'toolDesc.laser' },
+  { key: '4', name: 'tools.arrow', desc: 'toolDesc.arrow' },
+  { key: '5', name: 'tools.rect', desc: 'toolDesc.rect' },
+  { key: '6', name: 'tools.ellipse', desc: 'toolDesc.ellipse' },
+  { key: '7', name: 'tools.line', desc: 'toolDesc.line' },
+  { key: 'E', name: 'tools.eraser', desc: 'toolDesc.eraser' },
   { key: 'T', name: 'tools.text', desc: 'toolDesc.text' },
   { key: 'N', name: 'tools.stamp', desc: 'toolDesc.stamp' },
 ] as const
@@ -694,7 +694,7 @@ onUnmounted(() => {
             <div class="help-rows">
               <div class="help-row">
                 <span class="help-label">{{ t('help.prevColor') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Q</kbd> / <kbd class="help-kbd">E</kbd></div>
+                <div class="help-keys"><kbd class="help-kbd">Q</kbd> / <kbd class="help-kbd">R</kbd></div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.rightClickErase') }}</span>
