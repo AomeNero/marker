@@ -43,6 +43,8 @@ const canRedo = ref(false)
 const canClear = ref(false)
 const toolbarVisibility = ref<ToolbarVisibility>('space')
 const toolbarPinned = computed(() => isToolbarPinned(toolbarVisibility.value))
+/** Configured global clear-all shortcut — shown in the clear button tooltip. */
+const clearShortcut = ref('Alt+E')
 const toolToolbarRef = ref<InstanceType<typeof ToolToolbar> | null>(null)
 const pointerX = ref(0)
 const pointerY = ref(0)
@@ -138,6 +140,7 @@ onMounted(async () => {
   try {
     const cfg = await invoke<AppConfig>('get_config')
     toolbarVisibility.value = resolveToolbarVisibility(cfg.general)
+    clearShortcut.value = cfg.shortcuts?.clearDrawing || 'Alt+E'
     setWidthPresets(cfg.general?.widthPresets)
     currentTheme = resolveThemePref(cfg.general)
     await applyTheme(currentTheme)
@@ -182,6 +185,7 @@ onMounted(async () => {
   unlisteners.push(
     await listen<AppConfig>('config-changed', (event) => {
       toolbarVisibility.value = resolveToolbarVisibility(event.payload.general)
+      clearShortcut.value = event.payload.shortcuts?.clearDrawing || 'Alt+E'
       setWidthPresets(event.payload.general?.widthPresets)
       currentTheme = resolveThemePref(event.payload.general)
       void applyTheme(currentTheme)
@@ -233,6 +237,7 @@ onUnmounted(() => {
       ref="toolToolbarRef"
       standalone-window
       :pinned="toolbarPinned"
+      :clear-shortcut="clearShortcut"
       :current-tool="currentTool"
       :current-color="currentColor"
       :line-width="lineWidth"

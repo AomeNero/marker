@@ -43,6 +43,7 @@ const { t } = useI18n()
 const props = defineProps<{
   pinned: boolean
   standaloneWindow?: boolean
+  clearShortcut?: string
   currentTool: Tool
   currentColor: string
   lineWidth: number
@@ -763,8 +764,8 @@ onUnmounted(() => {
             type="button"
             class="overlay-toolbar-action"
             :disabled="!canClear"
-            :title="t('toolbar.clear')"
-            :aria-label="t('toolbar.clear')"
+            :title="`${t('toolbar.clear')} (${props.clearShortcut || 'Alt+E'})`"
+            :aria-label="`${t('toolbar.clear')} (${props.clearShortcut || 'Alt+E'})`"
             @click="emit('clearAll')"
           >
             <Trash2 :size="15" />
@@ -777,8 +778,8 @@ onUnmounted(() => {
             type="button"
             class="overlay-toolbar-action"
             :class="whiteboardMode ? 'overlay-toolbar-action--active' : ''"
-            :title="whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')"
-            :aria-label="whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')"
+            :title="`${whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')} (W)`"
+            :aria-label="`${whiteboardMode ? t('toolbar.exitWhiteboard') : t('toolbar.whiteboard')} (W)`"
             @click="emit('toggleWhiteboard')"
           >
             <Layout :size="15" />

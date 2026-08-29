@@ -227,7 +227,7 @@ const TOOLBAR_PANEL_HEIGHT_COMPACT: f64 = 46.0;
 const TOOLBAR_EDGE_MARGIN: f64 = 8.0;
 /// Dock offset for the always-on toolbar: bottom-right of the monitor WORK area
 /// (taskbar already excluded by rc_work), so 16px simply clears the work-area edge.
-const TOOLBAR_DOCK_RIGHT: i32 = 64;
+const TOOLBAR_DOCK_RIGHT: i32 = 25;
 const TOOLBAR_DOCK_BOTTOM: i32 = 16;
 
 fn toolbar_panel_height_logical(window: &tauri::WebviewWindow, fallback: f64) -> f64 {

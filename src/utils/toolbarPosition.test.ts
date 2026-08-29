@@ -4,9 +4,32 @@ import {
   adjustToolbarTopForHeightChange,
   migratePhysicalToLogical,
   overlayClientToScreenLogical,
+  resolveToolbarOpenPosition,
   toolbarDockedScreenPosition,
   TOOLBAR_DOCK_MARGIN,
 } from './toolbarPosition'
+
+describe('resolveToolbarOpenPosition', () => {
+  const monitor = { left: 0, top: 0, width: 1920, height: 1080 }
+  const viewport = { width: 1920, height: 1080 }
+
+  it('prefers the saved drag position over the dock', () => {
+    const saved = { left: 400, top: 300 }
+    expect(resolveToolbarOpenPosition(saved, 580, 46, monitor, viewport)).toEqual({ left: 400, top: 300 })
+  })
+
+  it('falls back to the dock when no position was ever saved', () => {
+    const docked = toolbarDockedScreenPosition(580, 46, monitor, viewport)
+    expect(resolveToolbarOpenPosition(null, 580, 46, monitor, viewport)).toEqual(docked)
+  })
+
+  it('clamps a stale saved position (e.g. disconnected monitor) back on screen', () => {
+    const saved = { left: 5000, top: 3000 }
+    const pos = resolveToolbarOpenPosition(saved, 580, 46, monitor, viewport)
+    expect(pos.left).toBeLessThanOrEqual(monitor.width - 580)
+    expect(pos.top + 46).toBeLessThanOrEqual(monitor.height)
+  })
+})
 
 describe('overlayClientToScreenLogical', () => {
   it('adds monitor origin to overlay client coords (multi-monitor above primary)', () => {

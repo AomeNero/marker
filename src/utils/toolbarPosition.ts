@@ -24,7 +24,7 @@ export interface MonitorLogicalBounds {
  * The work area already excludes the taskbar (Win32 rc_work), so this just
  * clears the work-area edge.
  */
-export const TOOLBAR_DOCK_MARGIN = { right: 64, bottom: 16 } as const
+export const TOOLBAR_DOCK_MARGIN = { right: 25, bottom: 16 } as const
 
 /** Screen-logical position for the toolbar docked at a work area's bottom-right corner. */
 export function toolbarDockedScreenPosition(
@@ -44,6 +44,33 @@ export function toolbarDockedScreenPosition(
     left: Math.max(0, vw - panelWidth - TOOLBAR_DOCK_MARGIN.right),
     top: Math.max(0, vh - panelHeight - TOOLBAR_DOCK_MARGIN.bottom),
   }
+}
+
+/**
+ * Where to show the toolbar when it opens: the user's saved drag position wins
+ * (persists across restarts via localStorage); the dock corner is only a
+ * first-run fallback. Saved positions are clamped so a stale spot on a
+ * disconnected monitor cannot push the bar off-screen.
+ */
+export function resolveToolbarOpenPosition(
+  saved: ToolbarPosition | null,
+  panelWidth: number,
+  panelHeight: number,
+  workArea: MonitorLogicalBounds | null,
+  fallbackViewport?: { width: number; height: number },
+): { left: number; top: number } {
+  if (saved) {
+    if (workArea) {
+      return clampToolbarWindowPosition(saved.left, saved.top, panelWidth, panelHeight, workArea)
+    }
+    const vw = fallbackViewport?.width ?? 1920
+    const vh = fallbackViewport?.height ?? 1080
+    return {
+      left: Math.min(Math.max(saved.left, 0), Math.max(0, vw - panelWidth)),
+      top: Math.min(Math.max(saved.top, 0), Math.max(0, vh - panelHeight)),
+    }
+  }
+  return toolbarDockedScreenPosition(panelWidth, panelHeight, workArea, fallbackViewport)
 }
 
 /** Overlay client (CSS) coords → screen logical position for toolbar window placement. */

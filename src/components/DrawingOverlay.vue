@@ -65,7 +65,7 @@ import { isToolbarPinned, resolveToolbarVisibility, type ToolbarVisibility } fro
 import { resolveDefaultEntryMode, shouldClearWhiteboardOnEntry, type DefaultEntryMode } from '../utils/entryMode'
 import { logDiagnostic, logSessionEvent, logActionEvent } from '../utils/diagnosticEvents'
 import type { MonitorLogicalBounds } from '../utils/toolbarPosition'
-import { toolbarDockedScreenPosition } from '../utils/toolbarPosition'
+import { loadToolbarPosition, resolveToolbarOpenPosition } from '../utils/toolbarPosition'
 import { getToolbarPanelWidth, getToolbarPanelHeight, rememberToolbarPanelHeight } from '../utils/toolbarWindow'
 import { nextEraserMode, resolveEraserMode, type EraserMode } from '../utils/eraserMode'
 import { nextPenCursorStyle, resolvePenCursorStyle, type PenCursorStyle } from '../utils/penCursor'
@@ -408,8 +408,9 @@ async function openToolbarPopupDocked(): Promise<void> {
   } catch {
     // non-fatal for positioning; still log client-side coords
   }
-  // Space-invoked toolbar docks bottom-right (above the taskbar), not at the pointer.
-  const { left, top } = toolbarDockedScreenPosition(panelW, panelH, workBounds, {
+  // Saved drag position wins (persists across restarts); dock bottom-right
+  // (above the taskbar) is only the first-run fallback — never the pointer.
+  const { left, top } = resolveToolbarOpenPosition(loadToolbarPosition(true), panelW, panelH, workBounds, {
     width: window.innerWidth,
     height: window.innerHeight,
   })
