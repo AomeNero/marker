@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue'
-import { Undo2, Redo2, Trash2, Squircle, Copy, MousePointer2, X, ChevronDown, Eye, EyeOff } from '@lucide/vue'
+import { Undo2, Redo2, Trash2, Squircle, Copy, MousePointer2, GripVertical, X, ChevronDown, Eye, EyeOff } from '@lucide/vue'
 import type { Tool } from '../composables/useDrawing'
 import { useI18n } from '../i18n'
 import {
@@ -643,7 +643,9 @@ onUnmounted(() => {
             :class="isDragging ? 'cursor-grabbing' : ''"
             title="⠿"
             @pointerdown="startDrag"
-          />
+          >
+            <GripVertical :size="14" />
+          </div>
 
           <!-- Tools -->
           <button
@@ -976,15 +978,15 @@ onUnmounted(() => {
   color: var(--ui-tool-text-hover);
 }
 
-/* Drag grip at the left end of the bar: compact 2×3 dot handle. */
+/* Drag grip at the left end of the bar: GripVertical icon in a roomy hit area. */
 .toolbar-grip {
-  width: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
   height: 24px;
   flex-shrink: 0;
   border-radius: 6px;
-  background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.3px);
-  background-size: 6px 8px;
-  background-repeat: repeat;
   color: var(--ui-text-icon);
   opacity: 0.65;
   margin-right: 2px;
