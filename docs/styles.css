@@ -595,6 +595,15 @@ img {
   box-shadow: 0 8px 24px rgba(18, 18, 18, 0.08);
 }
 
+/* 按图片自身比例完整显示（横条 / 4:3 截图），不套 16:9 裁切 */
+.panel-media--auto {
+  aspect-ratio: auto;
+}
+
+.panel-media--auto img {
+  height: auto;
+}
+
 .panel-media:not(.panel-media-gif) {
   background: var(--paper);
 }
