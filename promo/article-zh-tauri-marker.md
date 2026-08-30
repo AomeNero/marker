@@ -6,15 +6,15 @@
 
 我想要的体验其实只有一句话：**按下快捷键，整个桌面立刻变成画布；讲完按 Esc，继续工作。**
 
-于是有了 [Marker](https://marker.cn/)——一个基于 Tauri v2、Rust、Vue 3、TypeScript 与 Canvas API 的开源屏幕标注工具。它支持 Windows 和 macOS，安装包约 1.5 MB，不需要账号，也没有云端依赖。
+于是有了 [Marker](https://marker.aomenero.com/)——一个基于 Tauri v2、Rust、Vue 3、TypeScript 与 Canvas API 的开源屏幕标注工具。它支持 Windows 和 macOS，安装包约 1.5 MB，不需要账号，也没有云端依赖。
 
 源码：https://github.com/AomeNero/marker
 
 ## 从快捷键开始，而不是从一个窗口开始
 
-Marker 平时安静地待在系统托盘，不先弹一个主窗口。Windows 下按 `Ctrl+Shift+D`，macOS 下按 `Command+Shift+D`，透明标注层才会出现。
+Marker 平时安静地待在系统托盘，不先弹一个主窗口。Windows 下按 `Alt+G`，macOS 下按 `Option+G`，透明标注层才会出现，同时横条工具栏一并显示。
 
-进入后，数字键可以直接切换画笔、荧光笔、箭头、矩形、椭圆、直线、橡皮擦和激光笔，`T` 是文字，`N` 是序号（再按切换数字/字母），`Q/E` 切换颜色，`Ctrl/Command + 滚轮` 调整线宽，`Space` 呼出工具栏。
+进入后，数字键可以直接切换画笔（1）、荧光笔（2）、激光笔（3）、箭头（4）、矩形（5）、椭圆（6）、直线（7），`E` 是橡皮擦（再按切换轨迹/对象擦除），`T` 是文字，`N` 是序号（再按切换数字/字母），`S` 切换光标/标注，`V` 隐藏或显示标注，`Q/R` 切换颜色，`Ctrl/Command + 滚轮` 调整线宽，`Space` 召回工具栏。
 
 这个设计不是为了“炫快捷键”，而是因为讲解过程最怕打断。鼠标正在指着重点时，再把它移到一排按钮上，会让听众丢失注意力。键盘优先的意义，是把界面藏到需要它的时候。
 
@@ -55,13 +55,19 @@ Marker 因此把“绘制窗口是否接收事件”“工具栏是否置顶”�
 
 Marker 会在截图流程中临时排除或隐藏工具栏，完成捕获后再恢复。Windows 可以使用窗口显示亲和性等系统能力，macOS 则需要配合原生窗口行为处理。这类问题在普通网页应用里几乎不存在，却是桌面覆盖层工具必须面对的细节。
 
+## 自动更新：自托管更新服务器
+
+Marker 内置了基于 Tauri Updater 的自动更新：客户端内置 minisign 公钥，启动或手动检查时从 `https://marker.aomenero.com/latest.json` 拉取更新清单，下载增量安装包并校验签名后重启安装。更新服务器完全自托管，更新包离线签名，客户端拒绝任何未经签名的内容。
+
+关于页会显示当前版本号，也可以手动触发“检查更新”；发现新版本时一键下载安装并重启。
+
 ## 约 1.5 MB，不等于“功能越少越好”
 
 选择 Tauri 的一个直接收益是体积。Marker 不打包完整浏览器内核，而是使用系统 WebView；Rust 处理原生能力，前端只承担绘制与设置界面。
 
 但轻量不只是安装包数字。Marker 也尽量不要求登录、不启动云服务、不把屏幕内容上传到服务器。对讲课、录屏和企业演示来说，这种本地优先比“再多几个模板”更重要。
 
-v2.2.0 还新增了官方 Windows 绿色免安装版。下载 zip 解压后即可运行，配置保存在程序旁边的 `data\` 目录，不写 AppData，适合放进自己的工具目录或 U 盘。
+当前版本同时提供 Windows 绿色免安装版。下载 zip 解压后即可运行，配置保存在程序旁边的 `data\` 目录，不写 AppData，适合放进自己的工具目录或 U 盘。
 
 ## 还没有解决完的问题
 
@@ -78,11 +84,9 @@ Marker 的设置页可以导出诊断报告，问题可以直接提交到 GitHub
 
 ## 现在就可以试
 
-- 官网：https://marker.cn/
+- 官网 / 更新服务器：https://marker.aomenero.com/
 - 源码：https://github.com/AomeNero/marker
 - 最新下载：https://github.com/AomeNero/marker/releases/latest
-- Microsoft Store / WinGet：`winget install --id 9N6623X973JV --source msstore`
-- Scoop：`scoop bucket add extras && scoop install marker`
+- 自动更新：安装版内置，关于页可手动检查
 
 如果你平时会讲课、做产品演示、录教程，欢迎拿真实场景来试。也欢迎关注透明覆盖层、跨平台窗口与 Canvas 绘制实现的开发者一起讨论。
-

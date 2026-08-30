@@ -1,6 +1,6 @@
-# SEO Keywords and Listing Metadata
+# SEO 关键词与上架元数据
 
-## Primary English Keywords
+## 英文主关键词
 
 - screen annotation tool
 - desktop annotation tool
@@ -14,7 +14,7 @@
 - Epic Pen alternative
 - Tauri screen annotation
 
-## Primary Chinese Keywords
+## 中文主关键词
 
 - 屏幕标注工具
 - 桌面标注工具
@@ -29,32 +29,32 @@
 - 讲课标注工具
 - 录屏标注工具
 
-## Suggested Meta Title
+## 建议英文 Meta 标题
 
 Marker - Lightweight Screen Annotation Tool with Click-Through Mode
 
-## Suggested Meta Description
+## 建议英文 Meta 描述
 
 Marker is a lightweight open-source screen annotation tool for Windows and macOS. Draw over any app, use click-through mode, switch to whiteboard mode, and control everything from the keyboard.
 
-## Chinese Meta Title
+## 中文 Meta 标题
 
 Marker - 轻量级开源屏幕标注工具，支持穿透模式
 
-## Chinese Meta Description
+## 中文 Meta 描述
 
 Marker 是一款轻量级开源屏幕标注工具，支持在任意桌面应用上绘制、穿透模式、白板模式、快捷键操作，适合讲课、演示、录屏和远程会议。
 
-## Directory Categories
+## 目录分类
 
-- Productivity
-- Education
-- Presentation Tools
-- Screen Recording Tools
-- Developer Tools
-- Open Source
-- Desktop Utilities
+- Productivity（效率）
+- Education（教育）
+- Presentation Tools（演示工具）
+- Screen Recording Tools（录屏工具）
+- Developer Tools（开发者工具）
+- Open Source（开源）
+- Desktop Utilities（桌面工具）
 
-## Safe Download Notice
+## 安全下载提示
 
-Official downloads are GitHub Releases and Microsoft Store. Third-party reposts may contain outdated builds or modified packages.
+官方下载渠道为 GitHub Releases 与自托管官网（https://marker.aomenero.com/）。第三方转载可能包含过时构建或被修改的安装包。

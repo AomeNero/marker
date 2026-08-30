@@ -1,54 +1,56 @@
-# Marker Promotion Asset Guide
+# Marker 推广资产指南
 
-Last audited: 2026-07-22
+最后核对：2026-08-30
 
-## Recommended Assets
+## 推荐资产
 
-| Use | Asset | Size | Notes |
+| 用途 | 资产 | 尺寸 | 备注 |
 | :--- | :--- | :--- | :--- |
-| Square social cover | `assets/social/click-through-social-square.png` | 1254×1254 | Concept visual for click-through; no text, logo, or version claim |
-| Square Chinese cover | `assets/酷图_1080x1080.png` | 1080×1080 | Brand-safe generic cover |
-| High-resolution square | `assets/酷图_2160x2160.png` | 2160×2160 | Same generic cover at 2× |
-| Vertical cover | `assets/招贴画_720x1080.png` | 720×1080 | Good for 小红书 / 视频号 / story formats |
-| Vertical high-resolution | `assets/招贴画_1440x2160.png` | 1440×2160 | High-resolution vertical cover |
-| Real click-through demo | `assets/click-through-mode.gif` | 720×405 | Strongest functional proof; compress or convert to MP4 per platform |
-| Real desktop scenario | `assets/desktop-annotation.png` / `assets/桌面标注场景.png` | 2880×1530 | Regenerated from `scene1-desktop*.html` |
-| Shortcut reference | `assets/shortcuts-overview.png` / `assets/快捷键一览.png` | 2880×1530 | Regenerated from store scenes (10 tools / `1-8` + `T` + `N`) |
-| Annotation tools grid | `assets/annotation-tools.png` / `assets/十种标注工具.png` | 2880×1530 | Regenerated from store scenes (10 tools / `1-8` + `T` + `N`) |
-| Settings / panel | `assets/settings-panel.png` / `assets/设置面板.png` | 2880×1530 | Regenerated from `scene3-panel*.html` |
-| Hero / brand | `assets/Marker.png` / `assets/Marker_en.png` / `docs/assets/hero.png` | 2880×1530 | Regenerated from `scene0-hero*.html` |
+| 方形社交封面 | `assets/social/click-through-social-square.png` | 1254×1254 | 穿透概念视觉图；无文字、logo 或版本声明 |
+| 方形中文封面 | `assets/酷图_1080x1080.png` | 1080×1080 | 品牌安全的通用封面 |
+| 高分辨率方形 | `assets/酷图_2160x2160.png` | 2160×2160 | 同一通用封面的 2× 版本 |
+| 竖版封面 | `assets/招贴画_720x1080.png` | 720×1080 | 适合小红书 / 视频号 / 故事格式 |
+| 竖版高分辨率 | `assets/招贴画_1440x2160.png` | 1440×2160 | 高分辨率竖版封面 |
+| 真实穿透演示 | `assets/click-through-mode.gif` | 720×405 | 最有力的功能实证；按平台压缩或转 MP4 |
+| 真实桌面场景 | `assets/desktop-annotation.png` / `assets/桌面标注场景.png` | 2880×1530 | 由 `scene1-desktop*.html` 重新导出 |
+| 快捷键速查 | `assets/shortcuts-overview.png` / `assets/快捷键一览.png` | 2880×1530 | 由商店场景重新导出（10 种工具 / `1-7` + `E` + `T` + `N`） |
+| 标注工具网格 | `assets/annotation-tools.png` / `assets/十种标注工具.png` | 2880×1530 | 由商店场景重新导出（10 种工具 / `1-7` + `E` + `T` + `N`） |
+| 设置 / 面板 | `assets/settings-panel.png` / `assets/设置面板.png` | 2880×1530 | 由 `scene3-panel*.html` 重新导出 |
+| 主视觉 / 品牌 | `assets/Marker.png` / `assets/Marker_en.png` / `docs/assets/hero.png` | 2880×1530 | 由 `scene0-hero*.html` 重新导出 |
 
-Unused legacy settings screenshots (not linked from README/docs; UI has changed — drag modes, Diagnostics tab, etc.):
+> 快捷键速查与工具网格图已于 2026-08-30 按当前键位（激光笔 3、箭头 4、橡皮擦 E、颜色循环 Q/R、V 隐藏标注）重新导出。
+
+未使用的历史设置截图（README/官网未引用；UI 已变化——拖拽模式、诊断页等）：
 
 - `assets/language-switcher.png`
 - `assets/preserve-drawings-setting.png`
 
-Prefer regenerating from the live app before promoting them again.
+再次对外推广前，优先从实际运行的程序重新截图。
 
-## Regenerating marketing PNGs
+## 重新导出营销 PNG
 
-Source HTML lives in `assets/store-screenshots/scene*.html` (designed at 1920×1080). Export at 2880×1530 for README / website / Store listings.
+源 HTML 位于 `assets/store-screenshots/scene*.html`（按 1920×1080 设计）。导出为 2880×1530 用于 README / 官网 / 商店上架。
 
-Optional helper: `scripts/export-store-screenshots.mjs` (requires Playwright Chromium). Or open each HTML in Chrome at 1920×1080 and save a viewport screenshot, then scale to 2880×1530.
+辅助脚本：`scripts/export-store-screenshots.mjs`（需要 Playwright Chromium；`npm i -D playwright && npx playwright install chromium` 后运行）。或用 Chrome 以 1920×1080 打开每个 HTML 截取视口，再缩放到 2880×1530。
 
-After changing tools / shortcuts / panel copy in those HTML files, re-export and overwrite the PNG paths above (and matching `docs/assets/*` copies).
+修改这些 HTML 中的工具 / 快捷键 / 面板文案后，重新导出并覆盖上述 PNG 路径（以及 `docs/assets/*` 中的对应副本）。
 
-## New Social Concept Visual
+## 全新社交概念图
 
-`assets/social/click-through-social-square.png` was generated as a supporting illustration, not a literal Marker screenshot. Captions should label it as an illustration if the context could confuse it with the real interface. Pair it with the real click-through GIF in launch galleries.
+`assets/social/click-through-social-square.png` 是作为辅助插图生成的，并非 Marker 的真实截图。当场景可能让人误以为是真实界面时，配文应注明它是插画。在发布图集中与真实的穿透 GIF 搭配使用。
 
-Generation prompt:
+生成提示词：
 
 > Create a premium square software-product illustration on a deep navy background: a modern dashboard window with a coral circle and arrow, yellow highlight, blue rectangle, and laser glow on an annotation layer; show a cursor clicking a button underneath while every annotation remains visible. No text, logo, brand imitation, people, watermark, or pseudo-text.
 
-## Gallery Order
+## 图集顺序
 
-For Product Hunt, directories, and press kits:
+用于 Product Hunt、目录站与媒体资料包：
 
-1. Real click-through GIF or MP4.
-2. Real desktop annotation screenshot.
-3. Real shortcut reference.
-4. Real settings / tools screenshot.
-5. Concept visual as a supporting cover, not as proof of UI.
+1. 真实穿透 GIF 或 MP4。
+2. 真实桌面标注截图。
+3. 真实快捷键速查。
+4. 真实设置 / 工具截图。
+5. 概念视觉图作为辅助封面，而非 UI 证明。
 
-This order makes the distinctive behavior visible before feature lists.
+此顺序让差异化行为先于功能列表被看到。
