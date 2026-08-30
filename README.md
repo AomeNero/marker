@@ -2,7 +2,7 @@
   <img src=".github/assets/icon.png" width="80" height="80" alt="Marker icon" />
   <h1>Marker</h1>
   <p>
-    <a href="./README_zh.md">中文</a>
+    <a href="./README.md">English</a>
   </p>
   <p>
     <a href="https://github.com/AomeNero/marker/actions/workflows/ci.yml"><img src="https://github.com/AomeNero/marker/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
@@ -10,162 +10,162 @@
     <a href="https://github.com/AomeNero/marker/releases"><img src="https://img.shields.io/github/downloads/AomeNero/marker/total" alt="Downloads" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License" /></a>
     <a href="https://github.com/AomeNero/marker/stargazers"><img src="https://img.shields.io/github/stars/AomeNero/marker?style=social" alt="Stars" /></a>
-    <a href="https://marker.cn/"><img src="https://img.shields.io/badge/website-docs-0ea5e9" alt="Website" /></a>
-    <a href="https://www.bilibili.com/video/BV17ygy67ETV"><img src="https://img.shields.io/badge/Bilibili-tutorial(CN)-fb7299" alt="Bilibili tutorial (Chinese)" /></a>
+    <a href="https://marker.cn/"><img src="https://img.shields.io/badge/网站-文档-0ea5e9" alt="网站" /></a>
+    <a href="https://www.bilibili.com/video/BV17ygy67ETV"><img src="https://img.shields.io/badge/Bilibili-使用教程-fb7299" alt="Bilibili 使用教程" /></a>
   </p>
-  <p><strong>Lightweight screen annotation tool</strong> (~1.5 MB) — press a hotkey (<strong>keyboard-first</strong>) to instantly draw, highlight, and annotate anywhere on your desktop. Built for demos, teaching, meetings, and screen recording.<strong>Free &amp; open source.</strong></p>
+  <p><strong>轻量级屏幕标注工具</strong>（~1.5 MB）— 按下快捷键（<strong>快捷键优先</strong>），随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。<strong>免费开源。</strong></p>
 </div>
 
 
 <p align="center">
-  <img src="assets/Marker_en.png" width="720" alt="Marker" />
+  <img src="assets/Marker.png" width="720" alt="Marker" />
 </p>
 
-**Contents:** [Download](#download) · [Quick Start](#quick-start) · [Features](#features) · [Shortcuts](#keyboard-shortcuts) · [Feedback](#feedback--issues) · [Development](#development)
+**目录：** [下载安装](#下载安装) · [快速开始](#快速开始) · [功能一览](#功能一览) · [快捷键](#快捷键一览) · [反馈](#反馈与-issue) · [开发构建](#开发构建)
 
-## Download
+## 下载安装
 
 <p>
   <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/Windows-x64-0078D4?logo=windows&logoColor=white" alt="Windows" /></a>
   <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-ARM64-000000?logo=apple&logoColor=white" alt="macOS ARM64" /></a>
   <a href="https://github.com/AomeNero/marker/releases/latest"><img src="https://img.shields.io/badge/macOS-x64-666666?logo=apple&logoColor=white" alt="macOS x64" /></a>
-  <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge"><img src="https://img.shields.io/badge/Microsoft_Store-Marker-0078D4?logo=microsoftstore&logoColor=white" alt="Microsoft Store" /></a>
+  <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge"><img src="https://img.shields.io/badge/微软商店-Marker-0078D4?logo=microsoftstore&logoColor=white" alt="Microsoft Store" /></a>
 </p>
 
-**[Download Latest Release](https://github.com/AomeNero/marker/releases/latest)** — pick the installer for your platform from the assets list. Windows also ships a **portable zip** (`*_x64_portable.zip`): extract and run — config stays under `data\` next to the exe (no AppData).
+**[下载最新版本](https://github.com/AomeNero/marker/releases/latest)** — 在 Assets 列表中选择对应平台的安装包下载。Windows 另提供 **绿色免安装版**（`*_x64_portable.zip`）：解压即用，配置写在程序目录下的 `data\`，不写系统 AppData。
 
-Windows users can also install the Microsoft Store version with WinGet:
+Windows 用户也可以通过 WinGet 安装微软商店版本：
 
 ```powershell
 winget install --id 9N6623X973JV --source msstore
 ```
 
-> Official downloads are GitHub Releases and Microsoft Store. Third-party mirrors may be outdated or repackaged.
+> 官方下载渠道为 GitHub Releases 和微软商店。第三方镜像或网盘可能版本滞后，或存在被重新打包的风险。
 
-## Quick Start
+## 快速开始
 
-1. **Install and launch** — Marker runs in the **system tray**; no window appears.
-2. **Enter annotation mode** — press <kbd>Alt</kbd> + <kbd>G</kbd>.
-3. **Draw, then click through** — use number keys plus <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> for tools; press <kbd>X</kbd> to interact with apps below while keeping annotations visible; press <kbd>Esc</kbd> to exit.
+1. **安装并启动** — Marker 在 **系统托盘** 静默运行，不会弹出窗口。
+2. **进入标注模式** — 按 <kbd>Alt</kbd> + <kbd>G</kbd>（macOS 为 <kbd>Option</kbd> + <kbd>G</kbd>）。
+3. **绘画与穿透** — 数字键与 <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> 切换工具；按 <kbd>X</kbd> 可在保留标注的同时操作下层应用；按 <kbd>Esc</kbd> 退出。
 
-> **New here?** Press <kbd>Space</kbd> for the toolbar. See [Keyboard Shortcuts](#keyboard-shortcuts) for the full list.
+> **刚上手？** 按 <kbd>Space</kbd> 呼出工具栏。完整列表见 [快捷键一览](#快捷键一览)。视频教程：[B 站上手演示](https://www.bilibili.com/video/BV17ygy67ETV)。
 
-## Features
+## 功能一览
 
-- **Lightweight & fast** — ~1.5 MB installer (Rust + Canvas), minimal memory; runs quietly in the system tray (no extra daemons or telemetry)
-- **Annotate anywhere** — draw over any app, including the taskbar
-- **10 tools** — pen, highlighter, laser, arrow, rectangle, ellipse, line, eraser, text, stamp
-- **Flexible toolbar** — shows when you enter annotation, **auto-hides while you draw**, <kbd>Space</kbd> recalls / toggles it, or enable **always-on** in Settings; compact panel with **Expand** for full options, undo, copy, and whiteboard actions in-panel; **independent floating window** with drawing / click-through toggles
-- **Click-through mode** — interact with apps below while staying in the session; toggle via toolbar buttons, <kbd>Alt</kbd>+<kbd>M</kbd> (global), or <kbd>X</kbd> while drawing; disabled in whiteboard mode
-- **Full keyboard control** — every action has a shortcut, no menus needed
-- **Preserve drawings** — enable **Keep after exit** under Whiteboard & content to resume on re-enter
-- **Whiteboard mode** — set default entry to whiteboard, or press <kbd>W</kbd> to toggle; content rules are in **Whiteboard & content** settings
-- **Whiteboard copy** — copy the whiteboard as an image with <kbd>Ctrl</kbd>/<kbd>Command</kbd> + <kbd>C</kbd>
+- **轻量高效** — 安装包仅 ~1.5 MB（Rust + Canvas），内存占用极低；托盘静默运行（无多余服务、无遥测）
+- **随处标注** — 在任何应用上方绘制，覆盖全屏包括任务栏
+- **10 种工具** — 画笔、荧光笔、激光笔、箭头、矩形、椭圆、直线、橡皮擦、文字、序号
+- **灵活工具栏** — 进入标注自动显示，**落笔画线时自动隐藏**，按 <kbd>Space</kbd> 召回 / 开关，或在设置中**常驻显示**；紧凑面板，点「展开」查看完整选项，面板内可撤销、复制、切换白板；**独立浮动窗口**，含绘制 / 穿透模式切换按钮
+- **穿透模式** — 标注会话中可点击下层应用；工具栏按钮、<kbd>Alt</kbd>+<kbd>M</kbd>（全局）或 <kbd>X</kbd>（绘制中）切换；白板模式下不可用
+- **全键盘操控** — 每个操作都有快捷键，无需菜单
+- **保留标注** — 可在「白板与内容」中开启退出后保留；下次进入自动恢复
+- **白板模式** — 可设为默认进入白板，或按 <kbd>W</kbd> 切换；内容与切换行为均在「白板与内容」中配置
+- **白板复制** — 在白板模式下按 <kbd>Ctrl</kbd>/<kbd>Command</kbd> + <kbd>C</kbd> 可复制当前白板为图片
 
 <table>
 <tr>
 <td width="50%">
-<img src="assets/annotation-tools.png" alt="Marker annotation tools" />
+<img src="assets/十种标注工具.png" alt="Marker 标注工具" />
 </td>
 <td width="50%">
-<img src="assets/settings-panel.png" alt="Settings panel" />
+<img src="assets/设置面板.png" alt="设置面板" />
 </td>
 </tr>
 </table>
 
-## Keyboard Shortcuts
+## 快捷键一览
 
-On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd>Option</kbd> (⌥) in place of <kbd>Alt</kbd>.
+在 **macOS** 上，<kbd>Ctrl</kbd> 对应 <kbd>Command</kbd>（⌘），<kbd>Alt</kbd> 对应 <kbd>Option</kbd>（⌥）。
 
-### Global Shortcuts
+### 全局快捷键
 
-| Action | Windows | macOS |
+| 功能 | Windows | macOS |
 | :--- | :--- | :--- |
-| Toggle annotation mode | <kbd>Alt</kbd> + <kbd>G</kbd> | <kbd>Option</kbd> + <kbd>G</kbd> |
-| Clear all annotations | <kbd>Alt</kbd> + <kbd>E</kbd> | <kbd>Option</kbd> + <kbd>E</kbd> |
-| Toggle click-through mode | <kbd>Alt</kbd> + <kbd>M</kbd> | <kbd>Option</kbd> + <kbd>M</kbd> |
+| 开启 / 退出标注模式 | <kbd>Alt</kbd> + <kbd>G</kbd> | <kbd>Option</kbd> + <kbd>G</kbd> |
+| 清除所有标注 | <kbd>Alt</kbd> + <kbd>E</kbd> | <kbd>Option</kbd> + <kbd>E</kbd> |
+| 切换穿透模式 | <kbd>Alt</kbd> + <kbd>M</kbd> | <kbd>Option</kbd> + <kbd>M</kbd> |
 
-### Tool Switching
+### 工具切换
 
-| Key | Tool | Key | Tool |
+| 按键 | 工具 | 按键 | 工具 |
 | :---: | :--- | :---: | :--- |
-| <kbd>V</kbd> | Hide / show annotations | <kbd>6</kbd> | Ellipse |
-| <kbd>1</kbd> | Pen | <kbd>7</kbd> | Line |
-| <kbd>2</kbd> | Highlighter | <kbd>E</kbd> | Eraser |
-| <kbd>3</kbd> | Laser | <kbd>T</kbd> | Text |
-| <kbd>4</kbd> | Arrow | <kbd>N</kbd> | Stamp |
-| <kbd>5</kbd> | Rectangle |  |  |
+| <kbd>V</kbd> | 隐藏 / 显示标注 | <kbd>6</kbd> | 椭圆 |
+| <kbd>1</kbd> | 画笔 | <kbd>7</kbd> | 直线 |
+| <kbd>2</kbd> | 荧光笔 | <kbd>E</kbd> | 橡皮擦 |
+| <kbd>3</kbd> | 激光笔 | <kbd>T</kbd> | 文字 |
+| <kbd>4</kbd> | 箭头 | <kbd>N</kbd> | 序号 |
+| <kbd>5</kbd> | 矩形 |  |  |
 
-### Common Actions
+### 常用操作
 
-| Action | Windows | macOS |
+| 功能 | Windows | macOS |
 | :--- | :--- | :--- |
-| Toolbar (toggle) | <kbd>Space</kbd> (auto-hides while drawing) | <kbd>Space</kbd> (auto-hides while drawing) |
-| Click-through (while drawing) | <kbd>X</kbd> | <kbd>X</kbd> |
-| Cycle eraser mode (stroke / object) | <kbd>E</kbd> again while eraser selected | <kbd>E</kbd> again while eraser selected |
-| Toolbar always-on / layout | Settings → General | Settings → General |
-| Copy screen / whiteboard | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
-| Whiteboard toggle | <kbd>W</kbd> | <kbd>W</kbd> |
-| Undo / Redo | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> |
-| Stroke width | <kbd>Ctrl</kbd> + Scroll | <kbd>Command</kbd> + Scroll (pen, laser & shapes share; highlighter/eraser/text separate) |
-| Exit | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+| 呼出工具栏 | <kbd>Space</kbd>（落笔画线时自动隐藏） | <kbd>Space</kbd>（落笔画线时自动隐藏） |
+| 穿透模式（绘制中） | <kbd>X</kbd> | <kbd>X</kbd> |
+| 切换橡皮擦模式（轨迹 / 对象） | 选中橡皮擦后再按 <kbd>E</kbd> | 选中橡皮擦后再按 <kbd>E</kbd> |
+| 工具栏常驻 / 布局 | 设置 → 常规 | 设置 → 常规 |
+| 复制屏幕 / 白板 | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| 白板模式切换 | <kbd>W</kbd> | <kbd>W</kbd> |
+| 撤销 / 重做 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> |
+| 调整线宽 | <kbd>Ctrl</kbd> + 滚轮 | <kbd>Command</kbd> + 滚轮（画笔、激光笔与形状共用；荧光笔/橡皮擦/文字各自独立） |
+| 退出标注 | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
 
 <details>
-<summary><strong>All shortcuts</strong></summary>
+<summary><strong>全部快捷键</strong></summary>
 
-#### Drawing with Modifier Keys
+#### 修饰键绘制
 
-| Draws | Windows | macOS |
+| 绘制内容 | Windows | macOS |
 | :--- | :--- | :--- |
-| Current tool (default: pen) | Drag | Drag |
-| Line | <kbd>Alt</kbd> + Drag | <kbd>Option</kbd> + Drag |
-| Rectangle | <kbd>Ctrl</kbd> + Drag | <kbd>Command</kbd> + Drag |
-| Square | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + Drag | <kbd>Command</kbd> + <kbd>Option</kbd> + Drag |
-| Ellipse | <kbd>Shift</kbd> + Drag | <kbd>Shift</kbd> + Drag |
-| Circle | <kbd>Shift</kbd> + <kbd>Alt</kbd> + Drag | <kbd>Shift</kbd> + <kbd>Option</kbd> + Drag |
-| Arrow | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + Drag | <kbd>Command</kbd> + <kbd>Shift</kbd> + Drag |
+| 当前工具（默认画笔） | 拖动 | 拖动 |
+| 直线 | <kbd>Alt</kbd> + 拖动 | <kbd>Option</kbd> + 拖动 |
+| 矩形 | <kbd>Ctrl</kbd> + 拖动 | <kbd>Command</kbd> + 拖动 |
+| 正方形 | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + 拖动 | <kbd>Command</kbd> + <kbd>Option</kbd> + 拖动 |
+| 椭圆 | <kbd>Shift</kbd> + 拖动 | <kbd>Shift</kbd> + 拖动 |
+| 正圆 | <kbd>Shift</kbd> + <kbd>Alt</kbd> + 拖动 | <kbd>Shift</kbd> + <kbd>Option</kbd> + 拖动 |
+| 箭头 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动 | <kbd>Command</kbd> + <kbd>Shift</kbd> + 拖动 |
 
-#### Edit & Move
+#### 编辑与移动
 
-| Action | Effect |
+| 操作 | 功能 |
 | :--- | :--- |
-| Element dragging | In General settings: **Off** / **Hover drag** / **Hold Ctrl to drag** |
-| Double-click existing text | Re-enter **edit mode** for that text |
-| Double-click empty area in <kbd>T</kbd> mode | Create a new text input at cursor position |
+| 元素拖拽 | 在「常规」设置中选择：**关闭** / **悬停拖动** / **按住 Ctrl 才拖动** |
+| 双击已有文字 | 重新进入该文字的**编辑模式** |
+| <kbd>T</kbd> 模式下双击空白处 | 在光标位置新建文字输入框 |
 
-#### Color Switching
+#### 颜色切换
 
-| Action | Effect |
+| 操作 | 功能 |
 | :--- | :--- |
-| <kbd>Q</kbd> / <kbd>R</kbd> | Previous / Next color |
-| Right-click | Hold to erase; release restores the previous tool |
+| <kbd>Q</kbd> / <kbd>R</kbd> | 上一个 / 下一个颜色 |
+| 鼠标右键 | 按住擦除，松开恢复原工具 |
 
-#### Other
+#### 其他
 
-| Action | Windows | macOS |
+| 功能 | Windows | macOS |
 | :--- | :--- | :--- |
-| Redo (alt) | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> |
+| 重做（备用） | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> |
 
 </details>
 
 <details>
-<summary><strong>Advanced settings</strong></summary>
+<summary><strong>更多设置</strong></summary>
 
-In **Settings → General** (toolbar display, click-through, and stroke width — see [Features](#features)):
+在 **设置 → 常规** 中可配置（工具栏显示、穿透模式、线宽等见 [功能一览](#功能一览)）：
 
-- **Whiteboard & content** — default entry (screen / whiteboard), keep after exit, keep on <kbd>W</kbd> toggle
-- **Element dragging** — off, hover to drag, or hold <kbd>Ctrl</kbd>/<kbd>Command</kbd> to drag (disabled while eraser is selected)
-- **Eraser mode** — stroke (local erase) or object (delete whole elements); with eraser selected, press <kbd>E</kbd> again (or click the toolbar eraser again) to switch
-- **Angle snap step** — snap interval for straight lines drawn with <kbd>Alt</kbd>
-- **Auto start** — launch the app automatically at system startup
+- **白板与内容** — 默认进入（屏幕标注 / 白板）、退出标注后保留、按 <kbd>W</kbd> 切换时保留
+- **元素拖拽** — 关闭、悬停拖动，或按住 <kbd>Ctrl</kbd>/<kbd>Command</kbd> 才拖动（橡皮擦工具下不触发）
+- **橡皮擦模式** — 轨迹擦除（局部）或对象擦除（划过删除整段）；选中橡皮擦后再按 <kbd>E</kbd>（或再点工具栏橡皮擦）可切换
+- **吸附角度步进** — 按住 <kbd>Alt</kbd> 绘制直线时的吸附角度间隔
+- **开机自动启动** — 系统启动时自动在后台运行
 
 </details>
 
-## Feedback & Issues
+## 反馈与 Issue
 
-- **Bug reports:** Settings → **Diagnostics** → export a report, then open a [GitHub Issue](https://github.com/AomeNero/marker/issues)
-- **Privacy:** [PRIVACY.md](./PRIVACY.md)
+- **报 Bug：** 设置 → **诊断** → 导出报告，再到 [GitHub Issues](https://github.com/AomeNero/marker/issues) 提交
+- **隐私政策：** [PRIVACY.md](./PRIVACY.md)
 
-## Development
+## 开发构建
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for prerequisites, setup, and the full workflow. **Stack:** Tauri v2 · Vue 3 · Vite · TypeScript · Canvas API
+详见 [CONTRIBUTING.md](./CONTRIBUTING.md)（环境依赖、搭建与完整流程）。**技术栈：** Tauri v2 · Vue 3 · Vite · TypeScript · Canvas API
