@@ -1,61 +1,61 @@
-# Hold Right-Click to Erase Implementation Plan
+# 按住右键擦除实现计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **致代理执行者：** 必需子技能：使用 superpowers:subagent-driven-development（推荐）或 superpowers:executing-plans 按任务执行本计划。步骤使用复选框（`- [ ]`）语法跟踪。
 
-**Goal:** Hold right mouse button ≥ 250ms to temporarily erase; release restores the previous tool; short right-click still opens the quick color palette.
+**目标：** 按住鼠标右键 ≥ 250ms 临时擦除；松开恢复之前的工具；右键短按仍打开快速色盘。
 
-**Architecture:** Extract a pure RMB-hold gesture state machine (`src/utils/rmbHoldErase.ts`) with Vitest coverage. `DrawingOverlay.vue` arms a timer on `pointerdown` (button 2), activates eraser + `startDraw` on timeout, restores on `pointerup`, and opens the palette only on short release while suppressing `contextmenu` during pending/active.
+**架构：** 抽取纯 RMB 按住手势状态机（`src/utils/rmbHoldErase.ts`）并配 Vitest 覆盖。`DrawingOverlay.vue` 在 `pointerdown`（button 2）启动计时器，超时激活橡皮擦 + `startDraw`，`pointerup` 恢复，仅在短按松开时打开色盘并在 pending/active 期间抑制 `contextmenu`。
 
-**Tech Stack:** Vue 3, Vitest, existing `useDrawing` (`startDraw` / `draw` / `endDraw`), overlay pointer capture
+**技术栈：** Vue 3、Vitest、既有 `useDrawing`（`startDraw` / `draw` / `endDraw`）、覆盖层指针捕获
 
-## Global Constraints
+## 全局约束
 
-- Spec: `docs/superpowers/specs/2026-07-23-hold-rmb-eraser-design.md`
-- Time threshold: **250ms** (`RMB_HOLD_ERASE_MS`) — code constant, not a user setting
-- Always on — **no** settings / config / IPC
-- Short press: quick colors; long press: temporary eraser
-- Text box open: **do not** start hold-erase (preserve double-RMB commit)
-- Suppress palette while `pending` or `active`; open palette from **short `pointerup`**, not raw `contextmenu`
-- No radial menu (#41 proposal 2)
-- i18n: sync `en.ts` and `zh-CN.ts`
-- Prefer pure helpers for logic; keep timer + drawing side effects in the overlay
+- 规格：`docs/superpowers/specs/2026-07-23-hold-rmb-eraser-design.md`
+- 时间阈值：**250ms**（`RMB_HOLD_ERASE_MS`）——代码常量，不是用户设置
+- 始终开启——**无**设置 / 配置 / IPC
+- 短按：快速色盘；长按：临时橡皮擦
+- 文本框打开：**不**启动按住擦除（保留双击右键确认）
+- `pending` 或 `active` 期间抑制色盘；色盘从**短按 `pointerup`** 打开，而非原始 `contextmenu`
+- 无环形菜单（#41 提案 2）
+- i18n：同步 `en.ts` 与 `zh-CN.ts`
+- 逻辑优先纯函数；计时器与绘制副作用保留在覆盖层
 
 ---
 
-## File map
+## 文件映射
 
-| File | Role |
+| 文件 | 角色 |
 |------|------|
-| `src/utils/rmbHoldErase.ts` | Pure gesture phases + guards + release outcomes |
-| `src/utils/rmbHoldErase.test.ts` | Unit tests for phases / suppress / canStart |
-| `src/components/DrawingOverlay.vue` | Timer, pointer button-2 path, wire start/end draw, contextmenu guard |
-| `src/i18n/en.ts`, `src/i18n/zh-CN.ts` | Help copy: short = colors, hold = erase |
-| `docs/help.html` + `docs/i18n.js` (if RMB row exists) | Keep site help in sync with in-app help |
+| `src/utils/rmbHoldErase.ts` | 纯手势阶段 + 守卫 + 松开结果 |
+| `src/utils/rmbHoldErase.test.ts` | 阶段 / 抑制 / canStart 单元测试 |
+| `src/components/DrawingOverlay.vue` | 计时器、指针 button-2 路径、接线起止绘制、contextmenu 守卫 |
+| `src/i18n/en.ts`、`src/i18n/zh-CN.ts` | 帮助文案：短按 = 色盘，长按 = 擦除 |
+| `docs/help.html` + `docs/i18n.js`（若有 RMB 行） | 站点帮助与应用内帮助保持同步 |
 
 ---
 
-### Task 1: Pure RMB-hold gesture helper + tests
+### 任务 1：纯 RMB 按住手势辅助函数 + 测试
 
-**Files:**
-- Create: `src/utils/rmbHoldErase.ts`
-- Create: `src/utils/rmbHoldErase.test.ts`
+**文件：**
+- 创建：`src/utils/rmbHoldErase.ts`
+- 创建：`src/utils/rmbHoldErase.test.ts`
 
-**Interfaces:**
-- Produces:
+**接口：**
+- 产出：
   - `RMB_HOLD_ERASE_MS = 250`
   - `type RmbHoldPhase = 'idle' | 'pending' | 'active'`
   - `type RmbHoldGesture = { phase: RmbHoldPhase; toolBefore: string | null }`
   - `IDLE_RMB_HOLD: RmbHoldGesture`
   - `canStartRmbHoldErase({ active, penetration, textBoxOpen, quickColorsOpen }): boolean`
   - `startRmbHoldPending(): RmbHoldGesture` → `{ phase: 'pending', toolBefore: null }`
-  - `activateRmbHoldErase(gesture, currentTool: string): RmbHoldGesture` (no-op unless `pending`; stores `toolBefore: currentTool`, `phase: 'active'`)
+  - `activateRmbHoldErase(gesture, currentTool: string): RmbHoldGesture`（非 `pending` 时 no-op；记录 `toolBefore: currentTool`，`phase: 'active'`）
   - `releaseRmbHold(gesture): { next; openPalette; finishErase; restoreTool }`
-  - `cancelRmbHold(gesture): { next; openPalette: false; finishErase; restoreTool }` (abort without palette)
-  - `shouldBlockQuickColors(gesture): boolean` → true when `pending` or `active`
+  - `cancelRmbHold(gesture): { next; openPalette: false; finishErase; restoreTool }`（中止且不开色盘）
+  - `shouldBlockQuickColors(gesture): boolean` → `pending` 或 `active` 时为 true
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **步骤 1：编写失败测试**
 
-Create `src/utils/rmbHoldErase.test.ts`:
+创建 `src/utils/rmbHoldErase.test.ts`：
 
 ```ts
 import { describe, expect, it } from 'vitest'
@@ -149,13 +149,13 @@ describe('rmbHoldErase', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests — expect FAIL (module missing)**
+- [ ] **步骤 2：运行测试——预期 FAIL（模块缺失）**
 
-Run: `npx vitest run src/utils/rmbHoldErase.test.ts`
+运行：`npx vitest run src/utils/rmbHoldErase.test.ts`
 
-Expected: FAIL — cannot find module `./rmbHoldErase`
+预期：FAIL——找不到模块 `./rmbHoldErase`
 
-- [ ] **Step 3: Implement `src/utils/rmbHoldErase.ts`**
+- [ ] **步骤 3：实现 `src/utils/rmbHoldErase.ts`**
 
 ```ts
 export const RMB_HOLD_ERASE_MS = 250
@@ -247,13 +247,13 @@ export function cancelRmbHold(gesture: RmbHoldGesture): RmbHoldEnd {
 }
 ```
 
-- [ ] **Step 4: Run tests — expect PASS**
+- [ ] **步骤 4：运行测试——预期 PASS**
 
-Run: `npx vitest run src/utils/rmbHoldErase.test.ts`
+运行：`npx vitest run src/utils/rmbHoldErase.test.ts`
 
-Expected: all tests PASS
+预期：全部测试 PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **步骤 5：提交**
 
 ```bash
 git add src/utils/rmbHoldErase.ts src/utils/rmbHoldErase.test.ts
@@ -262,18 +262,18 @@ git commit -m "feat(drawing): add rmb hold-to-erase gesture state helper"
 
 ---
 
-### Task 2: Wire hold-erase into `DrawingOverlay.vue`
+### 任务 2：将按住擦除接入 `DrawingOverlay.vue`
 
-**Files:**
-- Modify: `src/components/DrawingOverlay.vue`
+**文件：**
+- 修改：`src/components/DrawingOverlay.vue`
 
-**Interfaces:**
-- Consumes: all exports from Task 1
-- Produces: button-2 pointer path that calls `startDraw` / `draw` / `endDraw` with eraser while active; short release opens palette via existing `quickColorsPos` + `showQuickColors`
+**接口：**
+- 消费：任务 1 的全部导出
+- 产出：button-2 指针路径，激活期间以橡皮擦调用 `startDraw` / `draw` / `endDraw`；短按松开经既有 `quickColorsPos` + `showQuickColors` 打开色盘
 
-- [ ] **Step 1: Import helpers and add module-level gesture state**
+- [ ] **步骤 1：导入辅助函数并添加模块级手势状态**
 
-Near other imports / RMB text-click state in `DrawingOverlay.vue`:
+在 `DrawingOverlay.vue` 其他导入 / RMB 文字点击状态附近：
 
 ```ts
 import {
@@ -289,7 +289,7 @@ import {
 } from '../utils/rmbHoldErase'
 ```
 
-Add:
+添加：
 
 ```ts
 let rmbHoldGesture: RmbHoldGesture = IDLE_RMB_HOLD
@@ -297,7 +297,7 @@ let rmbHoldTimer: ReturnType<typeof setTimeout> | null = null
 let rmbHoldPointerId: number | null = null
 ```
 
-- [ ] **Step 2: Add clear/activate helpers**
+- [ ] **步骤 2：添加清除/激活辅助函数**
 
 ```ts
 function clearRmbHoldTimer() {
@@ -322,19 +322,19 @@ function activateHoldEraseFromTimer(clientX: number, clientY: number) {
   hideToolbarPopupForCanvasInteraction()
   currentTool.value = 'eraser'
   capturePointer(
-    // Prefer reusing last pointer event if you keep a ref; otherwise call startDraw only —
-    // see Step 3 for pointerdown capture.
+    // 若保留引用则优先复用最近的指针事件；否则仅调用 startDraw——
+    // pointerdown 捕获见步骤 3。
   )
   startDraw({ x: clientX, y: clientY })
   logActionEvent('rmb hold erase', { toolBefore: rmbHoldGesture.toolBefore })
 }
 ```
 
-**Important:** In Step 3, on `pointerdown` button 2, call `capturePointer(e)` when starting pending so move/up are reliable; store `e.clientX/Y` in closure for the timer callback.
+**重要：** 步骤 3 中，`pointerdown` button 2 时在启动 pending 阶段调用 `capturePointer(e)`，保证 move/up 可靠；在闭包中保存 `e.clientX/Y` 供计时回调使用。
 
-- [ ] **Step 3: Handle `pointerdown` for button 2**
+- [ ] **步骤 3：处理 button 2 的 `pointerdown`**
 
-Change `onPointerDown` so button 0 keeps current early return, and add a button-2 branch **before** or **instead of** `if (e.button !== 0) return`:
+修改 `onPointerDown`：button 0 保持现有提前返回，并在 `if (e.button !== 0) return` **之前**或替代位置加入 button-2 分支：
 
 ```ts
 async function onPointerDown(e: PointerEvent) {
@@ -343,7 +343,7 @@ async function onPointerDown(e: PointerEvent) {
     return
   }
   if (e.button !== 0) return
-  // ... existing LMB body unchanged ...
+  // ... 既有 LMB 主体不变 ...
 }
 
 function onRmbPointerDown(e: PointerEvent) {
@@ -357,7 +357,7 @@ function onRmbPointerDown(e: PointerEvent) {
   ) {
     return
   }
-  // macOS: Control+click mapped as RMB after Ctrl-drag — skip (same spirit as onContextMenu)
+  // macOS：Ctrl 拖动后的 Control+click 映射为 RMB——跳过（与 onContextMenu 同精神）
   if (isMacOS() && e.ctrlKey && pointerMovedSinceDown) return
 
   clearRmbHoldTimer()
@@ -375,7 +375,7 @@ function onRmbPointerDown(e: PointerEvent) {
 }
 ```
 
-Refine `activateHoldEraseFromTimer` to use **current** `lastPointerX` / `lastPointerY` (updated in `onPointerMove`) so erase starts at the pointer position at activation time, not only the down point:
+细化 `activateHoldEraseFromTimer`：使用**当前** `lastPointerX` / `lastPointerY`（`onPointerMove` 中更新），使擦除从激活时刻的指针位置开始，而非仅按下点：
 
 ```ts
 function activateHoldEraseFromTimer() {
@@ -389,26 +389,26 @@ function activateHoldEraseFromTimer() {
 }
 ```
 
-And in the timeout: `activateHoldEraseFromTimer()`.
+超时回调相应改为 `activateHoldEraseFromTimer()`。
 
-- [ ] **Step 4: Extend `onPointerMove` / `onPointerUp` for RMB hold**
+- [ ] **步骤 4：扩展 `onPointerMove` / `onPointerUp` 支持 RMB 按住**
 
-In `onPointerMove`, after existing drawing branch, ensure when `rmbHoldGesture.phase === 'active'` and `isDrawing`, the existing `draw` / `drawBatch` path already runs (because `isDrawing` is true). No extra branch if LMB and RMB share the same `isDrawing` path — verify `onPointerMove` does not require `buttons === 1`. If it gates on primary button, add:
+在 `onPointerMove` 既有绘制分支之后，确保 `rmbHoldGesture.phase === 'active'` 且 `isDrawing` 时既有的 `draw` / `drawBatch` 路径已运行（`isDrawing` 为 true 即可）。若左键与右键共用 `isDrawing` 路径则无需新分支——验证 `onPointerMove` 是否以 `buttons === 1` 门控。若按主键门控，加入：
 
 ```ts
-// inside move, when drawing:
-if (isDrawing.value && (rmbHoldGesture.phase === 'active' || /* existing */ true)) {
-  // existing drawBatch path
+// move 内，绘制中：
+if (isDrawing.value && (rmbHoldGesture.phase === 'active' || /* 既有 */ true)) {
+  // 既有 drawBatch 路径
 }
 ```
 
-Inspect current `onPointerMove` — if it only checks `isDrawing` / `isDragging`, RMB hold erase works without change once `startDraw` ran.
+检查现有 `onPointerMove`——若只检查 `isDrawing` / `isDragging`，`startDraw` 执行后 RMB 按住擦除无需改动即可工作。
 
-In `onPointerUp`:
+在 `onPointerUp`：
 
 ```ts
 function onPointerUp(e: PointerEvent) {
-  // Existing capturedPointerId mismatch guard stays
+  // 既有 capturedPointerId 不匹配守卫保留
 
   if (rmbHoldPointerId !== null && e.pointerId === rmbHoldPointerId) {
     clearRmbHoldTimer()
@@ -444,11 +444,11 @@ function onPointerUp(e: PointerEvent) {
     }
   }
 
-  // ... existing LMB onPointerUp body ...
+  // ... 既有 LMB onPointerUp 主体 ...
 }
 ```
 
-Also clear hold state in `abortActivePointerInteraction`:
+同时在 `abortActivePointerInteraction` 清除按住状态：
 
 ```ts
 clearRmbHoldTimer()
@@ -462,11 +462,11 @@ if (rmbHoldGesture.phase !== 'idle') {
 }
 ```
 
-(If abort already calls `endDraw`, keep order: endDraw then restore tool.)
+（若 abort 已调用 `endDraw`，保持顺序：先 endDraw 再恢复工具。）
 
-- [ ] **Step 5: Guard `onContextMenu`**
+- [ ] **步骤 5：守卫 `onContextMenu`**
 
-At the top of `onContextMenu` (after `preventDefault` / text handler as appropriate):
+在 `onContextMenu` 顶部（`preventDefault` / 文字处理之后酌情）：
 
 ```ts
 function onContextMenu(e: MouseEvent) {
@@ -474,25 +474,25 @@ function onContextMenu(e: MouseEvent) {
   if (handleTextBoxContextMenu(e)) return
   if (shouldBlockQuickColors(rmbHoldGesture)) return
   if (performance.now() < suppressQuickColorsUntil) return
-  // Prefer not opening palette here for plain short-click anymore if pointerup already opened it.
-  // Keep as fallback only when gesture is idle (e.g. text path already returned):
+  // pointerup 已打开色盘时，普通短按不再在此重复打开。
+  // 仅作手势已 idle 时的回退（例如文字路径已返回）：
   if (!active.value || penetrationMode.value || isDrawing.value) return
   if (isMacOS() && e.ctrlKey && pointerMovedSinceDown) return
   openQuickColorsAt(e.clientX, e.clientY)
 }
 ```
 
-Refactor existing body to call `openQuickColorsAt` to avoid duplication. **Do not** open palette twice: short press opens on `pointerup`; idle `contextmenu` fallback is OK if gesture already idle (second open is harmless if `showQuickColors` already true — or early-return if already open).
+重构现有主体为调用 `openQuickColorsAt` 以避免重复。**不要**重复打开色盘：短按在 `pointerup` 打开；手势已 idle 时 `contextmenu` 回退可用（`showQuickColors` 已开时二次打开无害——或已开则提前返回）。
 
-- [ ] **Step 6: Manual sanity in unitless run**
+- [ ] **步骤 6：无单元框架下的手动健全性检查**
 
-Run: `npx vitest run src/utils/rmbHoldErase.test.ts`
+运行：`npx vitest run src/utils/rmbHoldErase.test.ts`
 
-Expected: PASS
+预期：PASS
 
-Run: `npm run lint` on touched files if convenient.
+方便时对触碰文件运行 `npm run lint`。
 
-- [ ] **Step 7: Commit**
+- [ ] **步骤 7：提交**
 
 ```bash
 git add src/components/DrawingOverlay.vue
@@ -501,20 +501,20 @@ git commit -m "feat(drawing): hold right-click to erase, release restores tool"
 
 ---
 
-### Task 3: Help / i18n copy + site help sync
+### 任务 3：帮助 / i18n 文案 + 站点帮助同步
 
-**Files:**
-- Modify: `src/i18n/en.ts`
-- Modify: `src/i18n/zh-CN.ts`
-- Modify: `src/components/SettingsView.vue` (only if a second help row is needed)
-- Modify: `docs/i18n.js` and `docs/help.html` if they document right-click colors
+**文件：**
+- 修改：`src/i18n/en.ts`
+- 修改：`src/i18n/zh-CN.ts`
+- 修改：`src/components/SettingsView.vue`（仅在需要第二行帮助时）
+- 修改：`docs/i18n.js` 与 `docs/help.html`（若记载右键取色）
 
-**Interfaces:**
-- Produces: help strings that mention short vs hold RMB
+**接口：**
+- 产出：提及右键短按 vs 长按的帮助字符串
 
-- [ ] **Step 1: Update in-app help strings**
+- [ ] **步骤 1：更新应用内帮助字符串**
 
-In `en.ts` help section, change / add:
+在 `en.ts` help 段，修改/新增：
 
 ```ts
 rightClickColor: 'Quick color picker',
@@ -523,15 +523,15 @@ mouseRightClick: 'Right-click',
 mouseRightClickHold: 'Hold right-click',
 ```
 
-Or keep one row and expand the label:
+或保留一行并扩展标签：
 
 ```ts
 rightClickColor: 'Colors (tap) / erase (hold)',
 ```
 
-Prefer **two rows** next to the existing color row in `SettingsView.vue` help card (color + hold erase), matching the locked UX.
+偏好**两行**：在 `SettingsView.vue` 帮助卡既有颜色行旁（颜色 + 按住擦除），与锁定的 UX 一致。
 
-`zh-CN.ts`:
+`zh-CN.ts`：
 
 ```ts
 rightClickColor: '快速选色（点按）',
@@ -539,9 +539,9 @@ rightClickErase: '按住擦除',
 mouseRightClickHold: '长按右键',
 ```
 
-- [ ] **Step 2: Add help row in `SettingsView.vue`**
+- [ ] **步骤 2：在 `SettingsView.vue` 添加帮助行**
 
-Beside the existing right-click color row (~line 639), add:
+在既有右键取色行旁（约 639 行）加：
 
 ```vue
 <div class="help-row">
@@ -550,13 +550,13 @@ Beside the existing right-click color row (~line 639), add:
 </div>
 ```
 
-(Use the same markup pattern as neighboring rows.)
+（使用相邻行相同的标记模式。）
 
-- [ ] **Step 3: Sync `docs/i18n.js` / help page**
+- [ ] **步骤 3：同步 `docs/i18n.js` / 帮助页**
 
-If `helpPage.draw.rightClick` exists, update EN/ZH to mention hold-to-erase in one short phrase, e.g. EN: `Color picker (click) · Erase (hold)`.
+若存在 `helpPage.draw.rightClick`，更新 EN/ZH 以一句话提及按住擦除，如 EN：`Color picker (click) · Erase (hold)`。
 
-- [ ] **Step 4: Commit**
+- [ ] **步骤 4：提交**
 
 ```bash
 git add src/i18n/en.ts src/i18n/zh-CN.ts src/components/SettingsView.vue docs/i18n.js docs/help.html
@@ -565,49 +565,49 @@ git commit -m "docs(help): document hold right-click to erase"
 
 ---
 
-### Task 4: Manual QA checklist (no code)
+### 任务 4：手动 QA 清单（无代码）
 
-**Files:** none
+**文件：** 无
 
-- [ ] **Step 1: Run automated suite**
+- [ ] **步骤 1：运行自动化套件**
 
-Run: `npm test`
+运行：`npm test`
 
-Expected: PASS (including new `rmbHoldErase` tests)
+预期：PASS（含新 `rmbHoldErase` 测试）
 
-- [ ] **Step 2: Manual overlay checks (Windows and/or macOS)**
+- [ ] **步骤 2：覆盖层手动检查（Windows 和/或 macOS）**
 
-| # | Action | Expected |
+| # | 操作 | 预期 |
 |---|--------|----------|
-| 1 | Short RMB | Quick colors open; tool unchanged |
-| 2 | Hold RMB ≥ 250ms then drag | Erases with current eraser mode; cursor/tool shows eraser |
-| 3 | Release after hold | Previous tool restored |
-| 4 | Hold while already on eraser | Erases; stays on eraser after release |
-| 5 | Open text box; hold RMB | No erase; double-RMB still commits |
-| 6 | Penetration mode | No hold-erase / no palette (existing) |
-| 7 | macOS Control+click after Ctrl-drag | Does not spuriously erase or open palette |
+| 1 | 右键短按 | 打开快速色盘；工具不变 |
+| 2 | 按住右键 ≥ 250ms 后拖动 | 按当前橡皮擦模式擦除；光标/工具显示橡皮擦 |
+| 3 | 按住后松开 | 恢复之前的工具 |
+| 4 | 已是橡皮擦时按住 | 擦除；松开后保持橡皮擦 |
+| 5 | 打开文本框；按住右键 | 不擦除；双击右键仍确认 |
+| 6 | 穿透模式 | 无按住擦除 / 无色盘（既有） |
+| 7 | macOS Ctrl 拖动后的 Control+click | 不误触发擦除或色盘 |
 
-- [ ] **Step 3: Comment on GitHub issue #41** (when shipping)
+- [ ] **步骤 3：在 GitHub issue #41 评论**（发布时）
 
-Note that hold-to-erase shipped; radial menu remains out of scope for product tone.
+注明按住擦除已发布；环形菜单因产品调性仍不在范围。
 
 ---
 
-## Spec coverage self-review
+## 规格覆盖自审
 
-| Spec requirement | Task |
+| 规格要求 | 任务 |
 |------------------|------|
-| 250ms threshold | Task 1 constant + Task 2 timer |
-| Short = colors, hold = erase | Task 2 release / activate |
-| No settings | All tasks |
-| Text box disables hold | `canStartRmbHoldErase` + Task 2 |
-| Suppress contextmenu pending/active | Task 2 `shouldBlockQuickColors` |
-| Palette from short pointerup | Task 2 |
-| Restore previous tool | Task 1/2 `restoreTool` |
-| Help copy | Task 3 |
-| No radial menu | Explicitly omitted |
-| Tests | Task 1 (+ Task 4 suite) |
+| 250ms 阈值 | 任务 1 常量 + 任务 2 计时器 |
+| 短按 = 色盘，长按 = 擦除 | 任务 2 松开 / 激活 |
+| 无设置 | 所有任务 |
+| 文本框禁用按住 | `canStartRmbHoldErase` + 任务 2 |
+| pending/active 抑制 contextmenu | 任务 2 `shouldBlockQuickColors` |
+| 色盘来自短按 pointerup | 任务 2 |
+| 恢复之前的工具 | 任务 1/2 `restoreTool` |
+| 帮助文案 | 任务 3 |
+| 无环形菜单 | 显式省略 |
+| 测试 | 任务 1（+ 任务 4 套件） |
 
-## Placeholder scan
+## 占位符扫描
 
-No TBD / “implement later” steps. Overlay wiring shows concrete function shapes; implementer must match existing `capturePointer` / `releaseCapturedPointer` helpers already in `DrawingOverlay.vue`.
+无 TBD /「稍后实现」步骤。覆盖层接线给出了具体函数形态；实现者须对齐 `DrawingOverlay.vue` 中已有的 `capturePointer` / `releaseCapturedPointer` 辅助函数。

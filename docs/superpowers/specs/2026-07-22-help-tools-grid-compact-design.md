@@ -1,53 +1,53 @@
-# Help tools grid: 2-column compact layout
+# 帮助页工具网格：双列紧凑布局
 
-**Date:** 2026-07-22  
-**Status:** Approved design  
-**Scope:** `docs/help.html` In-session tools section styling
+**日期：** 2026-07-22
+**状态：** 已批准设计
+**范围：** `docs/help.html` 标注会话工具区样式
 
-## Problem
+## 问题
 
-The help page “In-session tools” section uses a 3-column card grid with 10 tools. The last row contains only Stamp, leaving empty space on the right and an unbalanced layout.
+帮助页「标注会话工具」区使用 3 列卡片网格展示 10 种工具。最后一行只有序号一项，右侧留空，布局失衡。
 
-## Decision
+## 决策
 
-Use a **2-column, inline-compact** card layout (option C from design review):
+采用**双列、行内紧凑**卡片布局（设计评审方案 C）：
 
-- Desktop: 2 columns × 5 rows — full grid, no orphan card
-- Each card: keyboard shortcut (`kbd`) sits beside title + description (horizontal flex), so cards are shorter and overall section height stays close to the current 3-column layout
-- Keep existing visual language (borders, radius, hover, typography)
-- Mobile: keep the existing single-column breakpoint
+- 桌面端：2 列 × 5 行——完整网格，无孤立卡片
+- 每张卡片：快捷键（`kbd`）置于标题与描述旁边（水平 flex），卡片更矮，整区高度接近现有 3 列布局
+- 保持现有视觉语言（边框、圆角、悬停、字体）
+- 移动端：保持现有单列断点
 
-## Out of scope
+## 范围外
 
-- Store screenshot HTML under `assets/store-screenshots/`
-- i18n / copy changes (en / zh-CN strings stay as-is)
-- New tool groupings, extra cards, or content reordering
-- App UI (toolbar / overlay) — help docs only
+- `assets/store-screenshots/` 下的商店截图 HTML
+- i18n / 文案变更（en / zh-CN 字符串保持不变）
+- 新的工具分组、额外卡片或内容重排
+- 应用 UI（工具栏 / 覆盖层）——仅限帮助文档
 
-## Implementation
+## 实现
 
-### Files
+### 文件
 
-| File | Change |
+| 文件 | 变更 |
 |------|--------|
-| `docs/styles.css` | `.help-tool-grid` → `repeat(2, minmax(0, 1fr))`; `.help-tool-card` → flex row layout for `kbd` + text block; tighten padding/gaps as needed for compact height |
-| `docs/help.html` | Only if markup needs a wrapper around `h3`+`p` for flex alignment; prefer CSS-only if possible |
+| `docs/styles.css` | `.help-tool-grid` → `repeat(2, minmax(0, 1fr))`；`.help-tool-card` → `kbd` 与文本块的 flex 行布局；按需收紧内边距/间距以获得紧凑高度 |
+| `docs/help.html` | 仅当标记需要为 `h3`+`p` 加 flex 对齐的包装层时改动；优先纯 CSS 实现 |
 
-### Layout rules
+### 布局规则
 
 1. `.help-tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }`
-2. Card internal structure: `kbd` left (or top-left aligned), title + description stacked to the right
-3. Preserve `data-reveal-delay` / scroll-reveal behavior
-4. Existing `@media` rule that sets `.help-tool-grid` to `1fr` on small screens remains authoritative
+2. 卡片内部结构：`kbd` 在左（或左上对齐），标题 + 描述在右堆叠
+3. 保留 `data-reveal-delay` / 滚动显现行为
+4. 现有将 `.help-tool-grid` 在小屏设为 `1fr` 的 `@media` 规则仍为权威
 
-### Acceptance
+### 验收
 
-- [ ] Ten tool cards fill a complete 2×5 grid on desktop — no trailing empty cells
-- [ ] Stamp long description remains readable without clipping
-- [ ] Hover / reveal animations still work
-- [ ] Narrow viewport stacks to one column
-- [ ] No copy or locale file changes
+- [ ] 十张工具卡片在桌面端填满完整的 2×5 网格——无尾部空位
+- [ ] 序号的长描述保持可读、不被裁切
+- [ ] 悬停 / 显现动画仍正常
+- [ ] 窄视口回退为单列
+- [ ] 无文案或语言文件改动
 
-## Verification
+## 验证
 
-Open `docs/help.html` in a browser (or local docs server), check the tools section at desktop and mobile widths.
+在浏览器（或本地 docs 服务）中打开 `docs/help.html`，分别在桌面与移动宽度检查工具区。

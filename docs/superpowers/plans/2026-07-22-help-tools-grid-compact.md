@@ -1,47 +1,47 @@
-# Help Tools Grid Compact Layout Implementation Plan
+# 帮助页工具网格紧凑布局实现计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **致代理执行者：** 必需子技能：使用 superpowers:subagent-driven-development（推荐）或 superpowers:executing-plans 按任务执行本计划。步骤使用复选框（`- [ ]`）语法跟踪。
 
-**Goal:** Make the help page “In-session tools” section a full 2×5 grid with compact inline cards so Stamp no longer leaves empty cells on the right.
+**目标：** 将帮助页「标注会话工具」区做成完整的 2×5 网格 + 紧凑行内卡片，使序号不再在右侧留下空位。
 
-**Architecture:** CSS-only change to the existing `.help-tool-grid` / `.help-tool-card` rules in `docs/styles.css`. Use CSS Grid on each card so the top-level `kbd` sits beside `h3`+`p` without wrapping HTML. Keep the mobile single-column media query as-is.
+**架构：** 仅 CSS 修改 `docs/styles.css` 中既有的 `.help-tool-grid` / `.help-tool-card` 规则。在每张卡片上使用 CSS Grid，使顶层 `kbd` 与 `h3`+`p` 并排而无需改 HTML。移动端单列 media query 保持不变。
 
-**Tech Stack:** Static HTML help page (`docs/help.html`), `docs/styles.css`
+**技术栈：** 静态 HTML 帮助页（`docs/help.html`）、`docs/styles.css`
 
-## Global Constraints
+## 全局约束
 
-- Scope is help docs styling only — do not change store screenshots, i18n strings, or app Vue UI
-- Prefer CSS-only; only touch `docs/help.html` if CSS cannot align the layout
-- Preserve scroll-reveal (`t-scroll-reveal`, `data-reveal-delay`) and hover styles
-- Nested `<kbd>` inside Stamp’s `<p>` must remain styled as inline keys; only the direct-child shortcut `kbd` moves into the side column
-- At `max-width: 1024px`, `.help-tool-grid` stays `grid-template-columns: 1fr`
+- 范围仅限帮助文档样式——不要改动商店截图、i18n 字符串或应用 Vue UI
+- 优先纯 CSS；仅当 CSS 无法对齐布局时才动 `docs/help.html`
+- 保留滚动显现（`t-scroll-reveal`、`data-reveal-delay`）与悬停样式
+- 序号 `<p>` 内嵌套的 `<kbd>` 须保持行内按键样式；仅直接子级快捷键 `kbd` 移入侧列
+- `max-width: 1024px` 时 `.help-tool-grid` 保持 `grid-template-columns: 1fr`
 
-**Spec:** `docs/superpowers/specs/2026-07-22-help-tools-grid-compact-design.md`
+**规格：** `docs/superpowers/specs/2026-07-22-help-tools-grid-compact-design.md`
 
 ---
 
-## File map
+## 文件映射
 
-| File | Role |
+| 文件 | 角色 |
 |------|------|
-| `docs/styles.css` | Change tool grid to 2 columns; compact card internal layout |
-| `docs/help.html` | No change expected (verify only) |
+| `docs/styles.css` | 工具网格改双列；卡片内部紧凑布局 |
+| `docs/help.html` | 预期无改动（仅验证） |
 
 ---
 
-### Task 1: Two-column compact tool cards
+### 任务 1：双列紧凑工具卡片
 
-**Files:**
-- Modify: `docs/styles.css` (`.help-tool-grid` ~1358–1361, `.help-tool-card` ~1363–1400)
-- Verify: `docs/help.html` (tools section ~257–313) — markup unchanged
+**文件：**
+- 修改：`docs/styles.css`（`.help-tool-grid` 约 1358–1361，`.help-tool-card` 约 1363–1400）
+- 验证：`docs/help.html`（工具区约 257–313）——标记不变
 
-**Interfaces:**
-- Consumes: Existing DOM — each `.help-tool-card` is `kbd` + `h3` + `p` (Stamp `p` may contain nested `kbd`)
-- Produces: Desktop 2×5 filled grid; compact horizontal card layout
+**接口：**
+- 消费：既有 DOM——每个 `.help-tool-card` 为 `kbd` + `h3` + `p`（序号 `p` 可能含嵌套 `kbd`）
+- 产出：桌面 2×5 满网格；紧凑水平卡片布局
 
-- [ ] **Step 1: Update `.help-tool-grid` to two columns**
+- [ ] **步骤 1：将 `.help-tool-grid` 改为双列**
 
-In `docs/styles.css`, replace:
+在 `docs/styles.css` 中，将：
 
 ```css
 .help-tool-grid {
@@ -50,7 +50,7 @@ In `docs/styles.css`, replace:
 }
 ```
 
-with:
+替换为：
 
 ```css
 .help-tool-grid {
@@ -59,9 +59,9 @@ with:
 }
 ```
 
-- [ ] **Step 2: Restyle `.help-tool-card` as a compact 2-column grid**
+- [ ] **步骤 2：将 `.help-tool-card` 重排为紧凑双列网格**
 
-Replace the card block from `.help-tool-card` through `.help-tool-card p` with:
+将从 `.help-tool-card` 到 `.help-tool-card p` 的卡片块替换为：
 
 ```css
 .help-tool-card {
@@ -116,20 +116,20 @@ Replace the card block from `.help-tool-card` through `.help-tool-card p` with:
 }
 ```
 
-Do **not** change the `@media (max-width: 1024px)` rule that sets `.help-tool-grid { grid-template-columns: 1fr; }`.
+**不要**改动将 `.help-tool-grid` 设为 `grid-template-columns: 1fr` 的 `@media (max-width: 1024px)` 规则。
 
-- [ ] **Step 3: Visual verify in browser**
+- [ ] **步骤 3：浏览器视觉验证**
 
-Open `docs/help.html` (file URL or any local static server). Check:
+打开 `docs/help.html`（file URL 或任意本地静态服务）。检查：
 
-1. Desktop (~1200px+): 10 cards in 2 columns × 5 rows — no empty cell beside Stamp
-2. Stamp description fully readable; nested `kbd` inside the paragraph still look like keys
-3. Hover lift still works; scroll-reveal still runs
-4. Narrow viewport (≤1024px): single column stack
+1. 桌面（~1200px+）：10 张卡片 2 列 × 5 行——序号旁无空位
+2. 序号描述完整可读；段落内嵌套 `kbd` 仍呈按键样式
+3. 悬停抬升仍有效；滚动显现仍运行
+4. 窄视口（≤1024px）：单列堆叠
 
-Expected: all four checks pass.
+预期：四项检查全部通过。
 
-- [ ] **Step 4: Commit**
+- [ ] **步骤 4：提交**
 
 ```bash
 git add docs/styles.css
@@ -138,15 +138,15 @@ git commit -m "ui(docs): compact help tools grid to two columns"
 
 ---
 
-## Spec coverage (self-review)
+## 规格覆盖（自审）
 
-| Spec requirement | Task |
+| 规格要求 | 任务 |
 |------------------|------|
-| 2×5 desktop grid, no orphan | Task 1 Step 1 |
-| Inline compact kbd + text | Task 1 Step 2 |
-| Mobile 1-col preserved | Task 1 Step 2 note + Step 3 |
-| No copy / i18n / screenshots | Global Constraints |
-| Hover / reveal preserved | Task 1 Step 2 + Step 3 |
-| Stamp long desc readable | Task 1 Step 3 |
+| 桌面 2×5 网格、无孤立卡片 | 任务 1 步骤 1 |
+| 行内紧凑 kbd + 文本 | 任务 1 步骤 2 |
+| 移动单列保留 | 任务 1 步骤 2 注 + 步骤 3 |
+| 无文案 / i18n / 截图改动 | 全局约束 |
+| 悬停 / 显现保留 | 任务 1 步骤 2 + 步骤 3 |
+| 序号长描述可读 | 任务 1 步骤 3 |
 
-No placeholders. Single subsystem — one plan is enough.
+无占位符。单一子系统——一份计划即可。

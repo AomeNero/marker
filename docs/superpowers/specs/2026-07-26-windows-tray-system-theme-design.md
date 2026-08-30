@@ -1,120 +1,114 @@
-# Windows tray icon follows taskbar / flyout theme
+# Windows 托盘图标跟随任务栏 / 弹出层主题
 
-**Date:** 2026-07-26  
-**Status:** Approved design  
-**Scope:** Windows system tray icon only (macOS unchanged)
+**日期：** 2026-07-26
+**状态：** 已批准设计
+**范围：** 仅 Windows 系统托盘图标（macOS 不变）
 
-## Problem
+## 问题
 
-Windows separates **app color mode** (`AppsUseLightTheme`) from **system chrome**
-(`SystemUsesLightTheme` — taskbar, Start, notification overflow / tray flyout).
+Windows 区分**应用颜色模式**（`AppsUseLightTheme`）与**系统外观**
+（`SystemUsesLightTheme`——任务栏、开始菜单、通知溢出 / 托盘弹出层）。
 
-Marker previously tied the tray glyph to the app’s resolved theme (or forced a
-permanent black icon so a white glyph would not vanish on light flyouts). On
-machines with a **dark** taskbar/flyout and a different app theme, the tray icon
-is wrong or hard to see.
+Marker 此前把托盘图形与应用解析主题绑定（或强制永久黑色图标，避免白色图形在浅色弹出层上消失）。
+在**深色**任务栏/弹出层与应用主题不同的机器上，托盘图标会错误或难以辨认。
 
-## Decisions (locked)
+## 决策（已锁定）
 
-| Topic | Choice |
+| 主题 | 选择 |
 |-------|--------|
-| Tray signal | Always `SystemUsesLightTheme` — independent of `general.theme` |
-| Live update | Yes — react while the app is running (no restart) |
-| Settings window icon (title bar + taskbar button) | Same shell signal as tray (taskbar contrast wins over in-app chrome) |
-| Settings WebView / CSS theme | Still follow `general.theme` → `ResolvedTheme` / `AppsUseLightTheme` |
-| macOS | No change — keep `iconAsTemplate` |
-| User setting for tray color | Out of scope |
+| 托盘信号 | 始终 `SystemUsesLightTheme`——独立于 `general.theme` |
+| 实时更新 | 是——应用运行中即时响应（无需重启） |
+| 设置窗口图标（标题栏 + 任务栏按钮） | 与托盘相同的 shell 信号（任务栏对比度优先于应用内外观） |
+| 设置 WebView / CSS 主题 | 仍跟随 `general.theme` → `ResolvedTheme` / `AppsUseLightTheme` |
+| macOS | 不变——保持 `iconAsTemplate` |
+| 托盘颜色的用户设置 | 范围外 |
 
-## Architecture
+## 架构
 
 ```
-SystemUsesLightTheme (registry) / high contrast
+SystemUsesLightTheme（注册表）/ 高对比度
         │
-        ├─ startup: install_main_tray with shell glyph
-        ├─ apply_windows_shell_icons (tray + settings window icon)
-        └─ RegNotifyChangeKeyValue on Personalize
-                 └─ re-apply shell icons when lightness changes
+        ├─ 启动：install_main_tray 使用 shell 图形
+        ├─ apply_windows_shell_icons（托盘 + 设置窗口图标）
+        └─ RegNotifyChangeKeyValue 监听 Personalize
+                 └─ 明暗变化时重新应用 shell 图标
 
-general.theme → resolve_theme (AppsUseLightTheme when system)
+general.theme → resolve_theme（system 时用 AppsUseLightTheme）
         │
         └─ apply_app_theme
-                 ├─ settings WebView theme
-                 └─ also re-applies shell icons (does not use ResolvedTheme for icons)
+                 ├─ 设置 WebView 主题
+                 └─ 同时重新应用 shell 图标（图标不使用 ResolvedTheme）
 ```
 
-### Icon selection (Windows tray + settings taskbar button)
+### 图标选择（Windows 托盘 + 设置任务栏按钮）
 
-| `SystemUsesLightTheme` | Shell | Glyph |
+| `SystemUsesLightTheme` | Shell | 图形 |
 |------------------------|-------|--------|
-| `0` | Dark taskbar / flyout | `icon-light.png` (light) |
-| `1` | Light taskbar / flyout | `icon.png` (dark) |
-| Missing / read error | Treat as **dark** shell (Windows fallback) | `icon-light.png` |
-| High contrast on | Luminance of `COLOR_MENU` | dark glyph if light bg, else light |
+| `0` | 深色任务栏 / 弹出层 | `icon-light.png`（浅色） |
+| `1` | 浅色任务栏 / 弹出层 | `icon.png`（深色） |
+| 缺失 / 读取错误 | 视为**深色** shell（Windows 回退） | `icon-light.png` |
+| 高对比度开启 | 按 `COLOR_MENU` 亮度 | 浅底用深色图形，反之浅色 |
 
-Existing assets only; no new PNGs.
+仅使用现有资源；无新 PNG。
 
-### Startup
+### 启动
 
-Tray is **not** declared in `tauri.conf.json`. `install_main_tray` builds it in setup with
-`theme::main_tray_icon()` so the first painted glyph already matches the shell (no conf-default flash).
+托盘**不在** `tauri.conf.json` 声明。`install_main_tray` 在 setup 中以
+`theme::main_tray_icon()` 构建，使首个绘制的图形已匹配 shell（无配置默认闪烁）。
 
-### Watcher
+### 监听器
 
-`RegNotifyChangeKeyValue` on Personalize may fire for unrelated values (`AppsUseLightTheme`, etc.).
-The watcher re-resolves shell lightness and calls `apply_windows_shell_icons` **only when that
-boolean changes**.
+Personalize 上的 `RegNotifyChangeKeyValue` 可能因无关值（`AppsUseLightTheme` 等）触发。
+监听器重新解析 shell 明暗，**仅当该布尔值变化**时调用 `apply_windows_shell_icons`。
 
-## Components
+## 组件
 
-### `theme.rs` (Windows)
+### `theme.rs`（Windows）
 
-- `windows_system_shell_is_light() -> bool` — high contrast or `SystemUsesLightTheme`
-- `apply_windows_shell_icons(app)` — tray + settings window icon from shell
-- `start_windows_tray_theme_watcher(app)` — background thread:
-  1. Open `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`
-  2. `RegNotifyChangeKeyValue` for value changes
-  3. On notify → `apply_windows_shell_icons` if lightness changed → re-arm notify
-- Failure to set icon: `warn!` only; never fail app startup for tray
+- `windows_system_shell_is_light() -> bool`——高对比度或 `SystemUsesLightTheme`
+- `apply_windows_shell_icons(app)`——按 shell 设置托盘 + 设置窗口图标
+- `start_windows_tray_theme_watcher(app)`——后台线程：
+  1. 打开 `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`
+  2. `RegNotifyChangeKeyValue` 监听值变化
+  3. 收到通知 → 明暗变化则 `apply_windows_shell_icons` → 重新挂通知
+- 设置图标失败：仅 `warn!`；绝不因托盘导致应用启动失败
 
 ### `lib.rs` setup
 
-- After i18n: `install_main_tray`, then start the watcher
-  (`#[cfg(target_os = "windows")]`)
+- i18n 之后：`install_main_tray`，随后启动监听器
+  （`#[cfg(target_os = "windows")]`）
 
 ### `apply_app_theme`
 
-- Resolve app preference for settings WebView / native window theme only
-- Windows icons always come from shell via `apply_windows_shell_icons`
+- 应用偏好仅用于设置 WebView / 原生窗口主题
+- Windows 图标始终来自 shell 的 `apply_windows_shell_icons`
 
-## Out of scope
+## 范围外
 
-- Polling instead of registry notify
-- Frontend `matchMedia` driving tray color
-- Separate tray-color preference in settings
-- Changing macOS tray behavior
-- Listening to taskbar accent / wallpaper color (only light vs dark shell)
+- 用轮询替代注册表通知
+- 前端 `matchMedia` 驱动托盘颜色
+- 设置中独立的托盘颜色偏好
+- 更改 macOS 托盘行为
+- 监听任务栏强调色 / 壁纸颜色（只关心 shell 明与暗）
 
-## Testing
+## 测试
 
-**Unit (Rust):**
+**单元（Rust）：**
 
-- Shell light → dark glyph bytes path; shell dark → light glyph path
-- Missing registry value → dark-shell default (`icon-light.png`)
+- Shell 浅 → 深色图形路径；shell 深 → 浅色图形路径
+- 注册表值缺失 → 深色 shell 默认（`icon-light.png`）
 
-**Manual (Windows):**
+**手动（Windows）：**
 
-- Dark flyout → light Marker tray glyph visible
-- Light flyout → dark glyph visible
-- Light taskbar + dark Marker appearance → settings taskbar button uses **dark** glyph
-- Change taskbar theme in Personalization while Marker runs → tray + settings
-  icons update without restart
-- Change Marker app theme Dark ↔ Light → tray and settings **icons** stay on
-  taskbar signal; settings UI colors still follow app theme
+- 深色弹出层 → 浅色 Marker 托盘图形可见
+- 浅色弹出层 → 深色图形可见
+- 浅色任务栏 + 深色 Marker 外观 → 设置任务栏按钮使用**深色**图形
+- Marker 运行中在个性化里更改任务栏主题 → 托盘与设置图标无需重启即更新
+- 更改 Marker 应用主题深 ↔ 浅 → 托盘与设置**图标**保持任务栏信号；设置 UI 颜色仍跟随应用主题
 
-## Acceptance
+## 验收
 
-1. Tray and settings taskbar button contrast match the shell (dark shell → light
-   icon, light shell → dark icon).
-2. Live Personalization changes update shell icons without restarting Marker.
-3. App theme preference never forces tray / settings window icons.
-4. macOS behavior unchanged.
+1. 托盘与设置任务栏按钮对比度匹配 shell（深 shell → 浅图标，浅 shell → 深图标）。
+2. 个性化实时变化无需重启 Marker 即更新 shell 图标。
+3. 应用主题偏好绝不强制托盘 / 设置窗口图标。
+4. macOS 行为不变。

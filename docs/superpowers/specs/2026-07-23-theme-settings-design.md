@@ -1,32 +1,32 @@
-# Theme settings: light / dark / system
+# 主题设置：深色 / 浅色 / 跟随系统
 
-**Date:** 2026-07-23  
-**Status:** Approved design  
-**Issue:** [#29](https://github.com/AomeNero/marker/issues/29)  
-**Scope:** Settings window + floating chrome (toolbar, Space panel, color panels); Mac + Windows
+**日期：** 2026-07-23
+**状态：** 已批准设计
+**Issue：** [#29](https://github.com/AomeNero/marker/issues/29)
+**范围：** 设置窗口 + 浮动界面（工具栏、Space 面板、色盘）；Mac + Windows
 
-## Problem
+## 问题
 
-Marker UI colors are hardcoded dark (`rgba` in `src/style.css`, `Theme::Dark` in `macos.rs`). Users cannot switch to light mode or follow the OS appearance. Tray icon behavior is Mac-friendly (`iconAsTemplate`) but Windows has no light/dark tray asset switch.
+Marker 的 UI 颜色硬编码为深色（`src/style.css` 的 `rgba`、`macos.rs` 的 `Theme::Dark`）。用户无法切换浅色模式或跟随系统外观。托盘图标行为在 Mac 上友好（`iconAsTemplate`），但 Windows 没有深浅托盘资源切换。
 
-## Decisions (locked)
+## 决策（已锁定）
 
-| Topic | Choice |
+| 主题 | 选择 |
 |-------|--------|
-| Surfaces | Settings window + floating panels (toolbar, Space, color chrome) — **not** canvas stroke colors or whiteboard fill |
-| Default preference | `dark` (backward compatible; no surprise for existing users) |
-| Tray | Mac: keep template auto-adapt; Windows: swap dark/light icons with **resolved** theme |
-| System follow | Live: listen to `prefers-color-scheme` changes |
-| Implementation | CSS variables + `html[data-theme]` (not duplicate class trees, not a theme library) |
+| 作用面 | 设置窗口 + 浮动面板（工具栏、Space、色盘）——**不含**画布笔迹颜色或白板底色 |
+| 默认偏好 | `dark`（向后兼容；老用户无感知） |
+| 托盘 | Mac：保持模板自动适配；Windows：按**解析后**主题切换深/浅图标 |
+| 跟随系统 | 实时：监听 `prefers-color-scheme` 变化 |
+| 实现 | CSS 变量 + `html[data-theme]`（不复制类树，不引主题库） |
 
-## Out of scope
+## 范围外
 
-- Custom accent / palette editor for the annotation toolbar
-- Canvas stroke colors, highlighter opacity, whiteboard background
-- Separate “tray icon color” setting independent of UI theme
-- Marketing site / store screenshot HTML theming
+- 标注工具栏的自定义强调色 / 色板编辑器
+- 画布笔迹颜色、荧光笔不透明度、白板背景
+- 独立于 UI 主题的「托盘图标颜色」设置
+- 营销站 / 商店截图 HTML 主题
 
-## Architecture
+## 架构
 
 ```
 config.json general.theme: "dark" | "light" | "system"
@@ -34,7 +34,7 @@ config.json general.theme: "dark" | "light" | "system"
         ▼
    save_general / get_config / config-changed
         │
-        ├─► Frontend useAppTheme → resolve → data-theme + color-scheme
+        ├─► 前端 useAppTheme → resolve → data-theme + color-scheme
         │         (settings / overlay / toolbar webviews)
         │
         └─► Rust apply_app_theme
@@ -42,17 +42,17 @@ config.json general.theme: "dark" | "light" | "system"
                   └─ Windows: tray.set_icon(dark|light)
 ```
 
-### Preference vs resolved
+### 偏好 vs 解析
 
-- **Preference** (`ThemePreference`): what the user chose — `dark` | `light` | `system`
-- **Resolved** (`ResolvedTheme`): what is painted — `dark` | `light`
-- Frontend resolves `system` via `matchMedia('(prefers-color-scheme: dark)')`
-- Rust `apply_app_theme(preference)` **also** resolves `system` (OS / Tauri APIs) for native settings chrome and Windows tray — do not rely on the webview alone
-- When OS appearance changes under `system`, frontend re-runs `applyTheme` (updates CSS) **and** re-invokes `apply_app_theme` so the tray icon updates too
+- **偏好**（`ThemePreference`）：用户选择的——`dark` | `light` | `system`
+- **解析**（`ResolvedTheme`）：实际绘制的——`dark` | `light`
+- 前端通过 `matchMedia('(prefers-color-scheme: dark)')` 解析 `system`
+- Rust `apply_app_theme(preference)` **同样**解析 `system`（OS / Tauri API）用于原生设置窗与 Windows 托盘——不要只依赖 webview
+- `system` 下 OS 外观变化时，前端重新执行 `applyTheme`（更新 CSS）**并**重新调用 `apply_app_theme` 以同步托盘图标
 
-## Config & IPC
+## 配置与 IPC
 
-### Rust (`config.rs`)
+### Rust（`config.rs`）
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -64,129 +64,129 @@ pub enum ThemePreference {
     System,
 }
 
-// In GeneralConfig:
+// GeneralConfig 中：
 #[serde(default, rename = "theme")]
 pub theme: ThemePreference,
 ```
 
-- Default `Dark`; `#[serde(default)]` so old `config.json` loads cleanly
-- `normalized()` maps unknown values to `Dark`
+- 默认 `Dark`；`#[serde(default)]` 使旧 `config.json` 顺利加载
+- `normalized()` 将未知值映射为 `Dark`
 
-### TypeScript (`app.d.ts`)
+### TypeScript（`app.d.ts`）
 
 ```typescript
 theme?: 'dark' | 'light' | 'system'
 ```
 
-### Commands
+### 命令
 
-- Persist via existing `save_general` + `config-changed` (no new save command)
-- New `apply_app_theme(preference)` for native window + tray updates
-- `save_general` also calls `apply_app_theme` after persist so setting changes take effect immediately
-- App setup: read config once and call `apply_app_theme`
+- 沿用既有 `save_general` + `config-changed` 持久化（无新保存命令）
+- 新增 `apply_app_theme(preference)` 用于原生窗口 + 托盘更新
+- `save_general` 持久化后也调用 `apply_app_theme`，使设置即时生效
+- 应用启动：读取一次配置并调用 `apply_app_theme`
 
-## Frontend
+## 前端
 
-### `useAppTheme` composable
+### `useAppTheme` 组合式函数
 
 - `resolveTheme(preference) → 'dark' | 'light'`
-- `applyTheme(preference)` sets `document.documentElement.dataset.theme`, `colorScheme`, and invokes `apply_app_theme`
-- `watchSystemTheme` only while preference is `system`; remove listener when switching to fixed light/dark
+- `applyTheme(preference)` 设置 `document.documentElement.dataset.theme`、`colorScheme`，并调用 `apply_app_theme`
+- 仅偏好为 `system` 时启用 `watchSystemTheme`；切到固定深/浅时移除监听
 
-### Mount points
+### 接入点
 
-| Surface | When |
+| 界面 | 时机 |
 |---------|------|
-| `App.vue` (settings mode) | Early init so shell matches before tabs load |
-| `DrawingOverlay.vue` | Initial `get_config` + `config-changed` |
-| `ToolbarWindow.vue` | Same |
-| `SettingsView` / `GeneralTab` | UI state + save path |
+| `App.vue`（settings 模式） | 提前初始化，使外壳在标签加载前匹配 |
+| `DrawingOverlay.vue` | 首次 `get_config` + `config-changed` |
+| `ToolbarWindow.vue` | 同上 |
+| `SettingsView` / `GeneralTab` | UI 状态 + 保存路径 |
 
-### Settings UI
+### 设置 UI
 
-- General tab: “Appearance” card near language
-- Three `ui-segment` options: Dark / Light / System
-- Same save pattern as drag mode / eraser mode
+- 常规页：「外观」卡片置于语言附近
+- 三个 `ui-segment` 选项：深色 / 浅色 / 跟随系统
+- 与拖拽模式 / 橡皮擦模式相同的保存模式
 
-### i18n (`en.ts` + `zh-CN.ts`)
+### i18n（`en.ts` + `zh-CN.ts`）
 
-- `settings.theme`, `settings.themeDark`, `settings.themeLight`, `settings.themeSystem`
+- `settings.theme`、`settings.themeDark`、`settings.themeLight`、`settings.themeSystem`
 
-## CSS tokens (Mac-safe)
+## CSS 令牌（Mac 安全）
 
-### Structure
+### 结构
 
 ```css
-html[data-theme='dark'] { /* migrate current rgba 1:1 */ }
-html[data-theme='light'] { /* new light palette */ }
+html[data-theme='dark'] { /* 现有 rgba 1:1 迁移 */ }
+html[data-theme='light'] { /* 新浅色调色板 */ }
 ```
 
-Semantic classes (`.settings-*`, `.overlay-*`, `.ui-*`) keep the same names; replace hardcoded `rgba` / hex with `var(--ui-…)`.
+语义类（`.settings-*`、`.overlay-*`、`.ui-*`）保持同名；把硬编码的 `rgba` / hex 替换为 `var(--ui-…)`。
 
-### Token groups (~25–30)
+### 令牌分组（约 25–30 个）
 
-| Group | Examples |
+| 分组 | 示例 |
 |-------|----------|
-| Surface | `--ui-bg`, `--ui-bg-elevated`, `--ui-bg-subtle` |
-| Border | `--ui-border`, `--ui-border-strong`, `--ui-divider` |
-| Text | `--ui-text-primary` … `--ui-text-faint` |
-| Control | `--ui-control-bg`, `--ui-control-bg-hover`, `--ui-control-border` |
-| Accent | `--ui-accent`, `--ui-accent-bg`, `--ui-accent-border` |
-| Shadow | `--ui-shadow-panel`, `--ui-shadow-popover` |
+| 表面 | `--ui-bg`、`--ui-bg-elevated`、`--ui-bg-subtle` |
+| 边框 | `--ui-border`、`--ui-border-strong`、`--ui-divider` |
+| 文本 | `--ui-text-primary` … `--ui-text-faint` |
+| 控件 | `--ui-control-bg`、`--ui-control-bg-hover`、`--ui-control-border` |
+| 强调 | `--ui-accent`、`--ui-accent-bg`、`--ui-accent-border` |
+| 阴影 | `--ui-shadow-panel`、`--ui-shadow-popover` |
 
-### Rules
+### 规则
 
-- Dark tokens = current hardcoded values (zero visual change at default)
-- Light: light gray surfaces + dark text; accent stays `#0a84ff`
-- No Tailwind opacity modifiers (`text-white/45`, etc.) — keep explicit `rgba` / token values for WebKit
-- Also migrate scoped hardcodes in `SettingsView.vue` and `DiagnosticsTab.vue`
+- 深色令牌 = 现有硬编码值（默认状态零视觉变化）
+- 浅色：浅灰表面 + 深色文本；强调色保持 `#0a84ff`
+- 不使用 Tailwind 透明度修饰符（`text-white/45` 等）——为 WebKit 保留显式 `rgba` / 令牌值
+- 同步迁移 `SettingsView.vue` 与 `DiagnosticsTab.vue` 中的作用域硬编码
 
-### Mac / overlay specifics
+### Mac / 覆盖层细节
 
-| Concern | Handling |
+| 关注点 | 处理 |
 |---------|----------|
-| Settings chrome | `macos.rs`: stop hardcoding `Theme::Dark`; `configure_settings_window(resolved)` sets theme + `SETTINGS_BG_DARK` (`#1e1e20`) / `SETTINGS_BG_LIGHT` (`#f5f5f7`) |
-| Overlay / toolbar windows | Keep transparent `set_background_color(0,0,0,0)`; only CSS panel tokens change |
-| Corner bleed | Keep `overlay-panel-surface`; light `.overlay-panel` uses solid light bg, not translucent white |
-| `color-scheme` | Sync with resolved theme on `html` |
+| 设置窗外观 | `macos.rs`：停止硬编码 `Theme::Dark`；`configure_settings_window(resolved)` 设置主题 + `SETTINGS_BG_DARK`（`#1e1e20`）/ `SETTINGS_BG_LIGHT`（`#f5f5f7`） |
+| 覆盖层 / 工具栏窗口 | 保持透明 `set_background_color(0,0,0,0)`；仅 CSS 面板令牌变化 |
+| 圆角渗色 | 保留 `overlay-panel-surface`；浅色 `.overlay-panel` 使用不透明浅色底，而非半透明白 |
+| `color-scheme` | 随解析主题在 `html` 上同步 |
 
-### Tray
+### 托盘
 
-- macOS: leave `iconAsTemplate: true` — no dual assets required
-- Windows: existing `icons/icon.png` = tray for dark resolved theme; add `icons/icon-light.png` for light; switch in `apply_app_theme` by resolved theme
+- macOS：保持 `iconAsTemplate: true`——无需双份资源
+- Windows：现有 `icons/icon.png` = 深色解析主题托盘；新增 `icons/icon-light.png` 用于浅色；在 `apply_app_theme` 中按解析主题切换
 
-## Testing
+## 测试
 
-### Automated
+### 自动化
 
-- Rust: default / serde round-trip / `normalized()` invalid → `Dark`
-- Frontend: `useAppTheme` resolve + `dataset.theme` / `colorScheme` with mocked `matchMedia`
+- Rust：默认值 / serde 往返 / `normalized()` 非法值 → `Dark`
+- 前端：`useAppTheme` 解析 + mock `matchMedia` 下的 `dataset.theme` / `colorScheme`
 
-### Manual QA (macOS + Windows)
+### 手动 QA（macOS + Windows）
 
-- Appearance segments switch immediately
-- Dark ↔ light: cards, segments, popovers, help tables, diagnostics textarea
-- System: OS theme change updates app live
-- Space panel / toolbar / color chrome
-- Mac settings title bar + no white flash; overlay corners no white bleed
-- Windows tray readable on light taskbar; Mac tray template OK
-- Language dropdown + shortcut tooltip not clipped
-- Restart persists preference
+- 外观分段即时切换
+- 深色 ↔ 浅色：卡片、分段、弹层、帮助表格、诊断文本域
+- 系统：OS 主题变化实时更新应用
+- Space 面板 / 工具栏 / 色盘
+- Mac 设置标题栏 + 无白闪；覆盖层圆角无白边渗色
+- Windows 托盘在浅色任务栏上可读；Mac 托盘模板正常
+- 语言下拉与快捷键提示不被裁切
+- 重启后偏好持久化
 
-## File touch list
+## 文件触碰清单
 
-| Layer | Files |
+| 层 | 文件 |
 |-------|-------|
-| CSS | `src/style.css`; scoped styles in `SettingsView.vue`, `DiagnosticsTab.vue` |
-| FE | `useAppTheme.ts` (+ test); `App.vue`; `DrawingOverlay.vue`; `ToolbarWindow.vue`; `GeneralTab.vue`; `app.d.ts`; `en.ts`; `zh-CN.ts` |
-| Rust | `config.rs`; new `theme.rs`; `commands.rs`; `macos.rs`; `lib.rs` |
-| Assets | `src-tauri/icons/icon-light.png` (Windows tray) |
+| CSS | `src/style.css`；`SettingsView.vue`、`DiagnosticsTab.vue` 作用域样式 |
+| 前端 | `useAppTheme.ts`（+测试）；`App.vue`；`DrawingOverlay.vue`；`ToolbarWindow.vue`；`GeneralTab.vue`；`app.d.ts`；`en.ts`；`zh-CN.ts` |
+| Rust | `config.rs`；新 `theme.rs`；`commands.rs`；`macos.rs`；`lib.rs` |
+| 资源 | `src-tauri/icons/icon-light.png`（Windows 托盘） |
 
-## Success criteria
+## 成功标准
 
-1. User can choose Dark / Light / System in General settings
-2. Default remains Dark for existing installs
-3. Settings + floating chrome follow preference; canvas colors unchanged
-4. System preference updates live without restart
-5. Mac title bar / bg and Windows tray stay consistent with resolved theme
-6. No new Tailwind opacity classes; Mac/Windows WebKit/Chromium parity preserved
+1. 用户可在常规设置选择深色 / 浅色 / 跟随系统
+2. 既有安装默认仍为深色
+3. 设置 + 浮动界面跟随偏好；画布颜色不变
+4. 系统偏好实时更新，无需重启
+5. Mac 标题栏 / 背景与 Windows 托盘与解析主题一致
+6. 不新增 Tailwind 透明度类；保持 Mac/Windows 的 WebKit/Chromium 表现一致

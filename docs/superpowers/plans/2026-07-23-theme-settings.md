@@ -1,64 +1,64 @@
-# Theme Settings (Light / Dark / System) Implementation Plan
+# 主题设置（深色 / 浅色 / 跟随系统）实现计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **致代理执行者：** 必需子技能：使用 superpowers:subagent-driven-development（推荐）或 superpowers:executing-plans 按任务执行本计划。步骤使用复选框（`- [ ]`）语法跟踪。
 
-**Goal:** Add Dark / Light / System appearance settings so settings UI and floating chrome (toolbar, Space panel, color panels) follow the preference, with Mac title-bar/background and Windows tray icons staying in sync.
+**目标：** 新增深色 / 浅色 / 跟随系统的外观设置，使设置 UI 与浮动界面（工具栏、Space 面板、色盘）跟随偏好，同时 Mac 标题栏/背景与 Windows 托盘图标保持同步。
 
-**Architecture:** Persist `general.theme` (`dark` | `light` | `system`, default `dark`). Frontend `useAppTheme` resolves preference → `html[data-theme]` + `color-scheme` and listens to `prefers-color-scheme` when `system`. CSS semantic classes use shared `--ui-*` tokens. Rust `apply_app_theme` resolves the same preference for native settings chrome (macOS) and Windows tray icons.
+**架构：** 持久化 `general.theme`（`dark` | `light` | `system`，默认 `dark`）。前端 `useAppTheme` 解析偏好 → `html[data-theme]` + `color-scheme`，`system` 时监听 `prefers-color-scheme`。CSS 语义类使用共享 `--ui-*` 令牌。Rust `apply_app_theme` 为原生设置外观（macOS）与 Windows 托盘图标解析同一偏好。
 
-**Tech Stack:** Vue 3, Vitest, Tauri 2 (Rust), `src/style.css` semantic rgba classes, `config.json` via `save_general`
+**技术栈：** Vue 3、Vitest、Tauri 2（Rust）、`src/style.css` 语义 rgba 类、经 `save_general` 的 `config.json`
 
-## Global Constraints
+## 全局约束
 
-- Surfaces: settings window + floating chrome only — **not** canvas stroke colors or whiteboard fill
-- Default preference: `dark` (existing installs unchanged)
-- Tray: macOS keep `iconAsTemplate: true`; Windows swap `icon.png` / `icon-light.png` by **resolved** theme
-- System follow: live via `matchMedia('(prefers-color-scheme: dark)')`; on change re-apply CSS **and** re-invoke `apply_app_theme`
-- No Tailwind opacity modifiers (`text-white/45`, etc.) — explicit `rgba` / CSS variables only (Mac WebKit)
-- New config field must use `#[serde(default)]`; keep TS `AppConfig` in sync
-- i18n: add keys to both `en.ts` and `zh-CN.ts`
-- Spec: `docs/superpowers/specs/2026-07-23-theme-settings-design.md`
+- 作用面：仅设置窗口 + 浮动界面——**不含**画布笔迹颜色或白板底色
+- 默认偏好：`dark`（既有安装不变）
+- 托盘：macOS 保持 `iconAsTemplate: true`；Windows 按**解析**主题切换 `icon.png` / `icon-light.png`
+- 跟随系统：经 `matchMedia('(prefers-color-scheme: dark)')` 实时；变化时重新应用 CSS **并**重新调用 `apply_app_theme`
+- 不使用 Tailwind 透明度修饰符（`text-white/45` 等）——仅显式 `rgba` / CSS 变量（Mac WebKit）
+- 新配置字段必须使用 `#[serde(default)]`；保持 TS `AppConfig` 同步
+- i18n：`en.ts` 与 `zh-CN.ts` 双语加键
+- 规格：`docs/superpowers/specs/2026-07-23-theme-settings-design.md`
 
 ---
 
-## File map
+## 文件映射
 
-| File | Role |
+| 文件 | 角色 |
 |------|------|
-| `src-tauri/src/config.rs` | `ThemePreference` enum + `general.theme` field + tests |
-| `src-tauri/src/theme.rs` | Resolve preference; apply native theme + Windows tray |
-| `src-tauri/src/commands.rs` | `apply_app_theme`; call from `save_general` |
-| `src-tauri/src/macos.rs` | Theme-aware settings window bg / `set_theme` |
-| `src-tauri/src/win32.rs` (or `theme.rs`) | Windows system dark detection + tray icon swap |
-| `src-tauri/src/lib.rs` | `mod theme`; register command; setup `apply_app_theme` |
-| `src-tauri/icons/icon-light.png` | Windows tray icon when resolved = light |
+| `src-tauri/src/config.rs` | `ThemePreference` 枚举 + `general.theme` 字段 + 测试 |
+| `src-tauri/src/theme.rs` | 解析偏好；应用原生主题 + Windows 托盘 |
+| `src-tauri/src/commands.rs` | `apply_app_theme`；由 `save_general` 调用 |
+| `src-tauri/src/macos.rs` | 主题感知的设置窗口背景 / `set_theme` |
+| `src-tauri/src/win32.rs`（或 `theme.rs`） | Windows 系统深色检测 + 托盘图标切换 |
+| `src-tauri/src/lib.rs` | `mod theme`；注册命令；setup `apply_app_theme` |
+| `src-tauri/icons/icon-light.png` | 解析为浅色时的 Windows 托盘图标 |
 | `src/types/app.d.ts` | `theme?: 'dark' \| 'light' \| 'system'` |
-| `src/composables/useAppTheme.ts` | Resolve / apply / watch system |
-| `src/composables/useAppTheme.test.ts` | Unit tests |
-| `src/style.css` | `--ui-*` tokens + migrate semantic classes |
-| `src/components/settings/GeneralTab.vue` | Appearance segment UI |
-| `src/components/SettingsView.vue` | Theme state + hardcode → tokens |
-| `src/components/settings/DiagnosticsTab.vue` | Textarea colors → tokens |
-| `src/App.vue` | Settings early theme init |
-| `src/components/DrawingOverlay.vue` | Theme on config load / change |
-| `src/components/ToolbarWindow.vue` | Same |
-| `src/i18n/en.ts`, `src/i18n/zh-CN.ts` | Appearance strings |
+| `src/composables/useAppTheme.ts` | 解析 / 应用 / 监听系统 |
+| `src/composables/useAppTheme.test.ts` | 单元测试 |
+| `src/style.css` | `--ui-*` 令牌 + 迁移语义类 |
+| `src/components/settings/GeneralTab.vue` | 外观分段 UI |
+| `src/components/SettingsView.vue` | 主题状态 + 硬编码 → 令牌 |
+| `src/components/settings/DiagnosticsTab.vue` | 文本域颜色 → 令牌 |
+| `src/App.vue` | 设置模式提前主题初始化 |
+| `src/components/DrawingOverlay.vue` | 配置加载 / 变化时的主题 |
+| `src/components/ToolbarWindow.vue` | 同上 |
+| `src/i18n/en.ts`、`src/i18n/zh-CN.ts` | 外观字符串 |
 
 ---
 
-### Task 1: Config — `ThemePreference` + TypeScript type
+### 任务 1：配置——`ThemePreference` + TypeScript 类型
 
-**Files:**
-- Modify: `src-tauri/src/config.rs`
-- Modify: `src/types/app.d.ts`
-- Test: `src-tauri/src/config.rs` `#[cfg(test)]`
+**文件：**
+- 修改：`src-tauri/src/config.rs`
+- 修改：`src/types/app.d.ts`
+- 测试：`src-tauri/src/config.rs` `#[cfg(test)]`
 
-**Interfaces:**
-- Produces: `ThemePreference { Dark, Light, System }` with serde `camelCase` (`dark`/`light`/`system`); `GeneralConfig.theme: ThemePreference` default `Dark`; `normalized()` clamps unknown → `Dark`
+**接口：**
+- 产出：`ThemePreference { Dark, Light, System }`（serde `camelCase`：`dark`/`light`/`system`）；`GeneralConfig.theme: ThemePreference` 默认 `Dark`；`normalized()` 将未知值钳制为 `Dark`
 
-- [ ] **Step 1: Write failing Rust tests**
+- [ ] **步骤 1：编写失败的 Rust 测试**
 
-Add to `config.rs` tests module:
+加入 `config.rs` 测试模块：
 
 ```rust
 #[test]
@@ -110,20 +110,20 @@ fn normalized_preserves_system_theme() {
 }
 ```
 
-Closed enum: invalid JSON theme strings fail deserialize; `load_config` already falls back to `AppConfig::default()` (dark).
+闭合枚举：非法 JSON 主题字符串反序列化失败；`load_config` 已回退 `AppConfig::default()`（深色）。
 
-- [ ] **Step 2: Run tests — expect fail**
+- [ ] **步骤 2：运行测试——预期失败**
 
 ```bash
 cd src-tauri
 cargo test theme_defaults_to_dark theme_deserializes_missing_as_dark theme_roundtrip_light_and_system -- --nocapture
 ```
 
-Expected: compile error — `ThemePreference` not found.
+预期：编译错误——找不到 `ThemePreference`。
 
-- [ ] **Step 3: Implement `ThemePreference` and wire into `GeneralConfig`**
+- [ ] **步骤 3：实现 `ThemePreference` 并接入 `GeneralConfig`**
 
-Near other enums in `config.rs` (before `GeneralConfig`):
+在 `config.rs` 其他枚举附近（`GeneralConfig` 之前）：
 
 ```rust
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -136,45 +136,45 @@ pub enum ThemePreference {
 }
 ```
 
-In `GeneralConfig` add field (with other general fields):
+在 `GeneralConfig` 加字段（与其他 general 字段一起）：
 
 ```rust
 #[serde(default, rename = "theme")]
 pub theme: ThemePreference,
 ```
 
-In `Default for GeneralConfig`:
+在 `Default for GeneralConfig`：
 
 ```rust
 theme: ThemePreference::Dark,
 ```
 
-In `normalized()`, no clamp needed for a closed enum — leave as-is (or assert match arms if you later store as string).
+`normalized()` 中闭合枚举无需钳制——保持原样（若日后存字符串再补 match 断言）。
 
-Also assert in existing `default_config_roundtrip` if convenient:
+顺手在既有 `default_config_roundtrip` 断言：
 
 ```rust
 assert_eq!(parsed.general.theme, ThemePreference::Dark);
 ```
 
-- [ ] **Step 4: Update TypeScript type**
+- [ ] **步骤 4：更新 TypeScript 类型**
 
-In `src/types/app.d.ts`, inside `general`:
+在 `src/types/app.d.ts` 的 `general` 内：
 
 ```typescript
 theme?: 'dark' | 'light' | 'system'
 ```
 
-- [ ] **Step 5: Run Rust tests — expect pass**
+- [ ] **步骤 5：运行 Rust 测试——预期通过**
 
 ```bash
 cd src-tauri
 cargo test theme_ -- --nocapture
 ```
 
-Expected: PASS.
+预期：PASS。
 
-- [ ] **Step 6: Commit**
+- [ ] **步骤 6：提交**
 
 ```bash
 git add src-tauri/src/config.rs src/types/app.d.ts
@@ -183,35 +183,35 @@ git commit -m "feat(config): add general.theme preference (dark/light/system)"
 
 ---
 
-### Task 2: Rust `theme` module — resolve + native apply + IPC
+### 任务 2：Rust `theme` 模块——解析 + 原生应用 + IPC
 
-**Files:**
-- Create: `src-tauri/src/theme.rs`
-- Modify: `src-tauri/src/macos.rs` (`SETTINGS_BG`, `style_settings_builder`, `configure_settings_window`)
-- Modify: `src-tauri/src/commands.rs`
-- Modify: `src-tauri/src/lib.rs`
-- Create: `src-tauri/icons/icon-light.png` (dark mark for light taskbars; same pixel size as `icon.png`)
+**文件：**
+- 创建：`src-tauri/src/theme.rs`
+- 修改：`src-tauri/src/macos.rs`（`SETTINGS_BG`、`style_settings_builder`、`configure_settings_window`）
+- 修改：`src-tauri/src/commands.rs`
+- 修改：`src-tauri/src/lib.rs`
+- 创建：`src-tauri/icons/icon-light.png`（浅色任务栏上的深色图形；与 `icon.png` 同像素尺寸）
 
-**Interfaces:**
-- Consumes: `ThemePreference` from `config`
-- Produces:
+**接口：**
+- 消费：来自 `config` 的 `ThemePreference`
+- 产出：
   - `ResolvedTheme { Dark, Light }`
   - `resolve_theme(preference: &ThemePreference) -> ResolvedTheme`
   - `apply_app_theme(app: &AppHandle, preference: &ThemePreference)`
   - `#[tauri::command] apply_app_theme(app, preference: ThemePreference)`
-  - `save_general` calls `apply_app_theme` after save
-  - setup calls `apply_app_theme` after config load
+  - `save_general` 保存后调用 `apply_app_theme`
+  - setup 在配置加载后调用 `apply_app_theme`
 
-- [ ] **Step 1: Add Windows-only `winreg` dependency**
+- [ ] **步骤 1：新增 Windows 专属 `winreg` 依赖**
 
-In `src-tauri/Cargo.toml`:
+在 `src-tauri/Cargo.toml`：
 
 ```toml
 [target.'cfg(target_os = "windows")'.dependencies]
 winreg = "0.55"
 ```
 
-- [ ] **Step 2: Add `theme.rs` with resolve + unit tests**
+- [ ] **步骤 2：新增 `theme.rs`（解析 + 单元测试）**
 
 ```rust
 use crate::config::ThemePreference;
@@ -255,9 +255,8 @@ fn system_prefers_dark() -> bool {
     }
 }
 
-/// `AppsUseLightTheme` DWORD under
-/// `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`
-/// — `1` = light apps, `0` = dark. Missing key → treat as dark.
+/// `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize` 下的
+/// `AppsUseLightTheme` DWORD——`1` = 浅色应用，`0` = 深色。键缺失 → 视为深色。
 #[cfg(target_os = "windows")]
 fn windows_apps_use_dark_theme() -> bool {
     use winreg::enums::HKEY_CURRENT_USER;
@@ -329,9 +328,9 @@ mod tests {
 }
 ```
 
-- [ ] **Step 3: Update macOS settings chrome + appearance probe**
+- [ ] **步骤 3：更新 macOS 设置外观 + 系统探测**
 
-In `macos.rs`, replace `SETTINGS_BG` and update configure helpers. Add appearance helper using the existing `objc_msgSend` pattern:
+在 `macos.rs`，替换 `SETTINGS_BG` 并更新配置辅助函数。用既有 `objc_msgSend` 模式新增外观探测：
 
 ```rust
 use crate::theme::ResolvedTheme;
@@ -339,7 +338,7 @@ use crate::theme::ResolvedTheme;
 const SETTINGS_BG_DARK: Color = Color(30, 30, 32, 255); // #1e1e20
 const SETTINGS_BG_LIGHT: Color = Color(245, 245, 247, 255); // #f5f5f7
 
-/// Reads `AppleInterfaceStyle` from `NSUserDefaults` (`"Dark"` → dark).
+/// 从 `NSUserDefaults` 读取 `AppleInterfaceStyle`（`"Dark"` → 深色）。
 pub fn system_appearance_is_dark() -> bool {
     unsafe {
         extern "C" {
@@ -355,8 +354,8 @@ pub fn system_appearance_is_dark() -> bool {
         if defaults.is_null() {
             return true;
         }
-        // stringForKey: with CFString/NSString "AppleInterfaceStyle"
-        // Simplest reliable check used by many tray apps:
+        // 以 CFString/NSString "AppleInterfaceStyle" 调 stringForKey:
+        // 多数托盘应用采用的简单可靠检查：
         extern "C" {
             fn CFPreferencesCopyAppValue(
                 key: *const c_void,
@@ -389,7 +388,7 @@ pub fn system_appearance_is_dark() -> bool {
         CFRelease(key);
         CFRelease(app);
         if value.is_null() {
-            return false; // missing → light (macOS default historically)
+            return false; // 缺失 → 浅色（macOS 历史默认）
         }
         let dark = CFStringCreateWithCString(
             std::ptr::null(),
@@ -422,7 +421,7 @@ pub fn configure_settings_window(window: &WebviewWindow, resolved: ResolvedTheme
 }
 ```
 
-Update `lib.rs` call site when building settings:
+更新 `lib.rs` 构建设置窗口时的调用点：
 
 ```rust
 let preference = lock_or_recover(&app.state::<AppState>().config)
@@ -432,17 +431,17 @@ let preference = lock_or_recover(&app.state::<AppState>().config)
 macos::configure_settings_window(&window, theme::resolve_theme(&preference));
 ```
 
-- [ ] **Step 4: Create `icon-light.png`**
+- [ ] **步骤 4：创建 `icon-light.png`**
 
-- Source: `src-tauri/icons/icon.png`
-- Produce a **dark-on-transparent** (or dark monochrome) tray glyph sized the same as `icon.png`, readable on a light Windows taskbar
-- Save as `src-tauri/icons/icon-light.png`
-- Do not change `tauri.conf.json` `trayIcon.iconAsTemplate` (stay `true` for Mac)
-- If generating via script, e.g. ImageMagick: darken/threshold the mark so it remains visible on `#f3f3f3` taskbars; do not use a pure white glyph for the light-theme asset
+- 来源：`src-tauri/icons/icon.png`
+- 产出**深色透明底**（或深色单色）托盘图形，尺寸与 `icon.png` 相同，在浅色 Windows 任务栏上可读
+- 保存为 `src-tauri/icons/icon-light.png`
+- 不改 `tauri.conf.json` 的 `trayIcon.iconAsTemplate`（Mac 保持 `true`）
+- 若用脚本生成（如 ImageMagick）：加深/阈值化图形使其在 `#f3f3f3` 任务栏上保持可见；浅色主题资源不要用纯白图形
 
-- [ ] **Step 5: Command + wire `save_general` + setup**
+- [ ] **步骤 5：命令 + 接线 `save_general` + setup**
 
-In `commands.rs`:
+在 `commands.rs`：
 
 ```rust
 #[tauri::command]
@@ -455,26 +454,26 @@ pub fn apply_app_theme(
 }
 ```
 
-At end of `save_general`, after emit:
+`save_general` 末尾、emit 之后：
 
 ```rust
 crate::theme::apply_app_theme(&app, &snapshot.general.theme);
 ```
 
-In `lib.rs`:
+在 `lib.rs`：
 
 ```rust
 mod theme;
 // generate_handler![..., commands::apply_app_theme]
 ```
 
-In setup after `load_config` / assign state:
+setup 中 `load_config` / 赋值 state 之后：
 
 ```rust
 theme::apply_app_theme(&handle, &loaded.general.theme);
 ```
 
-- [ ] **Step 6: Compile + test**
+- [ ] **步骤 6：编译 + 测试**
 
 ```bash
 cd src-tauri
@@ -482,9 +481,9 @@ cargo test theme:: -- --nocapture
 cargo clippy -- -D warnings
 ```
 
-Expected: PASS / no warnings.
+预期：PASS / 无警告。
 
-- [ ] **Step 7: Commit**
+- [ ] **步骤 7：提交**
 
 ```bash
 git add src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/src/theme.rs src-tauri/src/macos.rs src-tauri/src/commands.rs src-tauri/src/lib.rs src-tauri/icons/icon-light.png
@@ -493,22 +492,22 @@ git commit -m "feat(theme): apply native settings chrome and Windows tray icons"
 
 ---
 
-### Task 3: Frontend `useAppTheme` composable
+### 任务 3：前端 `useAppTheme` 组合式函数
 
-**Files:**
-- Create: `src/composables/useAppTheme.ts`
-- Create: `src/composables/useAppTheme.test.ts`
+**文件：**
+- 创建：`src/composables/useAppTheme.ts`
+- 创建：`src/composables/useAppTheme.test.ts`
 
-**Interfaces:**
-- Consumes: `invoke('apply_app_theme', { preference })`
-- Produces:
+**接口：**
+- 消费：`invoke('apply_app_theme', { preference })`
+- 产出：
   - `export type ThemePreference = 'dark' | 'light' | 'system'`
   - `export type ResolvedTheme = 'dark' | 'light'`
   - `resolveTheme(preference: ThemePreference): ResolvedTheme`
   - `applyTheme(preference: ThemePreference): ResolvedTheme`
   - `watchSystemTheme(preference: () => ThemePreference, onResolved?: (r: ResolvedTheme) => void): () => void`
 
-- [ ] **Step 1: Write failing tests**
+- [ ] **步骤 1：编写失败测试**
 
 ```typescript
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -585,15 +584,15 @@ describe('useAppTheme', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests — expect fail**
+- [ ] **步骤 2：运行测试——预期失败**
 
 ```bash
 npm test -- src/composables/useAppTheme.test.ts
 ```
 
-Expected: FAIL — module not found.
+预期：FAIL——模块未找到。
 
-- [ ] **Step 3: Implement composable**
+- [ ] **步骤 3：实现组合式函数**
 
 ```typescript
 import { invoke } from '@tauri-apps/api/core'
@@ -636,15 +635,15 @@ export function watchSystemTheme(
 }
 ```
 
-- [ ] **Step 4: Run tests — expect pass**
+- [ ] **步骤 4：运行测试——预期通过**
 
 ```bash
 npm test -- src/composables/useAppTheme.test.ts
 ```
 
-Expected: PASS.
+预期：PASS。
 
-- [ ] **Step 5: Commit**
+- [ ] **步骤 5：提交**
 
 ```bash
 git add src/composables/useAppTheme.ts src/composables/useAppTheme.test.ts
@@ -653,20 +652,20 @@ git commit -m "feat(theme): add useAppTheme resolve/apply/watch helpers"
 
 ---
 
-### Task 4: CSS tokens — dark migrate + light palette
+### 任务 4：CSS 令牌——深色迁移 + 浅色调色板
 
-**Files:**
-- Modify: `src/style.css`
+**文件：**
+- 修改：`src/style.css`
 
-**Interfaces:**
-- Produces: `html[data-theme='dark']` and `html[data-theme='light']` (with dark as fallback when attribute missing) defining `--ui-*` tokens; all `.settings-*` / `.overlay-*` / `.ui-*` chrome colors use `var(--ui-…)`
+**接口：**
+- 产出：`html[data-theme='dark']` 与 `html[data-theme='light']`（属性缺失时以深色回退）定义 `--ui-*` 令牌；全部 `.settings-*` / `.overlay-*` / `.ui-*` 外壳颜色使用 `var(--ui-…)`
 
-- [ ] **Step 1: Insert token blocks after `@theme { … }` / before `@layer base`**
+- [ ] **步骤 1：在 `@theme { … }` 后 / `@layer base` 前插入令牌块**
 
-Use dark values that **exactly match** current hardcoded rgba/hex. Light values: light gray surfaces + dark text; accent stays `rgb(10, 132, 255)`.
+深色值**精确匹配**当前硬编码 rgba/hex。浅色值：浅灰表面 + 深色文本；强调色保持 `rgb(10, 132, 255)`。
 
 ```css
-/* Theme tokens — explicit rgba for macOS WebKit parity */
+/* 主题令牌——显式 rgba 保证 macOS WebKit 一致性 */
 html,
 html[data-theme='dark'] {
   color-scheme: dark;
@@ -765,11 +764,11 @@ html[data-theme='light'] {
 }
 ```
 
-Add more tokens as needed while migrating (status greens/reds, overlay tool btn text, etc.) — same dark=current / light=inverted-alpha pattern.
+迁移过程中按需补充更多令牌（状态绿/红、覆盖层工具按钮文本等）——同一「深色=现值 / 浅色=反转透明度」模式。
 
-- [ ] **Step 2: Update `@layer base` settings background**
+- [ ] **步骤 2：更新 `@layer base` 的设置背景**
 
-Replace hardcoded `#1e1e20` / `color-scheme: dark` with:
+将硬编码 `#1e1e20` / `color-scheme: dark` 替换为：
 
 ```css
 html.settings,
@@ -784,11 +783,11 @@ html.settings #app {
 }
 ```
 
-(`color-scheme` comes from the token blocks on `html`.)
+（`color-scheme` 由 `html` 上的令牌块提供。）
 
-- [ ] **Step 3: Migrate semantic classes to `var(--ui-*)`**
+- [ ] **步骤 3：语义类迁移到 `var(--ui-*)`**
 
-Rewrite each chrome class that currently hardcodes white/black rgba. Examples:
+重写每个硬编码白/黑 rgba 的外壳类。示例：
 
 ```css
 .settings-card {
@@ -811,19 +810,19 @@ Rewrite each chrome class that currently hardcodes white/black rgba. Examples:
 }
 ```
 
-Keep credits gold palette on dark as special `--ui-credits-*` tokens with light variants (slightly darker gold on light bg) — do not leave white-only text.
+赞助金色调色板在深色下保留为特殊 `--ui-credits-*` 令牌并配浅色变体（浅底上稍深的金色）——不得残留仅白色的文本。
 
-**Acceptance for this task:** with `data-theme="dark"` (default), settings/overlay look unchanged vs current master; toggling `data-theme="light"` in DevTools flips surfaces/text.
+**本任务验收：** `data-theme="dark"`（默认）时设置/覆盖层与当前 master 视觉一致；DevTools 切 `data-theme="light"` 时表面/文本翻转。
 
-- [ ] **Step 4: Grep for leftover Tailwind opacity anti-patterns in components**
+- [ ] **步骤 4：grep 组件中遗留的 Tailwind 透明度反模式**
 
 ```bash
 rg "border-white/|text-white/|bg-white/|bg-\[#1e1e20\]|bg-\[#161618\]" src/components src/style.css
 ```
 
-Expected: zero (or only intentional non-theme canvas bits). Fix hits in Task 5/6 if found in Vue templates.
+预期：零（或仅刻意的非主题画布部分）。若 Vue 模板命中，在任务 5/6 修复。
 
-- [ ] **Step 5: Commit**
+- [ ] **步骤 5：提交**
 
 ```bash
 git add src/style.css
@@ -832,22 +831,22 @@ git commit -m "ui(theme): introduce dark/light CSS tokens for settings and overl
 
 ---
 
-### Task 5: Settings UI + i18n + early apply
+### 任务 5：设置 UI + i18n + 提前应用
 
-**Files:**
-- Modify: `src/i18n/en.ts`, `src/i18n/zh-CN.ts`
-- Modify: `src/components/settings/GeneralTab.vue`
-- Modify: `src/components/SettingsView.vue`
-- Modify: `src/App.vue`
-- Modify: `src/components/settings/DiagnosticsTab.vue` (scoped textarea colors)
+**文件：**
+- 修改：`src/i18n/en.ts`、`src/i18n/zh-CN.ts`
+- 修改：`src/components/settings/GeneralTab.vue`
+- 修改：`src/components/SettingsView.vue`
+- 修改：`src/App.vue`
+- 修改：`src/components/settings/DiagnosticsTab.vue`（作用域文本域颜色）
 
-**Interfaces:**
-- Consumes: `ThemePreference`, `applyTheme`, `watchSystemTheme`, `save_general`
-- Produces: Appearance segment in General tab; settings shell themed before tabs load
+**接口：**
+- 消费：`ThemePreference`、`applyTheme`、`watchSystemTheme`、`save_general`
+- 产出：常规页外观分段；设置外壳在标签加载前完成主题
 
-- [ ] **Step 1: Add i18n keys**
+- [ ] **步骤 1：新增 i18n 键**
 
-`en.ts` (inside `settings`):
+`en.ts`（`settings` 内）：
 
 ```typescript
 theme: 'Appearance',
@@ -856,7 +855,7 @@ themeLight: 'Light',
 themeSystem: 'System',
 ```
 
-`zh-CN.ts`:
+`zh-CN.ts`：
 
 ```typescript
 theme: '外观',
@@ -865,16 +864,16 @@ themeLight: '浅色',
 themeSystem: '跟随系统',
 ```
 
-- [ ] **Step 2: Wire `GeneralTab` appearance card**
+- [ ] **步骤 2：接线 `GeneralTab` 外观卡片**
 
-Props + emit:
+Props + emit：
 
 ```typescript
 theme: ThemePreference
 // emit 'update:theme': [value: ThemePreference]
 ```
 
-Import type from `useAppTheme`. Place a new `settings-card` **immediately below** the language card:
+从 `useAppTheme` 导入类型。在语言卡片**正下方**放置新的 `settings-card`：
 
 ```vue
 <div class="settings-card">
@@ -896,7 +895,7 @@ Import type from `useAppTheme`. Place a new `settings-card` **immediately below*
 </div>
 ```
 
-`setTheme` mirrors `setDragMode`:
+`setTheme` 仿照 `setDragMode`：
 
 ```typescript
 async function setTheme(next: ThemePreference) {
@@ -905,7 +904,7 @@ async function setTheme(next: ThemePreference) {
   await applyTheme(next)
   try {
     const cfg = await invoke<AppConfig>('get_config')
-    if (!cfg.general) { /* init minimal general with theme */ }
+    if (!cfg.general) { /* 以 theme 初始化最小 general */ }
     cfg.general.theme = next
     await invoke('save_general', { general: cfg.general })
   } catch (error) {
@@ -914,7 +913,7 @@ async function setTheme(next: ThemePreference) {
 }
 ```
 
-- [ ] **Step 3: Wire `SettingsView`**
+- [ ] **步骤 3：接线 `SettingsView`**
 
 ```typescript
 import { applyTheme, watchSystemTheme, type ThemePreference } from '../composables/useAppTheme'
@@ -929,11 +928,11 @@ function resolveThemePref(general?: AppConfig['general']): ThemePreference {
 
 onMounted(async () => {
   const cfg = await invoke<AppConfig>('get_config')
-  // …existing…
+  // …既有…
   theme.value = resolveThemePref(cfg.general)
   await applyTheme(theme.value)
   stopThemeWatch = watchSystemTheme(() => theme.value)
-  // extend config-changed:
+  // 扩展 config-changed：
   // theme.value = resolveThemePref(event.payload.general)
   // void applyTheme(theme.value)
 })
@@ -943,24 +942,24 @@ onUnmounted(() => {
 })
 ```
 
-Pass `:theme` / `@update:theme` to `GeneralTab`.
+向 `GeneralTab` 传 `:theme` / `@update:theme`。
 
-Replace template hardcodes:
+替换模板硬编码：
 
-- Root `text-white` → remove or use a token-driven class
-- Sidebar `bg-[#161618]` → style via class using `background: var(--ui-bg-sidebar)` (add `.settings-sidebar` in `style.css` if needed)
-- Content `bg-[#1e1e20]` → `var(--ui-bg)` / class
+- 根 `text-white` → 移除或改用令牌驱动的类
+- 侧边栏 `bg-[#161618]` → 用 `background: var(--ui-bg-sidebar)` 的类（需要时在 `style.css` 加 `.settings-sidebar`）
+- 内容 `bg-[#1e1e20]` → `var(--ui-bg)` / 类
 
-- [ ] **Step 4: Early theme in `App.vue` (settings mode)**
+- [ ] **步骤 4：`App.vue`（settings 模式）提前应用主题**
 
-Before/when adding `.settings` class:
+在添加 `.settings` 类时/前：
 
 ```typescript
 import { applyTheme, type ThemePreference } from './composables/useAppTheme'
 
 if (mode.value === 'settings') {
   document.documentElement.classList.add('settings')
-  document.documentElement.dataset.theme = 'dark' // FOUC guard
+  document.documentElement.dataset.theme = 'dark' // FOUC 防护
 }
 
 onMounted(async () => {
@@ -969,18 +968,18 @@ onMounted(async () => {
       const cfg = await invoke<AppConfig>('get_config')
       const pref = (cfg.general?.theme as ThemePreference | undefined) ?? 'dark'
       await applyTheme(pref === 'light' || pref === 'system' || pref === 'dark' ? pref : 'dark')
-    } catch { /* keep dark */ }
+    } catch { /* 保持深色 */ }
     await revealSettingsWindow()
     // …
   }
 })
 ```
 
-- [ ] **Step 5: Diagnostics textarea**
+- [ ] **步骤 5：诊断页文本域**
 
-Replace scoped `rgba(255,…)` with `var(--ui-control-bg)` / `var(--ui-control-border)` / `var(--ui-text-value)`.
+将作用域 `rgba(255,…)` 替换为 `var(--ui-control-bg)` / `var(--ui-control-border)` / `var(--ui-text-value)`。
 
-- [ ] **Step 6: Verify FE**
+- [ ] **步骤 6：验证前端**
 
 ```bash
 npm test -- src/composables/useAppTheme.test.ts
@@ -988,9 +987,9 @@ npm run lint
 npx vue-tsc --noEmit
 ```
 
-Expected: PASS.
+预期：PASS。
 
-- [ ] **Step 7: Commit**
+- [ ] **步骤 7：提交**
 
 ```bash
 git add src/i18n/en.ts src/i18n/zh-CN.ts src/components/settings/GeneralTab.vue src/components/SettingsView.vue src/App.vue src/components/settings/DiagnosticsTab.vue src/style.css
@@ -999,19 +998,19 @@ git commit -m "feat(settings): add appearance control for dark/light/system them
 
 ---
 
-### Task 6: Overlay + toolbar theme wiring
+### 任务 6：覆盖层 + 工具栏主题接线
 
-**Files:**
-- Modify: `src/components/DrawingOverlay.vue`
-- Modify: `src/components/ToolbarWindow.vue`
+**文件：**
+- 修改：`src/components/DrawingOverlay.vue`
+- 修改：`src/components/ToolbarWindow.vue`
 
-**Interfaces:**
-- Consumes: `applyTheme`, `watchSystemTheme`, `config-changed`
-- Produces: Overlay/toolbar chrome follow preference live (including OS changes under `system`)
+**接口：**
+- 消费：`applyTheme`、`watchSystemTheme`、`config-changed`
+- 产出：覆盖层/工具栏外观实时跟随偏好（含 `system` 下的 OS 变化）
 
-- [ ] **Step 1: DrawingOverlay**
+- [ ] **步骤 1：DrawingOverlay**
 
-After initial `get_config` success:
+首次 `get_config` 成功后：
 
 ```typescript
 import { applyTheme, watchSystemTheme, type ThemePreference } from '../composables/useAppTheme'
@@ -1024,22 +1023,22 @@ function resolveThemePref(general?: AppConfig['general']): ThemePreference {
 let currentTheme: ThemePreference = 'dark'
 let stopThemeWatch: (() => void) | null = null
 
-// in onMounted after get_config:
+// onMounted 中 get_config 之后：
 currentTheme = resolveThemePref(cfg.general)
 await applyTheme(currentTheme)
 stopThemeWatch = watchSystemTheme(() => currentTheme)
 
-// in config-changed listener:
+// config-changed 监听器中：
 currentTheme = resolveThemePref(event.payload.general)
 void applyTheme(currentTheme)
 
-// onUnmounted:
+// onUnmounted：
 stopThemeWatch?.()
 ```
 
-- [ ] **Step 2: ToolbarWindow** — same pattern on its config load + `config-changed`.
+- [ ] **步骤 2：ToolbarWindow**——在其配置加载与 `config-changed` 上采用相同模式。
 
-- [ ] **Step 3: Smoke test**
+- [ ] **步骤 3：冒烟测试**
 
 ```bash
 npm test
@@ -1048,9 +1047,9 @@ npx vue-tsc --noEmit
 cd src-tauri && cargo test && cargo clippy -- -D warnings
 ```
 
-Expected: all green.
+预期：全绿。
 
-- [ ] **Step 4: Commit**
+- [ ] **步骤 4：提交**
 
 ```bash
 git add src/components/DrawingOverlay.vue src/components/ToolbarWindow.vue
@@ -1059,36 +1058,36 @@ git commit -m "feat(theme): sync overlay and toolbar chrome with appearance sett
 
 ---
 
-### Task 7: Manual QA checklist (Mac + Windows)
+### 任务 7：手动 QA 清单（Mac + Windows）
 
-**Files:** none required unless bugs found
+**文件：** 除非发现 bug，否则无需
 
-- [ ] **Step 1: Run app**
+- [ ] **步骤 1：运行应用**
 
 ```bash
 nvm use
 npm run dev
 ```
 
-- [ ] **Step 2: Verify checklist**
+- [ ] **步骤 2：核验清单**
 
-| # | Check | Pass? |
+| # | 检查 | 通过？ |
 |---|-------|-------|
-| 1 | General → Appearance shows Dark / Light / System | |
-| 2 | Default is Dark; existing config without `theme` stays dark | |
-| 3 | Switch Light: settings cards, nav, segments, popovers, help tables | |
-| 4 | Switch System: follows OS; changing OS updates app without restart | |
-| 5 | Space panel / toolbar / color chrome follow theme | |
-| 6 | Canvas stroke colors unchanged | |
-| 7 | Mac: settings title bar + bg match; no white flash; overlay corners no bleed | |
-| 8 | Windows: tray readable on light taskbar when Light/System-light | |
-| 9 | Mac tray: template still auto-adapts | |
-| 10 | Language dropdown + shortcut tooltip not clipped | |
-| 11 | Restart persists preference | |
+| 1 | 常规 → 外观显示深色 / 浅色 / 跟随系统 | |
+| 2 | 默认深色；无 `theme` 的既有配置保持深色 | |
+| 3 | 切换浅色：设置卡片、导航、分段、弹层、帮助表格 | |
+| 4 | 切换跟随系统：跟随 OS；OS 变化无需重启即更新应用 | |
+| 5 | Space 面板 / 工具栏 / 色盘跟随主题 | |
+| 6 | 画布笔迹颜色不变 | |
+| 7 | Mac：设置标题栏 + 背景匹配；无白闪；覆盖层圆角无渗色 | |
+| 8 | Windows：浅色/系统浅色时托盘在浅色任务栏上可读 | |
+| 9 | Mac 托盘：模板仍自动适配 | |
+| 10 | 语言下拉 + 快捷键提示不被裁切 | |
+| 11 | 重启后偏好持久化 | |
 
-- [ ] **Step 3: Fix any bugs found; commit with `fix(theme): …` as needed**
+- [ ] **步骤 3：修复发现的 bug；需要时以 `fix(theme): …` 提交**
 
-- [ ] **Step 4: Final pre-merge check**
+- [ ] **步骤 4：合并前最终检查**
 
 ```bash
 npm test && npm run lint && npm run format:check && npx vue-tsc --noEmit
@@ -1097,18 +1096,18 @@ cd src-tauri && cargo fmt --check && cargo clippy -- -D warnings && cargo test
 
 ---
 
-## Self-review (plan vs spec)
+## 自审（计划 vs 规格）
 
-| Spec requirement | Task |
+| 规格要求 | 任务 |
 |------------------|------|
-| `general.theme` dark/light/system, default dark | Task 1 |
-| CSS variables + `data-theme` | Task 4 |
-| `useAppTheme` + live system watch | Task 3, 5, 6 |
-| Settings UI segments + i18n | Task 5 |
-| Multi-webview apply + `config-changed` | Task 5, 6 |
-| macOS `set_theme` + SETTINGS_BG | Task 2 |
-| Windows tray icon swap; Mac template | Task 2 |
-| Re-invoke native apply on OS change | Task 3 (`watchSystemTheme` → `applyTheme` → invoke) |
-| No canvas / whiteboard / palette editor | Out of scope (Global Constraints) |
-| Tests: Rust serde + FE resolve | Task 1, 3 |
-| Manual Mac+Windows QA | Task 7 |
+| `general.theme` 深色/浅色/系统，默认深色 | 任务 1 |
+| CSS 变量 + `data-theme` | 任务 4 |
+| `useAppTheme` + 系统实时监听 | 任务 3、5、6 |
+| 设置 UI 分段 + i18n | 任务 5 |
+| 多 webview 应用 + `config-changed` | 任务 5、6 |
+| macOS `set_theme` + SETTINGS_BG | 任务 2 |
+| Windows 托盘图标切换；Mac 模板 | 任务 2 |
+| OS 变化时重新调用原生应用 | 任务 3（`watchSystemTheme` → `applyTheme` → invoke） |
+| 不含画布 / 白板 / 色板编辑器 | 范围外（全局约束） |
+| 测试：Rust serde + 前端解析 | 任务 1、3 |
+| 手动 Mac+Windows QA | 任务 7 |
