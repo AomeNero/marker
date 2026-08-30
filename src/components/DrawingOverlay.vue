@@ -59,7 +59,11 @@ import {
 } from '../utils/rmbHoldErase'
 import { COLOR_PALETTE } from '../constants/colors'
 import { isMacOS, MAC_HIDDEN_CURSOR, setMacOverlaySystemCursorHidden } from '../utils/platform'
-import { canStartElementDrag as canStartElementDragGate } from '../utils/dragInteraction'
+import {
+  canStartElementDrag as canStartElementDragGate,
+  HOVER_DRAG_ACTIVATE_MS,
+  resolveHoverDragGate,
+} from '../utils/dragInteraction'
 import { isDragEnabled, resolveDragMode, type DragMode } from '../utils/dragMode'
 import { isToolbarPinned, resolveToolbarVisibility, type ToolbarVisibility } from '../utils/toolbarSettings'
 import { resolveDefaultEntryMode, shouldClearWhiteboardOnEntry, type DefaultEntryMode } from '../utils/entryMode'
@@ -1323,11 +1327,25 @@ async function onPointerDown(e: PointerEvent) {
 
   // Drag when over an element; optional: require Ctrl/Command (scheme A — modifier on element wins over rect draw)
   if (canStartElementDrag(e)) {
-    isDragging = true
-    dragStartX = e.clientX
-    dragStartY = e.clientY
-    isMoving.value = true
-    beginDrag(hoveredActionInfo.value!.action)
+    const action = hoveredActionInfo.value!.action
+    if (dragMode.value === 'hover') {
+      // Mis-touch gate: hold still for 200ms to drag; moving away sooner draws.
+      pendingElementDrag = {
+        action,
+        downEvent: e,
+        startX: e.clientX,
+        startY: e.clientY,
+        downAt: performance.now(),
+        timer: window.setTimeout(() => {
+          if (!pendingElementDrag) return
+          const pending = pendingElementDrag
+          clearPendingElementDrag()
+          activateElementDrag(pending.action, pending.startX, pending.startY)
+        }, HOVER_DRAG_ACTIVATE_MS),
+      }
+      return
+    }
+    activateElementDrag(action, e.clientX, e.clientY)
     return
   }
 
@@ -1343,6 +1361,37 @@ async function onPointerDown(e: PointerEvent) {
   }
 
 
+  beginFreehandDraw(e)
+}
+
+/** Activate an element drag (shared by the immediate modifier path and the 200ms hover gate). */
+function activateElementDrag(action: DrawAction, startX: number, startY: number) {
+  isDragging = true
+  dragStartX = startX
+  dragStartY = startY
+  isMoving.value = true
+  beginDrag(action)
+}
+
+/** State for the hover-drag mis-touch gate (200ms hold-to-drag). */
+let pendingElementDrag: {
+  action: DrawAction
+  downEvent: PointerEvent
+  startX: number
+  startY: number
+  downAt: number
+  timer: number
+} | null = null
+
+function clearPendingElementDrag() {
+  if (pendingElementDrag) {
+    window.clearTimeout(pendingElementDrag.timer)
+    pendingElementDrag = null
+  }
+}
+
+/** Freehand/shape stroke start shared by onPointerDown and the hover-gate draw fallback. */
+function beginFreehandDraw(e: PointerEvent) {
   if (modDown(e) && e.shiftKey) {
     toolBeforeModifier = currentTool.value
     currentTool.value = 'arrow'
@@ -1370,6 +1419,23 @@ async function onPointerDown(e: PointerEvent) {
 function onPointerMove(e: PointerEvent) {
   lastPointerX = e.clientX
   lastPointerY = e.clientY
+  // Hover-drag mis-touch gate: moving away before the hold elapses means the
+  // user is drawing a stroke over the old mark, not dragging it.
+  if (pendingElementDrag) {
+    const dx = e.clientX - pendingElementDrag.startX
+    const dy = e.clientY - pendingElementDrag.startY
+    const decision = resolveHoverDragGate({
+      heldMs: performance.now() - pendingElementDrag.downAt,
+      movedPx: Math.sqrt(dx * dx + dy * dy),
+    })
+    if (decision === 'draw') {
+      const pending = pendingElementDrag
+      clearPendingElementDrag()
+      beginFreehandDraw(pending.downEvent)
+      return
+    }
+    if (decision === 'wait') return
+  }
   if (pointerDownClient) {
     const dx = e.clientX - pointerDownClient.x
     const dy = e.clientY - pointerDownClient.y
@@ -1448,6 +1514,14 @@ function onPointerUp(e: PointerEvent) {
   const sampling = wasDrawing ? getStrokeSamplingStats() : null
   releaseCapturedPointer()
 
+  // Pending hover-drag released before the hold elapsed: treat as a no-op press.
+  if (pendingElementDrag) {
+    clearPendingElementDrag()
+    markPointerInteractionEnded()
+    resetPointerGestureState()
+    return
+  }
+
   if (isDragging) {
     isDragging = false
     isMoving.value = false
@@ -1511,6 +1585,7 @@ function abortActivePointerInteraction() {
     cancelAnimationFrame(hoverRafId)
     hoverRafId = null
   }
+  clearPendingElementDrag()
   resetRmbEraseGesture()
   releaseCapturedPointer()
   if (isDragging) {
