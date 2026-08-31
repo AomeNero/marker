@@ -33,7 +33,7 @@ Portable-build reference for future maintenance:
 Draft metadata:
 
 - App name: `marker`
-- Description: `Lightweight screen annotation tool with click-through mode`
+- Description: `Lightweight screen annotation tool with whiteboard mode`
 - Homepage: `https://marker.cn/`
 - License: `MIT`
 - Architecture: `64bit`

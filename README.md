@@ -46,7 +46,7 @@ winget install --id 9N6623X973JV --source msstore
 
 1. **安装并启动** — Marker 在 **系统托盘** 静默运行，不会弹出窗口。
 2. **进入标注模式** — 按 <kbd>Alt</kbd> + <kbd>G</kbd>（macOS 为 <kbd>Option</kbd> + <kbd>G</kbd>）。
-3. **绘画与穿透** — 数字键与 <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> 切换工具；按 <kbd>X</kbd> 可在保留标注的同时操作下层应用；按 <kbd>Esc</kbd> 退出。
+3. **绘画与标注** — 数字键与 <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> 切换工具；要操作下层应用时按 <kbd>V</kbd> 隐藏标注，完成后再按恢复；按 <kbd>Esc</kbd> 退出。
 
 > **刚上手？** 按 <kbd>Space</kbd> 呼出工具栏。完整列表见 [快捷键一览](#快捷键一览)。视频教程：[B 站上手演示](https://www.bilibili.com/video/BV17ygy67ETV)。
 
@@ -55,8 +55,8 @@ winget install --id 9N6623X973JV --source msstore
 - **轻量高效** — 安装包仅 ~1.5 MB（Rust + Canvas），内存占用极低；托盘静默运行（无多余服务、无遥测）
 - **随处标注** — 在任何应用上方绘制，覆盖全屏包括任务栏
 - **10 种工具** — 画笔、荧光笔、激光笔、箭头、矩形、椭圆、直线、橡皮擦、文字、序号
-- **灵活工具栏** — 进入标注自动显示，**落笔画线时自动隐藏**，按 <kbd>Space</kbd> 召回 / 开关，或在设置中**常驻显示**；紧凑面板，点「展开」查看完整选项，面板内可撤销、复制、切换白板；**独立浮动窗口**，含绘制 / 穿透模式切换按钮
-- **穿透模式** — 标注会话中可点击下层应用；工具栏按钮、<kbd>Alt</kbd>+<kbd>M</kbd>（全局）或 <kbd>X</kbd>（绘制中）切换；白板模式下不可用
+- **灵活工具栏** — 进入标注自动显示，**落笔画线时自动隐藏**，按 <kbd>Space</kbd> 召回 / 开关，或在设置中**常驻显示**；紧凑面板，点「展开」查看完整选项，面板内可撤销、复制、切换白板；也支持**独立浮动窗口**
+- **隐藏 / 显示标注** — 按 <kbd>V</kbd> 临时隐藏全部标注（例如需要点击下层应用时），再按恢复
 - **全键盘操控** — 每个操作都有快捷键，无需菜单
 - **保留标注** — 可在「白板与内容」中开启退出后保留；下次进入自动恢复
 - **白板模式** — 可设为默认进入白板，或按 <kbd>W</kbd> 切换；内容与切换行为均在「白板与内容」中配置
@@ -83,7 +83,6 @@ winget install --id 9N6623X973JV --source msstore
 | :--- | :--- | :--- |
 | 开启 / 退出标注模式 | <kbd>Alt</kbd> + <kbd>G</kbd> | <kbd>Option</kbd> + <kbd>G</kbd> |
 | 清除所有标注 | <kbd>Alt</kbd> + <kbd>E</kbd> | <kbd>Option</kbd> + <kbd>E</kbd> |
-| 切换穿透模式 | <kbd>Alt</kbd> + <kbd>M</kbd> | <kbd>Option</kbd> + <kbd>M</kbd> |
 
 ### 工具切换
 
@@ -101,7 +100,6 @@ winget install --id 9N6623X973JV --source msstore
 | 功能 | Windows | macOS |
 | :--- | :--- | :--- |
 | 呼出工具栏 | <kbd>Space</kbd>（落笔画线时自动隐藏） | <kbd>Space</kbd>（落笔画线时自动隐藏） |
-| 穿透模式（绘制中） | <kbd>X</kbd> | <kbd>X</kbd> |
 | 切换橡皮擦模式（轨迹 / 对象） | 选中橡皮擦后再按 <kbd>E</kbd> | 选中橡皮擦后再按 <kbd>E</kbd> |
 | 工具栏常驻 / 布局 | 设置 → 常规 | 设置 → 常规 |
 | 复制屏幕 / 白板 | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
@@ -151,7 +149,7 @@ winget install --id 9N6623X973JV --source msstore
 <details>
 <summary><strong>更多设置</strong></summary>
 
-在 **设置 → 常规** 中可配置（工具栏显示、穿透模式、线宽等见 [功能一览](#功能一览)）：
+在 **设置 → 常规** 中可配置（工具栏显示、线宽等见 [功能一览](#功能一览)）：
 
 - **白板与内容** — 默认进入（屏幕标注 / 白板）、退出标注后保留、按 <kbd>W</kbd> 切换时保留
 - **元素拖拽** — 关闭、悬停拖动，或按住 <kbd>Ctrl</kbd>/<kbd>Command</kbd> 才拖动（橡皮擦工具下不触发）

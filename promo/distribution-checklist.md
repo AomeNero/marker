@@ -135,7 +135,7 @@ brew uninstall --cask marker
 
 1. 部署官网元数据与常青文案（自托管站）。
 2. 核对公开 Release 与全部官方下载链接。
-3. 录制一段 10–15 秒穿透演示与一段白板演示。
+3. 录制一段 10–15 秒「按 V 隐藏/恢复标注」演示与一段白板演示。
 4. 以官网为规范链接提交 AlternativeTo 与 Product Hunt。
 5. 以 GitHub 仓库为 URL、附技术性作者评论提交 Show HN。
 
@@ -164,7 +164,7 @@ brew uninstall --cask marker
 
 | 优先级 | 渠道 | 最佳角度 | 所需素材 | 状态 |
 | :--- | :--- | :--- | :--- | :--- |
-| P0 | Product Hunt | 微型开源应用 + 穿透 | 3–5 张图、作者评论 | 未提交 |
+| P0 | Product Hunt | 微型开源应用 + 白板模式 | 3–5 张图、作者评论 | 未提交 |
 | P0 | Show HN | 透明覆盖层架构 | 仓库 URL、技术帖 | 未提交 |
 | P0 | AlternativeTo | 开源 Epic Pen / ZoomIt 替代 | 列表元数据 | 未提交 |
 | P0 | Bilibili | 15 秒前后对比演示 | 横版视频 | 未发布 |

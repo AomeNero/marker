@@ -8,7 +8,6 @@
 - screen drawing app
 - lightweight screen annotation
 - open source screen annotation
-- click-through annotation
 - desktop whiteboard app
 - ZoomIt alternative
 - Epic Pen alternative
@@ -23,7 +22,6 @@
 - 开源屏幕标注
 - 轻量级屏幕标注
 - 屏幕白板工具
-- 穿透模式标注
 - ZoomIt 替代
 - Epic Pen 替代
 - 讲课标注工具
@@ -31,19 +29,19 @@
 
 ## 建议英文 Meta 标题
 
-Marker - Lightweight Screen Annotation Tool with Click-Through Mode
+Marker - Lightweight Screen Annotation Tool with Whiteboard Mode
 
 ## 建议英文 Meta 描述
 
-Marker is a lightweight open-source screen annotation tool for Windows and macOS. Draw over any app, use click-through mode, switch to whiteboard mode, and control everything from the keyboard.
+Marker is a lightweight open-source screen annotation tool for Windows and macOS. Draw over any app, hide annotations with V when you need to work underneath, switch to whiteboard mode, and control everything from the keyboard.
 
 ## 中文 Meta 标题
 
-Marker - 轻量级开源屏幕标注工具，支持穿透模式
+Marker - 轻量级开源屏幕标注工具，支持白板模式
 
 ## 中文 Meta 描述
 
-Marker 是一款轻量级开源屏幕标注工具，支持在任意桌面应用上绘制、穿透模式、白板模式、快捷键操作，适合讲课、演示、录屏和远程会议。
+Marker 是一款轻量级开源屏幕标注工具，支持在任意桌面应用上绘制、一键隐藏/恢复标注、白板模式、快捷键操作，适合讲课、演示、录屏和远程会议。
 
 ## 目录分类
 

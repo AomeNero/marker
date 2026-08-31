@@ -8,7 +8,7 @@ cask "marker" do
   url "https://github.com/AomeNero/marker/releases/download/v#{version}/Marker_#{version}_#{arch}.dmg",
       verified: "github.com/AomeNero/marker/"
   name "Marker"
-  desc "Lightweight screen annotation tool with click-through mode"
+  desc "Lightweight screen annotation tool with whiteboard mode"
   homepage "https://marker.cn/"
 
   app "Marker.app"

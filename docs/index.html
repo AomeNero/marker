@@ -7,18 +7,18 @@
     <title>Marker - Lightweight Screen Annotation Tool</title>
     <meta
       name="description"
-      content="Marker is a lightweight open-source screen annotation tool with click-through mode, whiteboard mode, and keyboard-first drawing for Windows and macOS."
+      content="Marker is a lightweight open-source screen annotation tool with whiteboard mode and keyboard-first drawing for Windows and macOS."
     />
     <meta
       name="keywords"
-      content="screen annotation tool, desktop drawing overlay, click-through annotation, desktop whiteboard, Tauri app, screen drawing"
+      content="screen annotation tool, desktop drawing overlay, desktop whiteboard, Tauri app, screen drawing"
     />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://marker.cn/" />
     <meta property="og:title" content="Marker - Lightweight Screen Annotation Tool" />
     <meta
       property="og:description"
-      content="Draw, highlight, and annotate anywhere on your desktop. Click-through mode keeps annotations visible while you interact with apps below."
+      content="Draw, highlight, and annotate anywhere on your desktop. Press V to hide annotations while you interact with apps below."
     />
     <meta property="og:url" content="https://marker.cn/" />
     <meta property="og:site_name" content="Marker" />
@@ -29,7 +29,7 @@
     <meta name="twitter:title" content="Marker - Lightweight Screen Annotation Tool" />
     <meta
       name="twitter:description"
-      content="Draw over any desktop app, keep annotations visible, and click through to the app below. Free, open source, and local-first."
+      content="Draw over any desktop app, then press V to hide annotations and work underneath. Free, open source, and local-first."
     />
     <meta name="twitter:image" content="https://marker.cn/assets/hero.png" />
     <link rel="icon" href="assets/icon.png" />
@@ -48,7 +48,7 @@
             "downloadUrl": "https://github.com/AomeNero/marker/releases/latest",
             "softwareVersion": "2.2.0",
             "image": "https://marker.cn/assets/hero.png",
-            "description": "A lightweight open-source screen annotation tool with click-through mode, whiteboard mode, and keyboard-first controls.",
+            "description": "A lightweight open-source screen annotation tool with whiteboard mode and keyboard-first controls.",
             "license": "https://github.com/AomeNero/marker/blob/master/LICENSE",
             "isAccessibleForFree": true,
             "offers": {
@@ -77,10 +77,10 @@
               },
               {
                 "@type": "Question",
-                "name": "How does click-through mode work?",
+                "name": "How do I interact with apps below my annotations?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Annotations remain visible while clicks, scrolling, and typing pass through to the application underneath."
+                  "text": "Press V to hide all annotations, use the app underneath, then press again to restore them."
                 }
               },
               {
@@ -149,8 +149,8 @@
               <p class="eyebrow t-stagger-line t-stagger-line--1" data-i18n="hero.eyebrow">Open source / Tauri v2 / ~1.5&nbsp;MB</p>
               <h1 id="hero-title" class="t-stagger-line t-stagger-line--2" translate="no">Marker</h1>
               <p class="hero-copy t-stagger-line t-stagger-line--3" data-i18n="hero.copy">
-                A keyboard-first screen annotation tool for demos, teaching, meetings, and recordings. Draw over any app,
-                then switch to click-through mode while your marks stay visible.
+                A keyboard-first screen annotation tool for demos, teaching, meetings, and recordings. Draw over any
+                app; press V to hide your marks when you need to work underneath.
               </p>
               <div class="hero-actions t-stagger-line t-stagger-line--4" data-i18n-aria="hero.downloadAria">
                 <a class="button primary" href="https://github.com/AomeNero/marker/releases/latest" data-i18n="hero.downloadLatest">
@@ -160,7 +160,7 @@
             </div>
             <ul class="hero-chips t-avatar-group t-scroll-reveal" data-reveal-immediate data-reveal-delay="5" data-i18n-aria="hero.chipsAria">
               <li class="t-avatar" data-i18n="hero.chip.tools">Keyboard-first drawing tools</li>
-              <li class="t-avatar" data-i18n="hero.chip.clickThrough">Click-through mode</li>
+              <li class="t-avatar" data-i18n="hero.chip.hideInk">Hide / show annotations</li>
               <li class="t-avatar" data-i18n="hero.chip.whiteboard">Whiteboard mode</li>
               <li class="t-avatar" data-i18n="hero.chip.platforms">Win / macOS</li>
             </ul>
@@ -176,9 +176,9 @@
               </li>
               <li>
                 <span class="quick-step-keys" data-i18n-html="hero.quickStep2Keys">
-                  <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>
+                  <span class="kbd-combo"><kbd>V</kbd></span>
                 </span>
-                <span class="quick-step-desc" data-i18n="hero.quickStep2Desc">Click through</span>
+                <span class="quick-step-desc" data-i18n="hero.quickStep2Desc">Hide / show ink</span>
               </li>
               <li>
                 <span class="quick-step-keys" data-i18n-html="hero.quickStep3Keys"><kbd>Esc</kbd></span>
@@ -224,11 +224,10 @@
           <div class="product-board">
             <div class="feature-grid">
               <article class="feature feature-highlight t-scroll-reveal" data-reveal-delay="0">
-                <h3 data-i18n="features.clickThroughTitle">Click-through mode</h3>
-                <p data-i18n-html="features.clickThroughBody">
-                  Toggle from the toolbar or with
-                  <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>.
-                  Annotations stay visible while clicks, scrolls, and typing reach the app underneath.
+                <h3 data-i18n="features.hideInkTitle">Hide / show annotations</h3>
+                <p data-i18n-html="features.hideInkBody">
+                  Press <kbd>V</kbd> to temporarily hide all annotations while you interact with apps below,
+                  then press again to bring them right back.
                 </p>
               </article>
               <article class="feature t-scroll-reveal" data-reveal-delay="1">
@@ -285,31 +284,6 @@
                   <div class="t-tilt-glare" aria-hidden="true"></div>
                 </article>
               </div>
-
-              <div class="showcase-tilt t-scroll-reveal" data-reveal-delay="2">
-                <article class="panel-card panel-card-demo t-tilt-card" aria-labelledby="click-through-demo-title">
-                  <p class="panel-eyebrow" data-i18n="showcase.demoEyebrow">Live demo</p>
-                  <h3 class="panel-title" id="click-through-demo-title" data-i18n="showcase.demoTitle">Click-through mode</h3>
-                  <figure class="panel-media panel-media-gif">
-                    <img
-                      class="demo-gif"
-                      src="assets/click-through-mode.gif"
-                      width="1280"
-                      height="720"
-                      loading="lazy"
-                      decoding="async"
-                      data-i18n-alt="showcase.demoAlt"
-                      alt="Click-through demo: draw on screen, press Alt+M, then select text in the app below while annotations remain visible"
-                    />
-                  </figure>
-                  <p class="panel-caption" data-i18n-html="showcase.demoCaption">
-                    Draw, press
-                    <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>,
-                    then keep working underneath.
-                  </p>
-                  <div class="t-tilt-glare" aria-hidden="true"></div>
-                </article>
-              </div>
             </div>
 
             <ul class="shortcut-row t-avatar-group t-scroll-reveal" data-i18n-aria="shortcuts.aria">
@@ -320,12 +294,6 @@
               <li class="t-avatar">
                 <span class="shortcut-label" data-i18n="shortcuts.toolbar">Toolbar</span>
                 <kbd>Space</kbd>
-              </li>
-              <li class="t-avatar">
-                <span class="shortcut-label" data-i18n="shortcuts.through">Through</span>
-                <span data-i18n-html="shortcuts.throughKeys">
-                  <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>
-                </span>
               </li>
               <li class="t-avatar">
                 <span class="shortcut-label" data-i18n="shortcuts.board">Board</span>
@@ -372,15 +340,13 @@
                 <article class="info-card info-card-dark t-scroll-reveal" data-reveal-delay="0">
                   <h4 class="info-card-title" data-i18n="bottom.faq1Title">What is Marker for?</h4>
                   <p class="info-card-desc" data-i18n="bottom.faq1Desc">
-                    Live screen annotation for demos, teaching, and meetings — keyboard-first tools and click-through mode built in.
+                    Live screen annotation for demos, teaching, and meetings — keyboard-first tools built in.
                   </p>
                 </article>
                 <article class="info-card info-card-blue t-scroll-reveal" data-reveal-delay="1">
-                  <h4 class="info-card-title" data-i18n="bottom.faq2Title">How does click-through mode work?</h4>
+                  <h4 class="info-card-title" data-i18n="bottom.faq2Title">How do I interact with apps below my annotations?</h4>
                   <p class="info-card-desc" data-i18n-html="bottom.faq2Desc">
-                    Toggle from the toolbar or with
-                    <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>.
-                    Marks stay visible while you click, scroll, and type in apps below.
+                    Press <kbd>V</kbd> to hide all annotations, use the app underneath, then press again to restore.
                   </p>
                 </article>
                 <article class="info-card info-card-green t-scroll-reveal" data-reveal-delay="2">
@@ -389,7 +355,7 @@
                 </article>
                 <a class="info-card info-card-blue t-scroll-reveal" data-reveal-delay="3" href="help.html">
                   <span class="info-card-title" data-i18n="bottom.helpLink">Full shortcuts &amp; help</span>
-                  <span class="info-card-desc" data-i18n="bottom.helpLinkDesc">Tools, modifiers, whiteboard, and click-through tips.</span>
+                  <span class="info-card-desc" data-i18n="bottom.helpLinkDesc">Tools, modifiers, whiteboard, and ink tips.</span>
                   <span class="info-card-mark" aria-hidden="true">→</span>
                 </a>
               </div>

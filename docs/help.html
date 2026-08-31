@@ -7,18 +7,18 @@
     <title>Marker Help &amp; Shortcuts</title>
     <meta
       name="description"
-      content="Marker keyboard shortcuts and help: global hotkeys, drawing tools, click-through mode, whiteboard, and modifier tips for Windows and macOS."
+      content="Marker keyboard shortcuts and help: global hotkeys, drawing tools, whiteboard, ink visibility, and modifier tips for Windows and macOS."
     />
     <meta
       name="keywords"
-      content="Marker help, screen annotation shortcuts, click-through mode, whiteboard shortcuts, Alt+G, keyboard drawing"
+      content="Marker help, screen annotation shortcuts, whiteboard shortcuts, Alt+G, keyboard drawing"
     />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://marker.cn/help.html" />
     <meta property="og:title" content="Marker Help &amp; Shortcuts" />
     <meta
       property="og:description"
-      content="Learn Marker shortcuts: enter annotation, switch tools, toggle click-through, whiteboard, colors, and drag tips."
+      content="Learn Marker shortcuts: enter annotation, switch tools, hide or show ink, whiteboard, colors, and drag tips."
     />
     <meta property="og:url" content="https://marker.cn/help.html" />
     <meta property="og:site_name" content="Marker" />
@@ -29,7 +29,7 @@
     <meta name="twitter:title" content="Marker Help &amp; Shortcuts" />
     <meta
       name="twitter:description"
-      content="Marker shortcuts for screen annotation, click-through mode, whiteboard mode, tools, colors, and drawing modifiers."
+      content="Marker shortcuts for screen annotation, whiteboard mode, ink visibility, tools, colors, and drawing modifiers."
     />
     <meta name="twitter:image" content="https://marker.cn/assets/hero.png" />
     <link rel="icon" href="assets/icon.png" />
@@ -105,7 +105,7 @@
             </h1>
             <p class="help-lead" data-i18n="helpPage.lead">
               Keyboard-first annotation for demos and teaching. Quick reference for global hotkeys, tools, modifiers,
-              and click-through.
+              and ink visibility.
             </p>
             <nav class="help-toc" data-i18n-aria="helpPage.tocAria">
               <a href="#quick-start" data-i18n="helpPage.toc.quick">Quick start</a>
@@ -118,19 +118,13 @@
           <aside class="help-hero-aside" data-i18n-aria="helpPage.aside.aria">
             <div class="help-aside-head">
               <p class="help-aside-title" data-i18n="helpPage.aside.title">Cheat sheet</p>
-              <p class="help-aside-sub" data-i18n="helpPage.aside.sub">Top 4 essentials</p>
+              <p class="help-aside-sub" data-i18n="helpPage.aside.sub">Top 3 essentials</p>
             </div>
             <div class="help-mini-table help-aside-table" role="table">
               <div class="help-shortcut-row" role="row">
                 <span class="help-shortcut-label" role="cell" data-i18n="helpPage.aside.enter">Enter annotation</span>
                 <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.aside.enterKeys">
                   <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>G</kbd></span>
-                </span>
-              </div>
-              <div class="help-shortcut-row" role="row">
-                <span class="help-shortcut-label" role="cell" data-i18n="helpPage.aside.through">Click-through</span>
-                <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.aside.throughKeys">
-                  <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>
                 </span>
               </div>
               <div class="help-shortcut-row" role="row">
@@ -195,9 +189,8 @@
               <div>
                 <h3 data-i18n="helpPage.quick.step3Title">Stay visible, keep working</h3>
                 <p data-i18n-html="helpPage.quick.step3Body">
-                  Press
-                  <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>
-                  for click-through so marks stay while you click below. <kbd>Esc</kbd> exits.
+                  Press <kbd>V</kbd> to hide annotations while you click below; press again to restore.
+                  <kbd>Esc</kbd> exits.
                   <kbd>Space</kbd> opens the toolbar.
                 </p>
               </div>
@@ -239,18 +232,9 @@
                 <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>⇧</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>C</kbd></span>
               </span>
             </div>
-            <div class="help-shortcut-row" role="row">
-              <span class="help-shortcut-label" role="cell" data-i18n="helpPage.global.through">Toggle click-through</span>
-              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.throughWin">
-                <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>
-              </span>
-              <span class="help-shortcut-keys" role="cell" data-i18n-html="helpPage.global.throughMac">
-                <span class="kbd-combo"><kbd>⌘</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>⇧</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>X</kbd></span>
-              </span>
-            </div>
           </div>
           <p class="help-note t-scroll-reveal" data-i18n-html="helpPage.global.note">
-            While drawing, press <kbd>X</kbd> to toggle click-through, or <kbd>Esc</kbd> to exit annotation.
+            While drawing, press <kbd>V</kbd> to hide or show annotations, or <kbd>Esc</kbd> to exit annotation.
           </p>
         </div>
       </section>
@@ -492,18 +476,16 @@
         <div class="content-wrap">
           <div class="help-section-heading t-scroll-reveal" id="tips">
             <p class="help-section-eyebrow" data-i18n="helpPage.tips.eyebrow">05</p>
-            <h2 id="tips-title" data-i18n="helpPage.tips.title">Click-through &amp; drag tips</h2>
+            <h2 id="tips-title" data-i18n="helpPage.tips.title">Ink visibility &amp; drag tips</h2>
             <p class="help-section-lead" data-i18n="helpPage.tips.lead">
-              Keep marks on screen while you present — then move or edit when you need to.
+              Keep marks on screen while you present — then hide or move them when you need to.
             </p>
           </div>
           <div class="help-tips-grid">
             <article class="help-tip-card t-scroll-reveal" data-reveal-delay="0">
-              <h3 data-i18n="helpPage.tips.throughTitle">Click-through mode</h3>
-              <p data-i18n-html="helpPage.tips.throughBody">
-                Toggle from the toolbar, with
-                <span class="kbd-combo"><kbd>Alt</kbd><span class="kbd-plus" aria-hidden="true">+</span><kbd>M</kbd></span>
-                (global), or <kbd>X</kbd> while drawing. Annotations stay visible; clicks, scrolls, and typing reach the app underneath.
+              <h3 data-i18n="helpPage.tips.hideInkTitle">Hide / show annotations</h3>
+              <p data-i18n-html="helpPage.tips.hideInkBody">
+                Press <kbd>V</kbd> to hide all annotations — clicks reach the app below — then press again to restore.
               </p>
             </article>
             <article class="help-tip-card t-scroll-reveal" data-reveal-delay="2">
@@ -528,8 +510,7 @@
               <h3 data-i18n="helpPage.tips.toolbarTitle">Toolbar</h3>
               <p data-i18n="helpPage.tips.toolbarBody">
                 Press Space to open the floating toolbar. It auto-hides while you draw; press Space again to bring it
-                back. Pin it to stay visible. Use More for full options; pen / pointer buttons switch drawing and
-                click-through.
+                back. Pin it to stay visible. Use More for full options.
               </p>
             </article>
           </div>

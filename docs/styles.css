@@ -557,10 +557,6 @@ img {
   box-shadow: 0 1px 0 rgba(18, 18, 18, 0.04);
 }
 
-.panel-card-demo {
-  border-top: 4px solid var(--red);
-}
-
 .panel-eyebrow {
   margin: 0;
   color: var(--muted);
@@ -586,8 +582,7 @@ img {
   background: var(--night);
 }
 
-.panel-media img,
-.panel-media-gif .demo-gif {
+.panel-media img {
   width: 100%;
   height: 100%;
   border: 1px solid var(--line);
@@ -604,17 +599,13 @@ img {
   height: auto;
 }
 
-.panel-media:not(.panel-media-gif) {
+.panel-media {
   background: var(--paper);
 }
 
 .panel-media img {
   object-fit: cover;
   object-position: top center;
-}
-
-.panel-media-gif .demo-gif {
-  object-fit: contain;
 }
 
 .panel-caption {

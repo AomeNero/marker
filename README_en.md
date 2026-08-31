@@ -46,7 +46,7 @@ winget install --id 9N6623X973JV --source msstore
 
 1. **Install and launch** — Marker runs in the **system tray**; no window appears.
 2. **Enter annotation mode** — press <kbd>Alt</kbd> + <kbd>G</kbd>.
-3. **Draw, then click through** — use number keys plus <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> for tools; press <kbd>X</kbd> to interact with apps below while keeping annotations visible; press <kbd>Esc</kbd> to exit.
+3. **Draw and annotate** — use number keys plus <kbd>E</kbd>/<kbd>T</kbd>/<kbd>N</kbd> for tools; press <kbd>V</kbd> to hide annotations when you need to interact with apps below, press again to restore; press <kbd>Esc</kbd> to exit.
 
 > **New here?** Press <kbd>Space</kbd> for the toolbar. See [Keyboard Shortcuts](#keyboard-shortcuts) for the full list.
 
@@ -55,8 +55,8 @@ winget install --id 9N6623X973JV --source msstore
 - **Lightweight & fast** — ~1.5 MB installer (Rust + Canvas), minimal memory; runs quietly in the system tray (no extra daemons or telemetry)
 - **Annotate anywhere** — draw over any app, including the taskbar
 - **10 tools** — pen, highlighter, laser, arrow, rectangle, ellipse, line, eraser, text, stamp
-- **Flexible toolbar** — shows when you enter annotation, **auto-hides while you draw**, <kbd>Space</kbd> recalls / toggles it, or enable **always-on** in Settings; compact panel with **Expand** for full options, undo, copy, and whiteboard actions in-panel; **independent floating window** with drawing / click-through toggles
-- **Click-through mode** — interact with apps below while staying in the session; toggle via toolbar buttons, <kbd>Alt</kbd>+<kbd>M</kbd> (global), or <kbd>X</kbd> while drawing; disabled in whiteboard mode
+- **Flexible toolbar** — shows when you enter annotation, **auto-hides while you draw**, <kbd>Space</kbd> recalls / toggles it, or enable **always-on** in Settings; compact panel with **Expand** for full options, undo, copy, and whiteboard actions in-panel; also available as an **independent floating window**
+- **Hide / show annotations** — press <kbd>V</kbd> to temporarily hide all annotations (e.g. to interact with apps below), press again to restore
 - **Full keyboard control** — every action has a shortcut, no menus needed
 - **Preserve drawings** — enable **Keep after exit** under Whiteboard & content to resume on re-enter
 - **Whiteboard mode** — set default entry to whiteboard, or press <kbd>W</kbd> to toggle; content rules are in **Whiteboard & content** settings
@@ -83,7 +83,6 @@ On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd
 | :--- | :--- | :--- |
 | Toggle annotation mode | <kbd>Alt</kbd> + <kbd>G</kbd> | <kbd>Option</kbd> + <kbd>G</kbd> |
 | Clear all annotations | <kbd>Alt</kbd> + <kbd>E</kbd> | <kbd>Option</kbd> + <kbd>E</kbd> |
-| Toggle click-through mode | <kbd>Alt</kbd> + <kbd>M</kbd> | <kbd>Option</kbd> + <kbd>M</kbd> |
 
 ### Tool Switching
 
@@ -101,7 +100,6 @@ On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd
 | Action | Windows | macOS |
 | :--- | :--- | :--- |
 | Toolbar (toggle) | <kbd>Space</kbd> (auto-hides while drawing) | <kbd>Space</kbd> (auto-hides while drawing) |
-| Click-through (while drawing) | <kbd>X</kbd> | <kbd>X</kbd> |
 | Cycle eraser mode (stroke / object) | <kbd>E</kbd> again while eraser selected | <kbd>E</kbd> again while eraser selected |
 | Toolbar always-on / layout | Settings → General | Settings → General |
 | Copy screen / whiteboard | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
@@ -151,7 +149,7 @@ On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd
 <details>
 <summary><strong>Advanced settings</strong></summary>
 
-In **Settings → General** (toolbar display, click-through, and stroke width — see [Features](#features)):
+In **Settings → General** (toolbar display and stroke width — see [Features](#features)):
 
 - **Whiteboard & content** — default entry (screen / whiteboard), keep after exit, keep on <kbd>W</kbd> toggle
 - **Element dragging** — off, hover to drag, or hold <kbd>Ctrl</kbd>/<kbd>Command</kbd> to drag (disabled while eraser is selected)

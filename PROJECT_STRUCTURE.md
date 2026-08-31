@@ -62,7 +62,7 @@ marker/
 | `components/SettingsView.vue` + `settings/` | 设置窗口（通用/关于/诊断三个标签页） |
 | `composables/` | 绘图引擎（useDrawing）、几何/渲染、快捷键、主题、tooltip 等 |
 | `constants/` | 颜色/工具/笔粗档位/印章/激光等常量 |
-| `utils/` | 工具栏定位、穿透、拖拽模式、橡皮模式等纯逻辑（均带测试） |
+| `utils/` | 工具栏定位、拖拽模式、橡皮模式等纯逻辑（均带测试） |
 | `i18n/` | 中英文语言包（en.ts / zh-CN.ts） |
 | `types/` | TS 类型定义 |
 | `test/` | vitest 全局 setup |
@@ -74,7 +74,7 @@ marker/
 | 路径 | 内容 |
 |------|------|
 | `src/lib.rs` / `main.rs` | 入口：托盘、窗口管理、事件路由、全局快捷键 |
-| `src/overlay.rs` | overlay/toolbar 窗口生命周期、穿透、停靠定位 |
+| `src/overlay.rs` | overlay/toolbar 窗口生命周期、停靠定位 |
 | `src/config.rs` | config.json 读写与归一化（快捷键/笔粗档位等） |
 | `src/win32.rs` | Win32 API：显示器工作区、透明度、光标限制 |
 | `src/monitor.rs` | 多显示器边界查询 |
