@@ -36,7 +36,6 @@ const currentColor = ref('#FFCC02')
 const lineWidth = ref(3)
 const textOutline = ref<TextOutlineStyle>(createDefaultTextOutline())
 const whiteboardMode = ref(false)
-const penetrationMode = ref(false)
 const inkVisible = ref(true)
 const canUndo = ref(false)
 const canRedo = ref(false)
@@ -45,8 +44,6 @@ const toolbarVisibility = ref<ToolbarVisibility>('space')
 const toolbarPinned = computed(() => isToolbarPinned(toolbarVisibility.value))
 /** Configured global clear-all shortcut — shown in the clear button tooltip. */
 const clearShortcut = ref('Alt+E')
-/** Configured global click-through shortcut — shown in the penetration button tooltip. */
-const penetrationShortcut = ref('Alt+M')
 const toolToolbarRef = ref<InstanceType<typeof ToolToolbar> | null>(null)
 const pointerX = ref(0)
 const pointerY = ref(0)
@@ -67,7 +64,6 @@ function applyOverlayState(state: OverlayStateSync) {
   lineWidth.value = state.lineWidth
   textOutline.value = normalizeTextOutline(state.textOutline)
   whiteboardMode.value = state.whiteboardMode
-  penetrationMode.value = state.penetrationMode
   inkVisible.value = state.inkVisible
   canUndo.value = state.canUndo
   canRedo.value = state.canRedo
@@ -87,10 +83,6 @@ async function onToolbarClose() {
   await emit(TOOLBAR_WINDOW_CLOSED_EVENT)
 }
 
-function onToolbarPointerDown() {
-  void invoke('suppress_penetration', { durationMs: 1200 })
-}
-
 async function onToolbarPointerUp() {
   await emit(TOOLBAR_DRAGGING_EVENT, false)
   // Only notify overlay when a pointer was likely captured there (drawing/dragging).
@@ -98,19 +90,11 @@ async function onToolbarPointerUp() {
   await emit(TOOLBAR_POINTER_UP_EVENT)
 }
 
-async function onTogglePenetration() {
-  if (whiteboardMode.value) return
-  await invoke('toggle_penetration_mode')
-}
-
 async function onPanelHover(hovering: boolean) {
   await emit(TOOLBAR_PANEL_HOVER_EVENT, hovering)
 }
 
 async function onPanelDrag(dragging: boolean) {
-  if (dragging) {
-    void invoke('suppress_penetration', { durationMs: 1600 })
-  }
   await emit(TOOLBAR_DRAGGING_EVENT, dragging)
 }
 
@@ -143,7 +127,6 @@ onMounted(async () => {
     const cfg = await invoke<AppConfig>('get_config')
     toolbarVisibility.value = resolveToolbarVisibility(cfg.general)
     clearShortcut.value = cfg.shortcuts?.clearDrawing || 'Alt+E'
-    penetrationShortcut.value = cfg.shortcuts?.togglePenetration || 'Alt+M'
     setWidthPresets(cfg.general?.widthPresets)
     currentTheme = resolveThemePref(cfg.general)
     await applyTheme(currentTheme)
@@ -189,7 +172,6 @@ onMounted(async () => {
     await listen<AppConfig>('config-changed', (event) => {
       toolbarVisibility.value = resolveToolbarVisibility(event.payload.general)
       clearShortcut.value = event.payload.shortcuts?.clearDrawing || 'Alt+E'
-      penetrationShortcut.value = event.payload.shortcuts?.togglePenetration || 'Alt+M'
       setWidthPresets(event.payload.general?.widthPresets)
       currentTheme = resolveThemePref(event.payload.general)
       void applyTheme(currentTheme)
@@ -209,9 +191,8 @@ onMounted(async () => {
       lastOverlayMode = mode
       const hidden = mode === 'hidden'
       document.body.style.visibility = hidden ? 'hidden' : 'visible'
-      penetrationMode.value = mode === 'penetration'
       // Always-on: re-clamp only when entering drawing from hidden (Alt+G).
-      // Click-through toggle must not move a panel the user already placed.
+      // Toolbar toggles must not move a panel the user already placed.
       if (mode === 'drawing' && toolbarPinned.value && fromHidden) {
         void clampToolbarWindowToOverlay()
       }
@@ -233,7 +214,6 @@ onUnmounted(() => {
 <template>
   <div
     class="fixed inset-0 bg-transparent overflow-hidden"
-    @pointerdown.capture="onToolbarPointerDown"
     @pointerup.capture="onToolbarPointerUp"
     @pointercancel.capture="onToolbarPointerUp"
   >
@@ -242,13 +222,11 @@ onUnmounted(() => {
       standalone-window
       :pinned="toolbarPinned"
       :clear-shortcut="clearShortcut"
-      :penetration-shortcut="penetrationShortcut"
       :current-tool="currentTool"
       :current-color="currentColor"
       :line-width="lineWidth"
       :text-outline="textOutline"
       :whiteboard-mode="whiteboardMode"
-      :penetration-mode="penetrationMode"
       :ink-visible="inkVisible"
       :can-undo="canUndo"
       :can-redo="canRedo"
@@ -265,7 +243,6 @@ onUnmounted(() => {
       @toggle-whiteboard="emitToolbarAction({ type: 'toggleWhiteboard' })"
       @toggle-ink-visible="emitToolbarAction({ type: 'toggleInkVisible' })"
       @copy="emitToolbarAction({ type: 'copy' })"
-      @toggle-penetration="onTogglePenetration"
       @exit-drawing="emitToolbarAction({ type: 'exitDrawing' })"
       @close="onToolbarClose"
       @panel-hover="onPanelHover"

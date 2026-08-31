@@ -85,7 +85,6 @@ export default {
     shortcutLabels: {
       toggleDrawing: 'Toggle annotation',
       clearDrawing: 'Clear annotations',
-      togglePenetration: 'Toggle click-through',
     },
     shortcutsSaved: 'Shortcuts saved',
     shortcutsSavedPartial: 'Saved, but could not register: {keys}',
@@ -157,7 +156,6 @@ export default {
     whiteboard: 'Whiteboard',
     exitWhiteboard: 'Exit whiteboard',
     copy: 'Copy',
-    penetrationMode: 'Click-through mode',
     showInk: 'Show annotations',
     hideInk: 'Hide annotations',
     exit: 'Exit annotation',
@@ -165,11 +163,10 @@ export default {
   help: {
     basicUsage: 'Quick reference',
     basicDesc:
-      'Runs in the <strong>system tray</strong>. Enter annotation with the global shortcut; <kbd class="help-kbd">Esc</kbd> exits, <kbd class="help-kbd">X</kbd> toggles click-through. Details live on the website.',
+      'Runs in the <strong>system tray</strong>. Enter annotation with the global shortcut; <kbd class="help-kbd">Esc</kbd> exits, <kbd class="help-kbd">V</kbd> hides/shows annotations. Details live on the website.',
     globalShortcuts: 'Global',
     inSessionShortcuts: 'In session',
-    togglePenetration: 'Click-through',
-    togglePenetrationLocal: 'Click-through',
+    toggleInkVisible: 'Hide/show annotations',
     exitDrawing: 'Exit',
     thAction: 'Action',
     thWindows: 'Windows',

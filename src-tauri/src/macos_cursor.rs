@@ -97,7 +97,7 @@ pub fn start_cursor_clip(bounds: MonitorBounds) {
     }
 }
 
-/// Pause confinement without clearing stored bounds (penetration mode).
+/// Pause confinement without clearing stored bounds.
 pub fn stop_cursor_clip() {
     CLIP_ACTIVE.store(false, Ordering::Release);
     join_clip_thread();

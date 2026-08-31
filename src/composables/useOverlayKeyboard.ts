@@ -54,7 +54,6 @@ export interface KeyboardActions {
   hasSelection?: () => boolean
   clearSelection?: () => void
   exitDrawing: () => void
-  togglePenetrationMode: () => void
   enterWhiteboardMode: () => void
   exitWhiteboardMode: () => void
   copyScreen: () => void
@@ -283,14 +282,6 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
         logActionEvent('whiteboard enter requested', { reason: 'keyboard' })
         actions.enterWhiteboardMode()
       }
-      return
-    }
-
-    // Click-through (penetration) mode toggle — X (pairs with Ctrl+Shift+X); not in whiteboard
-    if ((e.key === 'x' || e.key === 'X') && !modDown(e)) {
-      if (ctx.whiteboardMode.value) return
-      logActionEvent('toggle penetration requested', { reason: 'keyboard' })
-      actions.togglePenetrationMode()
       return
     }
 

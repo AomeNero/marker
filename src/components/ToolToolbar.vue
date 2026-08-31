@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue'
-import { Undo2, Redo2, Trash2, Squircle, Copy, MousePointer2, GripVertical, X, ChevronDown, Eye, EyeOff } from '@lucide/vue'
+import { Undo2, Redo2, Trash2, Squircle, Copy, GripVertical, X, ChevronDown, Eye, EyeOff } from '@lucide/vue'
 import type { Tool } from '../composables/useDrawing'
 import { useI18n } from '../i18n'
 import {
@@ -44,13 +44,11 @@ const props = defineProps<{
   pinned: boolean
   standaloneWindow?: boolean
   clearShortcut?: string
-  penetrationShortcut?: string
   currentTool: Tool
   currentColor: string
   lineWidth: number
   textOutline: TextOutlineStyle
   whiteboardMode: boolean
-  penetrationMode?: boolean
   inkVisible: boolean
   canUndo: boolean
   canRedo: boolean
@@ -71,7 +69,6 @@ const emit = defineEmits<{
   toggleWhiteboard: []
   toggleInkVisible: []
   copy: []
-  togglePenetration: []
   exitDrawing: []
   panelHover: [hovering: boolean]
   panelDrag: [dragging: boolean]
@@ -274,12 +271,6 @@ function scheduleDragUpdate() {
     const clamped = clampStandaloneWindowPosition(rawLeft, rawTop, panelH)
     void getCurrentWindow().setPosition(new LogicalPosition(clamped.left, clamped.top))
   })
-}
-
-/** Single click-through button toggles both ways (drawing ⇄ penetration). */
-function onPenetrationModeClick() {
-  if (props.whiteboardMode) return
-  emit('togglePenetration')
 }
 
 function startDrag(e: PointerEvent) {
@@ -786,19 +777,6 @@ onUnmounted(() => {
             @click="emit('toggleWhiteboard')"
           >
             <Squircle :size="15" />
-          </button>
-          <button
-            v-if="standaloneWindow"
-            type="button"
-            class="overlay-toolbar-action"
-            :class="penetrationMode ? 'overlay-toolbar-action--active' : ''"
-            :title="`${t('toolbar.penetrationMode')} (${props.penetrationShortcut || 'Alt+M'})`"
-            :aria-label="`${t('toolbar.penetrationMode')} (${props.penetrationShortcut || 'Alt+M'})`"
-            :aria-pressed="!!penetrationMode"
-            :disabled="whiteboardMode"
-            @click="onPenetrationModeClick"
-          >
-            <MousePointer2 :size="15" />
           </button>
 
           <template v-if="standaloneWindow">

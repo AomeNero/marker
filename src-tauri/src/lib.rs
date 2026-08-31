@@ -32,9 +32,8 @@ use tracing::{info, warn};
 use config::{lock_or_recover, AppConfig, AppState};
 use diagnostics::log_backend_event;
 pub use overlay::{
-    activate_drawing, clear_drawing, deactivate_drawing, enter_penetration_mode,
-    exit_penetration_mode, raise_toolbar_above_overlay, set_toolbar_window_visible,
-    setup_overlay_size, toggle_drawing, toggle_penetration_mode,
+    activate_drawing, clear_drawing, deactivate_drawing, raise_toolbar_above_overlay,
+    set_toolbar_window_visible, setup_overlay_size, toggle_drawing,
 };
 
 pub fn rebuild_tray_menu(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
@@ -191,7 +190,6 @@ pub fn run() {
         .manage(AppState {
             config: Mutex::new(AppConfig::default()),
             overlay_mode: Mutex::new(overlay::OverlayMode::Hidden),
-            suppress_penetration_until: Mutex::new(None),
             whiteboard_mode: Mutex::new(false),
             diagnostic_events: Mutex::new(Vec::new()),
         })
@@ -208,12 +206,8 @@ pub fn run() {
             commands::save_locale,
             commands::apply_app_theme,
             commands::exit_drawing,
-            commands::enter_penetration_mode,
-            commands::exit_penetration_mode,
-            commands::toggle_penetration_mode,
             commands::set_toolbar_visible,
             commands::set_toolbar_popup,
-            commands::suppress_penetration,
             commands::raise_toolbar,
             commands::set_whiteboard_mode,
             commands::open_url,
@@ -330,11 +324,6 @@ pub fn run() {
             {
                 api.prevent_close();
                 window.hide().ok();
-            }
-            tauri::WindowEvent::Focused(false) if window.label() == "overlay" => {
-                let app = window.app_handle();
-                let state = app.state::<AppState>();
-                overlay::on_overlay_focus_lost(app, &state);
             }
             // WebView2 can lose the transparent clear color after long idle /
             // GPU recycle and repaint opaque black once it regains focus.

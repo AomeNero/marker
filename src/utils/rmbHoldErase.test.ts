@@ -2,19 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { IDLE_RMB_ERASE, beginRmbErase, canStartRmbErase, endRmbErase } from './rmbHoldErase'
 
 describe('rmbHoldErase (immediate RMB erase)', () => {
-  it('canStart is false when text box open or penetrating', () => {
+  it('canStart is false when text box open', () => {
     expect(
       canStartRmbErase({
         active: true,
-        penetration: false,
         textBoxOpen: true,
-      }),
-    ).toBe(false)
-    expect(
-      canStartRmbErase({
-        active: true,
-        penetration: true,
-        textBoxOpen: false,
       }),
     ).toBe(false)
   })
@@ -23,7 +15,6 @@ describe('rmbHoldErase (immediate RMB erase)', () => {
     expect(
       canStartRmbErase({
         active: true,
-        penetration: false,
         textBoxOpen: false,
       }),
     ).toBe(true)

@@ -10,19 +10,6 @@ pub struct Shortcuts {
     pub toggle_drawing: String,
     #[serde(rename = "clearDrawing")]
     pub clear_drawing: String,
-    #[serde(default = "default_toggle_penetration", rename = "togglePenetration")]
-    pub toggle_penetration: String,
-}
-
-fn default_toggle_penetration() -> String {
-    #[cfg(target_os = "macos")]
-    {
-        "Alt+M".into()
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        "Alt+M".into()
-    }
 }
 
 fn default_angle_snap_step() -> u16 {
@@ -319,7 +306,6 @@ pub fn default_shortcuts() -> Shortcuts {
         Shortcuts {
             toggle_drawing: "Alt+G".into(),
             clear_drawing: "Alt+E".into(),
-            toggle_penetration: "Alt+M".into(),
         }
     }
     #[cfg(not(target_os = "macos"))]
@@ -327,27 +313,7 @@ pub fn default_shortcuts() -> Shortcuts {
         Shortcuts {
             toggle_drawing: "Alt+G".into(),
             clear_drawing: "Alt+E".into(),
-            toggle_penetration: "Alt+M".into(),
         }
-    }
-}
-
-impl Shortcuts {
-    /// Migrate legacy default penetration shortcut (Shift+P → Shift+X).
-    pub fn normalized(mut self) -> Self {
-        #[cfg(target_os = "macos")]
-        {
-            if self.toggle_penetration == "Command+Shift+P" {
-                self.toggle_penetration = "Command+Shift+X".into();
-            }
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            if self.toggle_penetration == "Ctrl+Shift+P" {
-                self.toggle_penetration = "Ctrl+Shift+X".into();
-            }
-        }
-        self
     }
 }
 
@@ -370,9 +336,7 @@ pub struct SaveResult {
 pub struct AppState {
     pub config: Mutex<AppConfig>,
     pub overlay_mode: Mutex<crate::overlay::OverlayMode>,
-    /// Briefly suppress auto-penetration after activation (toolbar window steals focus).
-    pub suppress_penetration_until: Mutex<Option<std::time::Instant>>,
-    /// Frontend whiteboard mode — penetration is screen-overlay only.
+    /// Frontend whiteboard mode — the overlay stays screen-only.
     pub whiteboard_mode: Mutex<bool>,
     /// Cross-window diagnostic ring buffer (overlay + settings are separate webviews).
     pub diagnostic_events: Mutex<Vec<crate::diagnostics::DiagnosticEvent>>,
@@ -405,7 +369,6 @@ pub fn load_config(app: &AppHandle) -> AppConfig {
     match fs::read_to_string(&path) {
         Ok(raw) => match serde_json::from_str::<AppConfig>(&raw) {
             Ok(mut cfg) => {
-                cfg.shortcuts = cfg.shortcuts.normalized();
                 cfg.general = cfg.general.normalized();
                 info!("Loaded config from {}", path.display());
                 cfg
@@ -968,36 +931,12 @@ mod tests {
     }
 
     #[test]
-    fn normalized_migrates_legacy_toggle_penetration_shortcut() {
-        #[cfg(target_os = "macos")]
-        {
-            let shortcuts = Shortcuts {
-                toggle_drawing: "Command+Shift+D".into(),
-                clear_drawing: "Command+Shift+C".into(),
-                toggle_penetration: "Command+Shift+P".into(),
-            };
-            assert_eq!(shortcuts.normalized().toggle_penetration, "Command+Shift+X");
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            let shortcuts = Shortcuts {
-                toggle_drawing: "Ctrl+Shift+D".into(),
-                clear_drawing: "Ctrl+Shift+C".into(),
-                toggle_penetration: "Ctrl+Shift+P".into(),
-            };
-            assert_eq!(shortcuts.normalized().toggle_penetration, "Ctrl+Shift+X");
-        }
-    }
-
-    #[test]
     fn default_shortcuts_are_valid() {
         let shortcuts = default_shortcuts();
         assert!(!shortcuts.toggle_drawing.is_empty());
         assert!(!shortcuts.clear_drawing.is_empty());
-        assert!(!shortcuts.toggle_penetration.is_empty());
         assert!(shortcuts.toggle_drawing.contains('+'));
         assert!(shortcuts.clear_drawing.contains('+'));
-        assert!(shortcuts.toggle_penetration.contains('+'));
     }
 
     #[test]

@@ -4,7 +4,7 @@ use tracing::{info, warn};
 use crate::config::{lock_or_recover, AppState, ToolbarVisibility};
 use crate::diagnostics::log_backend_event;
 use crate::monitor;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 fn set_ignore_cursor_events(window: &WebviewWindow, ignore: bool) {
     window.set_ignore_cursor_events(ignore).ok();
@@ -36,7 +36,6 @@ fn ensure_overlay_transparent(window: &WebviewWindow) {
 pub enum OverlayMode {
     Hidden,
     Drawing,
-    Penetration,
 }
 
 impl OverlayMode {
@@ -44,7 +43,6 @@ impl OverlayMode {
         match self {
             OverlayMode::Hidden => "hidden",
             OverlayMode::Drawing => "drawing",
-            OverlayMode::Penetration => "penetration",
         }
     }
 }
@@ -55,28 +53,6 @@ pub fn current_mode(state: &AppState) -> OverlayMode {
 
 pub fn set_mode(state: &AppState, mode: OverlayMode) {
     *lock_or_recover(&state.overlay_mode) = mode;
-}
-
-fn begin_activation_guard(state: &AppState) {
-    *lock_or_recover(&state.suppress_penetration_until) =
-        Some(Instant::now() + Duration::from_millis(600));
-}
-
-fn should_suppress_penetration(state: &AppState) -> bool {
-    lock_or_recover(&state.suppress_penetration_until)
-        .map(|deadline| Instant::now() < deadline)
-        .unwrap_or(false)
-}
-
-pub fn suppress_penetration_for(state: &AppState, duration_ms: u64) {
-    *lock_or_recover(&state.suppress_penetration_until) =
-        Some(Instant::now() + Duration::from_millis(duration_ms));
-}
-
-fn is_toolbar_focused(app: &AppHandle) -> bool {
-    app.get_webview_window("toolbar")
-        .and_then(|w| w.is_focused().ok())
-        .unwrap_or(false)
 }
 
 fn emit_mode(app: &AppHandle, mode: OverlayMode) {
@@ -515,7 +491,6 @@ pub fn position_toolbar_at(app: &AppHandle, x: f64, y: f64, panel_height: Option
 
 pub fn set_toolbar_popup(
     app: &AppHandle,
-    state: &AppState,
     visible: bool,
     x: Option<f64>,
     y: Option<f64>,
@@ -526,7 +501,6 @@ pub fn set_toolbar_popup(
             position_toolbar_at(app, x, y, height);
         }
         set_toolbar_window_visible(app, true);
-        suppress_penetration_for(state, 800);
     } else {
         set_toolbar_window_visible(app, false);
     }
@@ -580,7 +554,6 @@ pub fn deactivate_drawing(app: &AppHandle, state: &AppState) {
 }
 
 pub fn activate_drawing(app: &AppHandle, state: &AppState) {
-    begin_activation_guard(state);
     set_mode(state, OverlayMode::Drawing);
 
     let preserve = lock_or_recover(&state.config).general.preserve_drawings;
@@ -686,54 +659,6 @@ pub fn set_overlay_ignore_cursor_events(app: &AppHandle, state: &AppState, ignor
     }
 }
 
-pub fn enter_penetration_mode(app: &AppHandle, state: &AppState) {
-    if current_mode(state) != OverlayMode::Drawing {
-        return;
-    }
-    if *lock_or_recover(&state.whiteboard_mode) {
-        return;
-    }
-
-    set_mode(state, OverlayMode::Penetration);
-
-    if let Some(window) = app.get_webview_window("overlay") {
-        set_ignore_cursor_events(&window, true);
-    }
-
-    monitor::suspend_drawing_cursor_clip();
-
-    // Keep the current toolbar placement. Re-running ensure_toolbar_window would
-    // hide a space-popup (always-on=false) or re-clamp a pinned panel.
-    raise_toolbar_above_overlay(app);
-    emit_mode(app, OverlayMode::Penetration);
-}
-
-pub fn exit_penetration_mode(app: &AppHandle, state: &AppState) {
-    if current_mode(state) != OverlayMode::Penetration {
-        return;
-    }
-
-    set_mode(state, OverlayMode::Drawing);
-
-    if let Some(window) = app.get_webview_window("overlay") {
-        set_ignore_cursor_events(&window, false);
-        window.set_always_on_top(true).ok();
-        window.set_focus().ok();
-    }
-
-    raise_toolbar_above_overlay(app);
-    monitor::apply_drawing_cursor_clip();
-    emit_mode(app, OverlayMode::Drawing);
-}
-
-pub fn toggle_penetration_mode(app: &AppHandle, state: &AppState) {
-    match current_mode(state) {
-        OverlayMode::Drawing => enter_penetration_mode(app, state),
-        OverlayMode::Penetration => exit_penetration_mode(app, state),
-        OverlayMode::Hidden => {}
-    }
-}
-
 pub fn toggle_drawing(app: &AppHandle) {
     let state = app.state::<AppState>();
     match current_mode(&state) {
@@ -744,7 +669,7 @@ pub fn toggle_drawing(app: &AppHandle) {
                 warn!("Failed to emit surface-toolbar-request: {}", e);
             }
         }
-        OverlayMode::Drawing | OverlayMode::Penetration => deactivate_drawing(app, &state),
+        OverlayMode::Drawing => deactivate_drawing(app, &state),
     }
 }
 
@@ -756,39 +681,6 @@ pub fn clear_drawing(app: &AppHandle, state: &AppState) {
     if let Err(e) = app.emit("clear-drawing", true) {
         warn!("Failed to emit clear-drawing: {}", e);
     }
-}
-
-pub fn on_overlay_focus_lost(app: &AppHandle, state: &AppState) {
-    if current_mode(state) != OverlayMode::Drawing {
-        return;
-    }
-    if should_suppress_penetration(state) || is_toolbar_focused(app) {
-        return;
-    }
-
-    // Defer so toolbar pointerdown can set suppression before we enter penetration.
-    let app = app.clone();
-    std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_millis(120));
-        let app_for_thread = app.clone();
-        let _ = app.run_on_main_thread(move || {
-            let state = app_for_thread.state::<AppState>();
-            if current_mode(&state) != OverlayMode::Drawing {
-                return;
-            }
-            if should_suppress_penetration(&state) || is_toolbar_focused(&app_for_thread) {
-                return;
-            }
-            log_backend_event(
-                &state,
-                "action",
-                "toggle penetration requested",
-                Some(serde_json::json!({ "reason": "focus-loss" })),
-                "info",
-            );
-            enter_penetration_mode(&app_for_thread, &state);
-        });
-    });
 }
 
 #[cfg(test)]

@@ -14,8 +14,8 @@ export type RmbEraseEnd = {
   wasActive: boolean
 }
 
-export function canStartRmbErase(opts: { active: boolean; penetration: boolean; textBoxOpen: boolean }): boolean {
-  return opts.active && !opts.penetration && !opts.textBoxOpen
+export function canStartRmbErase(opts: { active: boolean; textBoxOpen: boolean }): boolean {
+  return opts.active && !opts.textBoxOpen
 }
 
 export function beginRmbErase(currentTool: string): RmbEraseGesture {

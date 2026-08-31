@@ -32,7 +32,7 @@ pub fn remember_and_clip_drawing_monitor(app: &AppHandle) {
     apply_drawing_cursor_clip();
 }
 
-/// Re-apply cursor clip after leaving penetration mode.
+/// Apply cursor clip to the remembered drawing monitor.
 pub fn apply_drawing_cursor_clip() {
     #[cfg(windows)]
     {
@@ -59,7 +59,7 @@ pub fn apply_drawing_cursor_clip() {
     }
 }
 
-/// Temporarily release cursor confinement (e.g. click-through) while keeping monitor bounds.
+/// Temporarily release cursor confinement while keeping monitor bounds.
 pub fn suspend_drawing_cursor_clip() {
     #[cfg(windows)]
     crate::win32::release_cursor_clip();

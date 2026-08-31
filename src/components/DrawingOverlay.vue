@@ -102,8 +102,7 @@ const previewCanvasRef = ref<HTMLCanvasElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 const textBoxRef = ref<InstanceType<typeof TextBox> | null>(null)
 const active = ref(false)
-const penetrationMode = ref(false)
-type OverlaySessionMode = 'hidden' | 'drawing' | 'penetration'
+type OverlaySessionMode = 'hidden' | 'drawing'
 let lastOverlayMode: OverlaySessionMode = 'hidden'
 const toolbarVisibility = ref<ToolbarVisibility>('space')
 const toolbarPinned = computed(() => isToolbarPinned(toolbarVisibility.value))
@@ -112,7 +111,7 @@ const toolbarPanelHovered = ref(false)
 const toolbarPanelDragging = ref(false)
 /** Hide overlay chrome during screen capture so panels are not in the clipboard image. */
 const hideUiForCapture = ref(false)
-const sessionActive = computed(() => active.value || penetrationMode.value)
+const sessionActive = computed(() => active.value)
 const mousePos = ref({ x: 0, y: 0 })
 const textBoxPos = ref<{ x: number; y: number } | null>(null)
 const whiteboardMode = ref(false)
@@ -178,7 +177,7 @@ function resetTextRmbDoubleClick() {
  */
 function handleTextBoxContextMenu(e: MouseEvent): boolean {
   if (performance.now() < suppressQuickColorsUntil) return true
-  if (!active.value || penetrationMode.value || !textBoxPos.value) return false
+  if (!active.value || !textBoxPos.value) return false
   // macOS maps Control+click to right-click; skip after a Control+drag.
   if (isMacOS() && e.ctrlKey && pointerMovedSinceDown) return true
 
@@ -208,7 +207,6 @@ async function onRmbPointerDown(e: PointerEvent) {
   if (
     !canStartRmbErase({
       active: active.value,
-      penetration: penetrationMode.value,
       textBoxOpen: !!textBoxPos.value,
     })
   ) {
@@ -221,7 +219,6 @@ async function onRmbPointerDown(e: PointerEvent) {
   if (
     !canStartRmbErase({
       active: active.value,
-      penetration: penetrationMode.value,
       textBoxOpen: !!textBoxPos.value,
     })
   ) {
@@ -544,7 +541,6 @@ async function syncWhiteboardMode(active: boolean) {
 
 async function enterWhiteboardMode(options?: { fromDefaultEntry?: boolean }) {
   if (whiteboardMode.value) return
-  await resumeDrawingFromToolbar()
   if (
     shouldClearWhiteboardOnEntry({
       whiteboardPreserveDrawings: whiteboardPreserveDrawings.value,
@@ -672,7 +668,7 @@ function scheduleMacPointerPollFrame() {
 }
 
 async function runMacPointerPollTick() {
-  if (!isMacOS() || !active.value || penetrationMode.value) return
+  if (!isMacOS() || !active.value) return
   if (!macPointerPollBusy) {
     macPointerPollBusy = true
     try {
@@ -682,7 +678,7 @@ async function runMacPointerPollTick() {
         screenX: number
         screenY: number
       } | null>('get_overlay_pointer_position')
-      if (pos && active.value && !penetrationMode.value) {
+      if (pos && active.value) {
         lastPointerX = pos.x
         lastPointerY = pos.y
         lastScreenX = pos.screenX
@@ -706,7 +702,7 @@ async function runMacPointerPollTick() {
       macPointerPollBusy = false
     }
   }
-  if (active.value && !penetrationMode.value) {
+  if (active.value) {
     scheduleMacPointerPollFrame()
   }
 }
@@ -759,23 +755,23 @@ function onGlobalPointerMove(e: PointerEvent) {
   mousePos.value = { x: e.clientX, y: e.clientY }
   // Cross-window: leaving the toolbar webview may not fire pointerleave; clear stale
   // hover so the custom pen cursor is not suppressed while drawing on the overlay.
-  if (!isMacOS() && active.value && !penetrationMode.value) {
+  if (!isMacOS() && active.value) {
     toolbarPanelHovered.value = false
   }
   if (isMacOS()) return
-  if (sessionActive.value && !penetrationMode.value) {
+  if (sessionActive.value) {
     scheduleEmitPointerScreenForToolbar()
   }
-  if (active.value && !penetrationMode.value && !toolbarPanelHovered.value && !toolbarPanelDragging.value) {
+  if (active.value && !toolbarPanelHovered.value && !toolbarPanelDragging.value) {
     updateCursorEl(e.clientX, e.clientY)
   }
 }
 
 watch(
-  () => [active.value, penetrationMode.value] as const,
-  ([isDrawing, isPenetrating]) => {
+  () => [active.value] as const,
+  ([isDrawing]) => {
     if (!isMacOS()) return
-    if (isDrawing && !isPenetrating) {
+    if (isDrawing) {
       startMacPointerPoll()
     } else {
       stopMacPointerPoll()
@@ -981,7 +977,7 @@ async function scheduleOverlayResize(): Promise<void> {
 async function ensureOverlayLayoutForPointer(e: PointerEvent, buttonBit: number): Promise<boolean> {
   if (overlayLayoutReady.value) return true
   await scheduleOverlayResize()
-  if (!active.value || penetrationMode.value) return false
+  if (!active.value) return false
   if ((e.buttons & buttonBit) === 0) {
     markPointerInteractionEnded()
     resetPointerGestureState()
@@ -1092,7 +1088,7 @@ function finishMarqueeSelection(clientX: number, clientY: number) {
 
 function onDoubleClick(e: MouseEvent) {
   if (e.button !== 0) return
-  if (penetrationMode.value || showQuickColors.value) return
+  if (showQuickColors.value) return
 
   const pos = { x: e.clientX, y: e.clientY }
   const clickedActionInfo = findActionAt(pos)
@@ -1237,7 +1233,7 @@ async function onPointerDown(e: PointerEvent) {
     return
   }
   if (e.button !== 0) return
-  if (penetrationMode.value || !active.value || showQuickColors.value) return
+  if (!active.value || showQuickColors.value) return
 
   pointerDownClient = { x: e.clientX, y: e.clientY }
   pointerMovedSinceDown = false
@@ -1259,9 +1255,7 @@ async function onPointerDown(e: PointerEvent) {
 
   // Capture immediately so move/up events are not lost while awaiting IPC (raise_toolbar).
   const willInteract =
-    currentTool.value === 'select' ||
-    canStartElementDrag(e) ||
-    (currentTool.value !== 'text' && currentTool.value !== 'stamp' && !penetrationMode.value)
+    currentTool.value === 'select' || canStartElementDrag(e) || (currentTool.value !== 'text' && currentTool.value !== 'stamp')
   if (willInteract) {
     capturePointer(e)
   }
@@ -1470,13 +1464,12 @@ function onPointerMove(e: PointerEvent) {
     mousePos.value.x = e.clientX
     mousePos.value.y = e.clientY
 
-    if (active.value && !penetrationMode.value && !showQuickColors.value && !textBoxPos.value && wantsHoverHitTest()) {
+    if (active.value && !showQuickColors.value && !textBoxPos.value && wantsHoverHitTest()) {
       if (hoverRafId === null) {
         hoverRafId = requestAnimationFrame(() => {
           hoverRafId = null
           if (
             active.value &&
-            !penetrationMode.value &&
             !showQuickColors.value &&
             !textBoxPos.value &&
             wantsHoverHitTest()
@@ -1752,7 +1745,6 @@ const onKeyDown = createKeyDownHandler(
       clearSelection()
       clearSelectionHover()
     },
-    togglePenetrationMode,
     enterWhiteboardMode,
     exitWhiteboardMode,
     copyScreen: () => {
@@ -1772,11 +1764,6 @@ const onKeyDown = createKeyDownHandler(
     },
   },
 )
-
-async function togglePenetrationMode() {
-  if (whiteboardMode.value) return
-  await invoke('toggle_penetration_mode')
-}
 
 // Custom cursor element ref — position updated directly in pointermove for performance
 const cursorEl = ref<HTMLDivElement | null>(null)
@@ -1834,7 +1821,6 @@ const wantsCustomCursor = computed(
   () =>
     active.value &&
     customCursorPositionReady.value &&
-    !penetrationMode.value &&
     !textBoxPos.value &&
     !hideUiForCapture.value &&
     !showQuickColors.value &&
@@ -1848,7 +1834,6 @@ const wantsCustomCursor = computed(
 
 // Use system cursor as fallback whenever the SVG overlay cursor is suppressed.
 const canvasCursor = computed(() => {
-  if (penetrationMode.value) return 'default'
   if (showDragCursor.value) return 'move'
   if (currentTool.value === 'text') return 'text'
   if (currentTool.value === 'stamp') return 'crosshair'
@@ -1891,7 +1876,7 @@ watch(showCustomCursor, (visible, wasVisible) => {
 
 /** Let the toolbar receive hover/clicks while the cursor is over the panel (macOS). */
 async function syncMacOverlayCursorPassthrough() {
-  if (!isMacOS() || !active.value || penetrationMode.value) return
+  if (!isMacOS() || !active.value) return
   const passThrough = toolbarPanelHovered.value || toolbarPanelDragging.value
   try {
     await invoke('set_overlay_ignore_cursor_events', { ignore: passThrough })
@@ -1900,7 +1885,7 @@ async function syncMacOverlayCursorPassthrough() {
   }
 }
 
-watch([toolbarPanelHovered, toolbarPanelDragging, penetrationMode], () => {
+watch([toolbarPanelHovered, toolbarPanelDragging], () => {
   void syncMacOverlayCursorPassthrough()
 })
 
@@ -1912,18 +1897,11 @@ function syncOverlayStateToToolbar() {
     lineWidth: lineWidth.value,
     textOutline: textOutline.value,
     whiteboardMode: whiteboardMode.value,
-    penetrationMode: penetrationMode.value,
     inkVisible: inkVisible.value,
     canUndo: canUndo.value,
     canRedo: canRedo.value,
     canClear: canClear.value,
   })
-}
-
-async function resumeDrawingFromToolbar() {
-  if (penetrationMode.value) {
-    await invoke('exit_penetration_mode')
-  }
 }
 
 function logToolbarAction(action: ToolbarAction) {
@@ -1956,9 +1934,6 @@ function logToolbarAction(action: ToolbarAction) {
     case 'copy':
       logActionEvent('copy requested', { reason, mode: whiteboardMode.value ? 'whiteboard' : 'screen' })
       break
-    case 'togglePenetration':
-      logActionEvent('toggle penetration requested', { reason })
-      break
     case 'togglePin':
       logActionEvent('toolbar pin toggle requested', { reason })
       break
@@ -1979,7 +1954,6 @@ async function handleToolbarAction(action: ToolbarAction) {
         nextTool: action.tool,
       })
       if (effect.type === 'ignore') break
-      await resumeDrawingFromToolbar()
       switch (effect.type) {
         case 'cycleStampKind':
           cycleStampKind()
@@ -2005,17 +1979,14 @@ async function handleToolbarAction(action: ToolbarAction) {
       break
     }
     case 'selectColor':
-      await resumeDrawingFromToolbar()
       currentColor.value = action.color
       showColorTip(action.color)
       break
     case 'updateLineWidth':
-      await resumeDrawingFromToolbar()
       lineWidth.value = action.width
       schedulePersistLineWidths()
       break
     case 'updateTextOutline':
-      await resumeDrawingFromToolbar()
       textOutline.value = normalizeTextOutline(action.textOutline)
       if (textBoxPos.value) {
         activeTextBoxOutline.value = normalizeTextOutline(action.textOutline)
@@ -2045,9 +2016,6 @@ async function handleToolbarAction(action: ToolbarAction) {
     case 'copy':
       copyFromToolbar()
       break
-    case 'togglePenetration':
-      await togglePenetrationMode()
-      break
     case 'togglePin':
       await toggleToolbarPin()
       break
@@ -2065,7 +2033,6 @@ watch(
     lineWidth,
     textOutline,
     whiteboardMode,
-    penetrationMode,
     inkVisible,
     canUndo,
     canRedo,
@@ -2184,7 +2151,6 @@ onMounted(async () => {
       const previousMode = lastOverlayMode
       lastOverlayMode = mode
       logSessionEvent('overlay mode changed', { from: previousMode, to: mode })
-      penetrationMode.value = mode === 'penetration'
       if (mode === 'drawing') {
         customCursorPositionReady.value = false
         overlayLayoutReady.value = false
@@ -2227,14 +2193,8 @@ onMounted(async () => {
           customCursorPositionReady.value = true
           await refreshCustomCursorPosition()
           emitPointerScreenForToolbar()
-          // Keep the open space-popup where it is when toggling click-through.
-          if (previousMode !== 'penetration') {
-            await syncOpenToolbarPopupWindow()
-          }
+          await syncOpenToolbarPopupWindow()
         })()
-      } else if (mode === 'penetration') {
-        abortActivePointerInteraction()
-        clearSelection()
       }
       syncOverlayStateToToolbar()
     }),
@@ -2446,11 +2406,8 @@ function exitDrawing(reason: 'keyboard' | 'toolbar' | 'unknown' = 'unknown') {
   <div
     ref="containerRef"
     class="fixed top-0 left-0 w-screen h-screen z-99999"
-    :class="[
-      active && !penetrationMode ? 'pointer-events-auto' : 'pointer-events-none',
-      whiteboardMode ? 'bg-white' : '',
-    ]"
-    :style="active && !penetrationMode ? { cursor: canvasCursor } : undefined"
+    :class="[active ? 'pointer-events-auto' : 'pointer-events-none', whiteboardMode ? 'bg-white' : '']"
+    :style="active ? { cursor: canvasCursor } : undefined"
   >
     <canvas
       ref="historyCanvasRef"

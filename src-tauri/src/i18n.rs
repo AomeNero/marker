@@ -9,7 +9,6 @@ pub struct Strings {
     pub tray_tooltip: &'static str,
     pub toggle_drawing: &'static str,
     pub clear_drawing: &'static str,
-    pub toggle_penetration: &'static str,
 }
 
 const ZH: Strings = Strings {
@@ -21,7 +20,6 @@ const ZH: Strings = Strings {
     tray_tooltip: "Marker - 屏幕标注工具",
     toggle_drawing: "开始标注",
     clear_drawing: "清除标注",
-    toggle_penetration: "切换穿透模式",
 };
 
 const EN: Strings = Strings {
@@ -33,7 +31,6 @@ const EN: Strings = Strings {
     tray_tooltip: "Marker - Screen annotation",
     toggle_drawing: "Toggle annotation",
     clear_drawing: "Clear annotations",
-    toggle_penetration: "Toggle click-through",
 };
 
 static USE_CHINESE: AtomicBool = AtomicBool::new(false);

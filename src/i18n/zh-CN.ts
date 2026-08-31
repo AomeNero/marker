@@ -85,7 +85,6 @@ export default {
     shortcutLabels: {
       toggleDrawing: '开始标注',
       clearDrawing: '清除标注',
-      togglePenetration: '切换穿透模式',
     },
     shortcutsSaved: '快捷键已保存',
     shortcutsSavedPartial: '已保存，但未能注册：{keys}',
@@ -154,7 +153,6 @@ export default {
     whiteboard: '白板',
     exitWhiteboard: '退出白板',
     copy: '复制',
-    penetrationMode: '穿透模式',
     showInk: '显示标注',
     hideInk: '隐藏标注',
     exit: '退出标注',
@@ -162,11 +160,10 @@ export default {
   help: {
     basicUsage: '快捷键速查',
     basicDesc:
-      '运行在<strong>系统托盘</strong>。用全局快捷键进入标注；<kbd class="help-kbd">Esc</kbd> 退出，<kbd class="help-kbd">X</kbd> 切换穿透。详细说明见官网帮助页。',
+      '运行在<strong>系统托盘</strong>。用全局快捷键进入标注；<kbd class="help-kbd">Esc</kbd> 退出，<kbd class="help-kbd">V</kbd> 隐藏/显示标注。详细说明见官网帮助页。',
     globalShortcuts: '全局',
     inSessionShortcuts: '标注中',
-    togglePenetration: '穿透模式',
-    togglePenetrationLocal: '穿透模式',
+    toggleInkVisible: '隐藏/显示标注',
     exitDrawing: '退出',
     thAction: '功能',
     thWindows: 'Windows',

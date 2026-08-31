@@ -14,7 +14,6 @@ fn duplicate_shortcut_errors(shortcuts: &Shortcuts) -> Vec<String> {
     let actions = [
         (s.toggle_drawing, shortcuts.toggle_drawing.as_str()),
         (s.clear_drawing, shortcuts.clear_drawing.as_str()),
-        (s.toggle_penetration, shortcuts.toggle_penetration.as_str()),
     ];
     let mut failed = Vec::new();
     for i in 0..actions.len() {
@@ -40,7 +39,6 @@ fn invalid_shortcut_errors(shortcuts: &Shortcuts) -> Vec<String> {
     let actions = [
         (s.toggle_drawing, shortcuts.toggle_drawing.as_str()),
         (s.clear_drawing, shortcuts.clear_drawing.as_str()),
-        (s.toggle_penetration, shortcuts.toggle_penetration.as_str()),
     ];
     let mut failed = Vec::new();
     for (label, accel) in actions {
@@ -117,7 +115,6 @@ pub fn save_shortcuts(
     let actions: Vec<(&str, &str)> = vec![
         (s.toggle_drawing, &shortcuts.toggle_drawing),
         (s.clear_drawing, &shortcuts.clear_drawing),
-        (s.toggle_penetration, &shortcuts.toggle_penetration),
     ];
 
     // Soft validation: OS/other-app occupation — still persist config so one
@@ -252,21 +249,6 @@ pub fn exit_drawing(app: AppHandle, state: tauri::State<'_, AppState>) {
 }
 
 #[tauri::command]
-pub fn enter_penetration_mode(app: AppHandle, state: tauri::State<'_, AppState>) {
-    crate::enter_penetration_mode(&app, &state);
-}
-
-#[tauri::command]
-pub fn exit_penetration_mode(app: AppHandle, state: tauri::State<'_, AppState>) {
-    crate::exit_penetration_mode(&app, &state);
-}
-
-#[tauri::command]
-pub fn toggle_penetration_mode(app: AppHandle, state: tauri::State<'_, AppState>) {
-    crate::toggle_penetration_mode(&app, &state);
-}
-
-#[tauri::command]
 pub fn set_whiteboard_mode(state: tauri::State<'_, AppState>, active: bool) {
     *lock_or_recover(&state.whiteboard_mode) = active;
 }
@@ -279,18 +261,12 @@ pub fn set_toolbar_visible(app: AppHandle, visible: bool) {
 #[tauri::command]
 pub fn set_toolbar_popup(
     app: AppHandle,
-    state: tauri::State<'_, AppState>,
     visible: bool,
     x: Option<f64>,
     y: Option<f64>,
     height: Option<f64>,
 ) {
-    crate::overlay::set_toolbar_popup(&app, &state, visible, x, y, height);
-}
-
-#[tauri::command]
-pub fn suppress_penetration(state: tauri::State<'_, AppState>, duration_ms: Option<u64>) {
-    crate::overlay::suppress_penetration_for(&state, duration_ms.unwrap_or(800));
+    crate::overlay::set_toolbar_popup(&app, visible, x, y, height);
 }
 
 #[tauri::command]
@@ -360,7 +336,6 @@ mod tests {
     fn duplicate_shortcut_errors_ignores_empty_bindings() {
         let mut shortcuts = default_shortcuts();
         shortcuts.clear_drawing = String::new();
-        shortcuts.toggle_penetration = String::new();
         assert!(duplicate_shortcut_errors(&shortcuts).is_empty());
     }
 

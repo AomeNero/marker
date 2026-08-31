@@ -31,12 +31,10 @@ const defaultShortcutStrings = computed(() =>
     ? {
         toggleDrawing: 'Command+Shift+D',
         clearDrawing: 'Command+Shift+C',
-        togglePenetration: 'Command+Shift+X',
       }
     : {
         toggleDrawing: 'Ctrl+Shift+D',
         clearDrawing: 'Ctrl+Shift+C',
-        togglePenetration: 'Ctrl+Shift+X',
       },
 )
 
@@ -44,7 +42,6 @@ const defaultShortcutStrings = computed(() =>
 const helpGlobalKeys = computed(() => ({
   toggle: shortcuts.toggleDrawing || 'Alt+G',
   clear: shortcuts.clearDrawing || 'Alt+E',
-  through: shortcuts.togglePenetration || 'Alt+M',
 }))
 
 const helpTools = [
@@ -72,13 +69,11 @@ const tabs = computed(() => tabIds.map((id) => ({ id, label: t(`settings.tabs.${
 const shortcuts = reactive<AppConfig['shortcuts']>({
   toggleDrawing: '',
   clearDrawing: '',
-  togglePenetration: '',
 })
 
 const labels = computed<Record<keyof AppConfig['shortcuts'], string>>(() => ({
   toggleDrawing: t('settings.shortcutLabels.toggleDrawing'),
   clearDrawing: t('settings.shortcutLabels.clearDrawing'),
-  togglePenetration: t('settings.shortcutLabels.togglePenetration'),
 }))
 
 const capturing = ref<keyof AppConfig['shortcuts'] | null>(null)
@@ -194,13 +189,11 @@ async function resetDefaults() {
     shortcuts: {
       toggleDrawing: d.toggleDrawing,
       clearDrawing: d.clearDrawing,
-      togglePenetration: d.togglePenetration,
     },
   })
   if (res.ok) {
     shortcuts.toggleDrawing = d.toggleDrawing
     shortcuts.clearDrawing = d.clearDrawing
-    shortcuts.togglePenetration = d.togglePenetration
     if (res.failed?.length) {
       message.value = {
         type: 'success',
@@ -571,12 +564,6 @@ onUnmounted(() => {
                   <kbd class="help-kbd">{{ helpGlobalKeys.clear }}</kbd>
                 </div>
               </div>
-              <div class="help-row">
-                <span class="help-label">{{ t('help.togglePenetration') }}</span>
-                <div class="help-keys">
-                  <kbd class="help-kbd">{{ helpGlobalKeys.through }}</kbd>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -584,8 +571,8 @@ onUnmounted(() => {
             <div class="help-card-header">{{ t('help.inSessionShortcuts') }}</div>
             <div class="help-rows">
               <div class="help-row">
-                <span class="help-label">{{ t('help.togglePenetrationLocal') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">X</kbd></div>
+                <span class="help-label">{{ t('help.toggleInkVisible') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">V</kbd></div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.settingsPanel') }}</span>

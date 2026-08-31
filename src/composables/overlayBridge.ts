@@ -24,7 +24,6 @@ export interface OverlayStateSync {
   lineWidth: number
   textOutline: TextOutlineStyle
   whiteboardMode: boolean
-  penetrationMode: boolean
   inkVisible: boolean
   canUndo: boolean
   canRedo: boolean
@@ -41,7 +40,6 @@ export type ToolbarAction =
   | { type: 'clearAll' }
   | { type: 'toggleWhiteboard' }
   | { type: 'copy' }
-  | { type: 'togglePenetration' }
   | { type: 'toggleInkVisible' }
   | { type: 'togglePin' }
   | { type: 'exitDrawing' }
