@@ -1255,7 +1255,9 @@ async function onPointerDown(e: PointerEvent) {
 
   // Capture immediately so move/up events are not lost while awaiting IPC (raise_toolbar).
   const willInteract =
-    currentTool.value === 'select' || canStartElementDrag(e) || (currentTool.value !== 'text' && currentTool.value !== 'stamp')
+    currentTool.value === 'select' ||
+    canStartElementDrag(e) ||
+    (currentTool.value !== 'text' && currentTool.value !== 'stamp')
   if (willInteract) {
     capturePointer(e)
   }
@@ -1353,7 +1355,6 @@ async function onPointerDown(e: PointerEvent) {
     placeStampAt(e.clientX, e.clientY)
     return
   }
-
 
   beginFreehandDraw(e)
 }
@@ -1468,12 +1469,7 @@ function onPointerMove(e: PointerEvent) {
       if (hoverRafId === null) {
         hoverRafId = requestAnimationFrame(() => {
           hoverRafId = null
-          if (
-            active.value &&
-            !showQuickColors.value &&
-            !textBoxPos.value &&
-            wantsHoverHitTest()
-          ) {
+          if (active.value && !showQuickColors.value && !textBoxPos.value && wantsHoverHitTest()) {
             hoveredActionInfo.value = findActionAt(mousePos.value)
             pointerOverSelectionBbox.value = currentTool.value === 'select' && !!findSelectedActionAt(mousePos.value)
           }
@@ -2236,11 +2232,21 @@ onMounted(async () => {
   )
 
   // Entering annotation (tray / Alt+G / relaunch) surfaces the docked toolbar bar (space mode).
+  // Multi-display: the request is broadcast to every overlay window; only the
+  // focused one (the cursor's screen) may position the single toolbar window.
   unlisteners.push(
     await listen('surface-toolbar-request', () => {
+      if (!document.hasFocus()) return
       if (!toolbarPinned.value && sessionActive.value) {
         void setToolbarPopupVisible(true)
       }
+    }),
+  )
+
+  // Which monitor this overlay window is serving (multi-display diagnostics).
+  unlisteners.push(
+    await listen('overlay-monitor-assigned', (event) => {
+      logActionEvent('monitor assigned', { monitor: event.payload })
     }),
   )
 

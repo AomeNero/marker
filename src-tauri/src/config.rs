@@ -340,6 +340,8 @@ pub struct AppState {
     pub whiteboard_mode: Mutex<bool>,
     /// Cross-window diagnostic ring buffer (overlay + settings are separate webviews).
     pub diagnostic_events: Mutex<Vec<crate::diagnostics::DiagnosticEvent>>,
+    /// Which overlay window currently serves which monitor (multi-display).
+    pub monitors: Mutex<crate::overlay_windows::MonitorRegistry>,
 }
 
 /// Lock a mutex with poison recovery — if a thread panicked while holding

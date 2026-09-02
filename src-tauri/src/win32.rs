@@ -32,6 +32,8 @@ pub const MONITOR_DEFAULTTONEAREST: u32 = 2;
 pub const HWND_TOPMOST: isize = -1;
 pub const HWND_NOTOPMOST: isize = -2;
 pub const SW_RESTORE: i32 = 9;
+/// Show without activating (does not steal focus from the current window).
+pub const SW_SHOWNA: i32 = 8;
 pub const SWP_NOMOVE: u32 = 0x0002;
 pub const SWP_NOSIZE: u32 = 0x0001;
 pub const SWP_NOACTIVATE: u32 = 0x0010;
@@ -43,7 +45,6 @@ extern "system" {
     pub fn GetCursorPos(lp_point: *mut POINT) -> i32;
     pub fn MonitorFromPoint(pt: POINT, dw_flags: u32) -> isize;
     pub fn GetMonitorInfoW(h_monitor: isize, lpmi: *mut MONITORINFO) -> i32;
-    pub fn ClipCursor(lp_rect: *const RECT) -> i32;
     pub fn SetWindowPos(
         h_wnd: isize,
         h_wnd_insert_after: isize,
@@ -81,6 +82,14 @@ pub fn raise_window_topmost_no_activate(hwnd: isize) {
             0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
         );
+    }
+}
+
+/// Show a window without activating it (SW_SHOWNA): extra overlay windows must
+/// become visible without stealing focus from the annotation window.
+pub fn show_window_no_activate(hwnd: isize) {
+    unsafe {
+        ShowWindow(hwnd, SW_SHOWNA);
     }
 }
 
@@ -172,20 +181,6 @@ fn monitor_rect_from_point(x: i32, y: i32) -> Option<(i32, i32, u32, u32)> {
     }
 }
 
-/// Confine the cursor to a screen rectangle (physical pixels). Pass `None` to release.
-pub fn clip_cursor_to_rect(rect: Option<&RECT>) -> bool {
-    unsafe {
-        match rect {
-            Some(rc) => ClipCursor(rc) != 0,
-            None => ClipCursor(std::ptr::null()) != 0,
-        }
-    }
-}
-
-pub fn release_cursor_clip() {
-    let _ = clip_cursor_to_rect(None);
-}
-
 /// Returns (x, y, width, height) of the monitor containing the cursor.
 pub fn get_cursor_monitor_rect_win32() -> Option<(i32, i32, u32, u32)> {
     unsafe {
@@ -195,10 +190,6 @@ pub fn get_cursor_monitor_rect_win32() -> Option<(i32, i32, u32, u32)> {
         }
         monitor_rect_from_point(pt.x, pt.y)
     }
-}
-
-pub fn get_monitor_rect_at_point_win32(x: i32, y: i32) -> Option<(i32, i32, u32, u32)> {
-    monitor_rect_from_point(x, y)
 }
 
 /// Work-area rect (excludes the taskbar) of the monitor containing (x, y).

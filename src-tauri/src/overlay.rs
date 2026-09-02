@@ -72,10 +72,20 @@ fn emit_overlay_geometry_changed(app: &AppHandle) {
     }
 }
 
+/// Re-assert transparency for every overlay window (activation / geometry
+/// pulses broadcast to all displays).
 pub fn reassert_overlay_transparency(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("overlay") {
-        ensure_overlay_transparent(&window);
+    for label in crate::overlay_windows::overlay_labels(app) {
+        if let Some(window) = app.get_webview_window(&label) {
+            ensure_overlay_transparent(&window);
+        }
     }
+}
+
+/// Re-assert transparency for one overlay window (focused / scale-changed
+/// window events target exactly one display).
+pub fn reassert_window_transparency(window: &tauri::WebviewWindow) {
+    ensure_overlay_transparent(window);
 }
 
 fn apply_deferred_overlay_geometry(app: &AppHandle) {
@@ -89,7 +99,7 @@ fn apply_deferred_overlay_geometry(app: &AppHandle) {
             .get_webview_window("toolbar")
             .is_some_and(|w| w.is_visible().unwrap_or(false))
         {
-            clamp_toolbar_to_overlay_monitor(app);
+            clamp_toolbar_to_cursor_monitor(app);
             raise_toolbar_above_overlay(app);
         }
     }
@@ -189,7 +199,7 @@ pub fn setup_overlay_size(app: &AppHandle) {
             .get_webview_window("toolbar")
             .is_some_and(|w| w.is_visible().unwrap_or(false))
         {
-            clamp_toolbar_to_overlay_monitor(app);
+            clamp_toolbar_to_cursor_monitor(app);
             raise_toolbar_above_overlay(app);
         }
     }
@@ -304,25 +314,30 @@ pub fn raise_toolbar_above_overlay(app: &AppHandle) {
     if !toolbar.is_visible().unwrap_or(false) {
         return;
     }
-    let overlay = app.get_webview_window("overlay");
     #[cfg(target_os = "macos")]
     {
-        crate::macos::raise_toolbar_ns_window_above_overlay(&toolbar, overlay.as_ref());
+        crate::macos::raise_toolbar_ns_window_above_overlay(&toolbar, None);
         return;
     }
     #[cfg(not(target_os = "macos"))]
     {
-        // Keep both windows topmost, then force toolbar above overlay in the OS Z-order.
-        if let Some(ref overlay) = overlay {
-            overlay.set_always_on_top(true).ok();
+        // Keep every overlay and the toolbar topmost, then force the toolbar
+        // above the overlays in the OS Z-order.
+        let labels = crate::overlay_windows::overlay_labels(app);
+        for label in &labels {
+            if let Some(w) = app.get_webview_window(label) {
+                w.set_always_on_top(true).ok();
+            }
         }
         toolbar.set_always_on_top(true).ok();
         #[cfg(windows)]
         {
             if let Ok(toolbar_hwnd) = toolbar.hwnd() {
-                if let Some(ref overlay) = overlay {
-                    if let Ok(overlay_hwnd) = overlay.hwnd() {
-                        crate::win32::raise_window_topmost_no_activate(overlay_hwnd.0 as isize);
+                for label in &labels {
+                    if let Some(overlay) = app.get_webview_window(label) {
+                        if let Ok(hwnd) = overlay.hwnd() {
+                            crate::win32::raise_window_topmost_no_activate(hwnd.0 as isize);
+                        }
                     }
                 }
                 crate::win32::raise_window_topmost_no_activate(toolbar_hwnd.0 as isize);
@@ -331,23 +346,19 @@ pub fn raise_toolbar_above_overlay(app: &AppHandle) {
     }
 }
 
-/// Keep the always-on toolbar fully inside the current overlay monitor.
+/// Keep the always-on toolbar fully inside the cursor's monitor.
 ///
 /// Called whenever the pinned toolbar is shown (e.g. Ctrl+Shift+D) so a saved or
 /// stale position on a disconnected / other display cannot leave the panel off-screen.
-fn clamp_toolbar_to_overlay_monitor(app: &AppHandle) {
+fn clamp_toolbar_to_cursor_monitor(app: &AppHandle) {
     let Some(window) = app.get_webview_window("toolbar") else {
         return;
     };
-    let Some(bounds) = monitor::get_overlay_monitor_logical_bounds(app) else {
+    let Some(info) = monitor::get_cursor_monitor_info(app) else {
         return;
     };
 
-    let overlay_scale = app
-        .get_webview_window("overlay")
-        .and_then(|w| w.scale_factor().ok())
-        .unwrap_or(1.0);
-    let toolbar_scale = window.scale_factor().unwrap_or(overlay_scale);
+    let toolbar_scale = window.scale_factor().unwrap_or(info.scale_factor);
 
     let Ok(pos) = window.outer_position() else {
         return;
@@ -361,7 +372,7 @@ fn clamp_toolbar_to_overlay_monitor(app: &AppHandle) {
         top,
         TOOLBAR_PANEL_WIDTH,
         panel_h,
-        &bounds,
+        &info.full,
         TOOLBAR_EDGE_MARGIN,
     );
 
@@ -371,8 +382,8 @@ fn clamp_toolbar_to_overlay_monitor(app: &AppHandle) {
 
     #[cfg(windows)]
     {
-        let phys_x = (x * overlay_scale).round() as i32;
-        let phys_y = (y * overlay_scale).round() as i32;
+        let phys_x = (x * info.scale_factor).round() as i32;
+        let phys_y = (y * info.scale_factor).round() as i32;
         window
             .set_position(tauri::PhysicalPosition::new(phys_x, phys_y))
             .ok();
@@ -396,7 +407,7 @@ pub fn set_toolbar_window_visible(app: &AppHandle, visible: bool) {
             set_ignore_cursor_events(&window, false);
             let state = app.state::<AppState>();
             if toolbar_always_visible(&state) {
-                clamp_toolbar_to_overlay_monitor(app);
+                clamp_toolbar_to_cursor_monitor(app);
             }
             raise_toolbar_above_overlay(app);
         } else {
@@ -410,29 +421,26 @@ pub fn position_toolbar_at(app: &AppHandle, x: f64, y: f64, panel_height: Option
     let Some(window) = app.get_webview_window("toolbar") else {
         return;
     };
-    let bounds = monitor::get_overlay_monitor_logical_bounds(app);
+    let info = monitor::get_cursor_monitor_info(app);
     let requested_x = x;
     let requested_y = y;
     let panel_h = panel_height
         .filter(|h| *h >= 64.0)
         .unwrap_or_else(|| toolbar_panel_height_logical(&window, TOOLBAR_PANEL_HEIGHT_COMPACT));
-    let (x, y) = if let Some(ref bounds) = bounds {
+    let (x, y) = if let Some(ref info) = info {
         monitor::clamp_logical_position_to_monitor(
             x,
             y,
             TOOLBAR_PANEL_WIDTH,
             panel_h,
-            bounds,
+            &info.full,
             TOOLBAR_EDGE_MARGIN,
         )
     } else {
         (x, y)
     };
     let state = app.state::<crate::config::AppState>();
-    let overlay_scale = app
-        .get_webview_window("overlay")
-        .and_then(|w| w.scale_factor().ok())
-        .unwrap_or(1.0);
+    let scale_factor = info.as_ref().map(|i| i.scale_factor).unwrap_or(1.0);
 
     log_backend_event(
         &state,
@@ -442,18 +450,18 @@ pub fn position_toolbar_at(app: &AppHandle, x: f64, y: f64, panel_height: Option
             "requested": { "x": requested_x, "y": requested_y },
             "clamped": { "x": x, "y": y },
             "panelHeight": panel_h,
-            "monitorBounds": bounds,
-            "overlayScale": overlay_scale,
+            "cursorMonitor": info,
+            "scaleFactor": scale_factor,
         })),
         "info",
     );
 
     #[cfg(windows)]
     {
-        let phys_x = (x * overlay_scale).round() as i32;
-        let phys_y = (y * overlay_scale).round() as i32;
-        let phys_w = (TOOLBAR_PANEL_WIDTH * overlay_scale).round() as u32;
-        let phys_h = (panel_h * overlay_scale).round() as u32;
+        let phys_x = (x * scale_factor).round() as i32;
+        let phys_y = (y * scale_factor).round() as i32;
+        let phys_w = (TOOLBAR_PANEL_WIDTH * scale_factor).round() as u32;
+        let phys_h = (panel_h * scale_factor).round() as u32;
         if let Ok(hwnd) = window.hwnd() {
             crate::win32::position_window_on_monitor(
                 hwnd.0 as isize,
@@ -541,14 +549,10 @@ pub fn deactivate_drawing(app: &AppHandle, state: &AppState) {
         return;
     }
 
-    monitor::release_drawing_cursor_clip();
     set_mode(state, OverlayMode::Hidden);
     *lock_or_recover(&state.whiteboard_mode) = false;
 
-    if let Some(window) = app.get_webview_window("overlay") {
-        set_ignore_cursor_events(&window, true);
-        window.hide().ok();
-    }
+    crate::overlay_windows::deactivate_overlays(app, state);
     hide_toolbar_window(app);
     emit_mode(app, OverlayMode::Hidden);
 }
@@ -574,6 +578,9 @@ pub fn activate_drawing(app: &AppHandle, state: &AppState) {
         notify_overlay_geometry_changed(app);
     }
 
+    // Assign remaining monitors to dynamic overlay windows and show them.
+    crate::overlay_windows::assign_and_show_extra_overlays(app, state);
+
     ensure_toolbar_window(app, state);
 
     if let Some(window) = app.get_webview_window("overlay") {
@@ -581,7 +588,6 @@ pub fn activate_drawing(app: &AppHandle, state: &AppState) {
     }
     raise_toolbar_above_overlay(app);
 
-    monitor::remember_and_clip_drawing_monitor(app);
     emit_mode(app, OverlayMode::Drawing);
     info!("Drawing mode activated");
 }
@@ -652,8 +658,10 @@ pub fn set_overlay_ignore_cursor_events(app: &AppHandle, state: &AppState, ignor
     }
     #[cfg(not(target_os = "macos"))]
     {
-        if let Some(window) = app.get_webview_window("overlay") {
-            set_ignore_cursor_events(&window, ignore);
+        for label in crate::overlay_windows::overlay_labels(app) {
+            if let Some(window) = app.get_webview_window(&label) {
+                set_ignore_cursor_events(&window, ignore);
+            }
         }
         raise_toolbar_above_overlay(app);
     }

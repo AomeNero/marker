@@ -59,23 +59,23 @@ pub fn get_config(state: tauri::State<'_, AppState>) -> AppConfig {
 
 #[tauri::command]
 pub fn get_overlay_pointer_position(
-    app: AppHandle,
+    window: tauri::WebviewWindow,
 ) -> Option<crate::monitor::OverlayPointerPosition> {
-    crate::monitor::get_overlay_client_pointer(&app)
+    crate::monitor::get_overlay_client_pointer_for(&window)
 }
 
 #[tauri::command]
 pub fn get_overlay_monitor_logical_bounds(
-    app: AppHandle,
+    window: tauri::WebviewWindow,
 ) -> Option<crate::monitor::MonitorLogicalBounds> {
-    crate::monitor::get_overlay_monitor_logical_bounds(&app)
+    crate::monitor::get_overlay_monitor_logical_bounds_for(&window)
 }
 
 #[tauri::command]
 pub fn get_overlay_monitor_work_logical_bounds(
-    app: AppHandle,
+    window: tauri::WebviewWindow,
 ) -> Option<crate::monitor::MonitorLogicalBounds> {
-    crate::monitor::get_overlay_monitor_work_logical_bounds(&app)
+    crate::monitor::get_overlay_monitor_work_logical_bounds_for(&window)
 }
 
 #[tauri::command]

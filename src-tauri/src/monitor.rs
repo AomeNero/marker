@@ -1,81 +1,5 @@
 use serde::Serialize;
-use std::sync::Mutex;
-use tauri::{AppHandle, Manager};
-
-/// Monitor bounds captured when drawing mode activates (physical pixels).
-type DrawingMonitorClip = (i32, i32, u32, u32);
-
-static DRAWING_MONITOR_CLIP: Mutex<Option<DrawingMonitorClip>> = Mutex::new(None);
-
-#[cfg(windows)]
-fn clip_rect_from_monitor((x, y, w, h): DrawingMonitorClip) -> crate::win32::RECT {
-    crate::win32::RECT {
-        left: x,
-        top: y,
-        right: x + w as i32,
-        bottom: y + h as i32,
-    }
-}
-
-/// Remember the overlay monitor and confine the cursor to it (drawing mode).
-pub fn remember_and_clip_drawing_monitor(app: &AppHandle) {
-    #[cfg(target_os = "macos")]
-    let rect = get_cursor_monitor_rect().or_else(|| get_overlay_monitor_rect(app));
-    #[cfg(not(target_os = "macos"))]
-    let rect = get_overlay_monitor_rect(app).or_else(get_cursor_monitor_rect);
-    let Some(rect) = rect else {
-        return;
-    };
-    if let Ok(mut stored) = DRAWING_MONITOR_CLIP.lock() {
-        *stored = Some(rect);
-    }
-    apply_drawing_cursor_clip();
-}
-
-/// Apply cursor clip to the remembered drawing monitor.
-pub fn apply_drawing_cursor_clip() {
-    #[cfg(windows)]
-    {
-        let Some(bounds) = DRAWING_MONITOR_CLIP.lock().ok().and_then(|guard| *guard) else {
-            return;
-        };
-        let rc = clip_rect_from_monitor(bounds);
-        if !crate::win32::clip_cursor_to_rect(Some(&rc)) {
-            tracing::warn!(
-                "ClipCursor failed for monitor {},{}, {}x{}",
-                bounds.0,
-                bounds.1,
-                bounds.2,
-                bounds.3
-            );
-        }
-    }
-    #[cfg(target_os = "macos")]
-    {
-        let Some(bounds) = DRAWING_MONITOR_CLIP.lock().ok().and_then(|guard| *guard) else {
-            return;
-        };
-        crate::macos_cursor::start_cursor_clip(bounds);
-    }
-}
-
-/// Temporarily release cursor confinement while keeping monitor bounds.
-pub fn suspend_drawing_cursor_clip() {
-    #[cfg(windows)]
-    crate::win32::release_cursor_clip();
-    #[cfg(target_os = "macos")]
-    crate::macos_cursor::stop_cursor_clip();
-}
-
-/// Release cursor confinement and forget the active monitor bounds.
-pub fn release_drawing_cursor_clip() {
-    suspend_drawing_cursor_clip();
-    #[cfg(target_os = "macos")]
-    crate::macos_cursor::release_cursor_clip();
-    if let Ok(mut stored) = DRAWING_MONITOR_CLIP.lock() {
-        *stored = None;
-    }
-}
+use tauri::{AppHandle, WebviewWindow};
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -123,15 +47,24 @@ pub fn get_cursor_screen_pos() -> Option<(i32, i32)> {
     }
 }
 
-/// Cursor position in overlay client coordinates (CSS pixels in the webview).
-pub fn get_overlay_client_pointer(app: &AppHandle) -> Option<OverlayPointerPosition> {
+/// Cursor position in `window`'s client coordinates (CSS pixels in that
+/// window's webview), or `None` when the cursor is outside this window —
+/// so only the overlay whose monitor the cursor is on reports a position.
+pub fn get_overlay_client_pointer_for(window: &WebviewWindow) -> Option<OverlayPointerPosition> {
     let (screen_x, screen_y) = get_cursor_screen_pos()?;
-    let (mon_x, mon_y, _, _) = get_cursor_monitor_rect()?;
-    let dx = (screen_x - mon_x) as f64;
-    let dy = (screen_y - mon_y) as f64;
+    let pos = window.outer_position().ok()?;
+    let size = window.outer_size().ok()?;
+    if screen_x < pos.x
+        || screen_y < pos.y
+        || screen_x >= pos.x + size.width as i32
+        || screen_y >= pos.y + size.height as i32
+    {
+        return None;
+    }
+    let dx = (screen_x - pos.x) as f64;
+    let dy = (screen_y - pos.y) as f64;
     #[cfg(not(target_os = "macos"))]
     {
-        let window = app.get_webview_window("overlay")?;
         let scale = window.scale_factor().ok()?;
         Some(OverlayPointerPosition {
             x: dx / scale,
@@ -142,7 +75,6 @@ pub fn get_overlay_client_pointer(app: &AppHandle) -> Option<OverlayPointerPosit
     }
     #[cfg(target_os = "macos")]
     {
-        app.get_webview_window("overlay")?;
         Some(OverlayPointerPosition {
             x: dx,
             y: dy,
@@ -202,31 +134,6 @@ pub fn get_cursor_monitor_rect() -> Option<(i32, i32, u32, u32)> {
     Some((x, y, w, h))
 }
 
-#[cfg(target_os = "windows")]
-fn get_monitor_rect_at_point(x: i32, y: i32) -> Option<(i32, i32, u32, u32)> {
-    crate::win32::get_monitor_rect_at_point_win32(x, y)
-}
-
-#[cfg(target_os = "macos")]
-fn get_monitor_rect_at_point(x: i32, y: i32) -> Option<(i32, i32, u32, u32)> {
-    let monitor = xcap::Monitor::from_point(x, y).ok()?;
-    let x = monitor.x().ok()?;
-    let y = monitor.y().ok()?;
-    let w = monitor.width().ok()?;
-    let h = monitor.height().ok()?;
-    Some((x, y, w, h))
-}
-
-/// Monitor bounds for the overlay window (used to confine the cursor while drawing).
-pub fn get_overlay_monitor_rect(app: &AppHandle) -> Option<(i32, i32, u32, u32)> {
-    let window = app.get_webview_window("overlay")?;
-    let pos = window.outer_position().ok()?;
-    let size = window.outer_size().ok()?;
-    let cx = pos.x + (size.width as i32 / 2);
-    let cy = pos.y + (size.height as i32 / 2);
-    get_monitor_rect_at_point(cx, cy)
-}
-
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MonitorLogicalBounds {
@@ -236,9 +143,8 @@ pub struct MonitorLogicalBounds {
     pub height: f64,
 }
 
-/// Overlay monitor bounds in logical coordinates for toolbar window positioning.
-pub fn get_overlay_monitor_logical_bounds(app: &AppHandle) -> Option<MonitorLogicalBounds> {
-    let window = app.get_webview_window("overlay")?;
+/// Monitor bounds in logical coordinates for toolbar window positioning.
+pub fn get_overlay_monitor_logical_bounds_for(window: &WebviewWindow) -> Option<MonitorLogicalBounds> {
     let monitor = window.current_monitor().ok()??;
     let pos = monitor.position();
     let size = monitor.size();
@@ -251,12 +157,13 @@ pub fn get_overlay_monitor_logical_bounds(app: &AppHandle) -> Option<MonitorLogi
     })
 }
 
-/// Work-area bounds of the overlay monitor (taskbar excluded) in logical coords,
-/// for docking the toolbar just above the taskbar.
-pub fn get_overlay_monitor_work_logical_bounds(app: &AppHandle) -> Option<MonitorLogicalBounds> {
+/// Work-area bounds of the window's monitor (taskbar excluded) in logical
+/// coords, for docking the toolbar just above the taskbar.
+pub fn get_overlay_monitor_work_logical_bounds_for(
+    window: &WebviewWindow,
+) -> Option<MonitorLogicalBounds> {
     #[cfg(target_os = "windows")]
     {
-        let window = app.get_webview_window("overlay")?;
         let pos = window.outer_position().ok()?;
         let size = window.outer_size().ok()?;
         let cx = pos.x + (size.width as i32 / 2);
@@ -272,12 +179,60 @@ pub fn get_overlay_monitor_work_logical_bounds(app: &AppHandle) -> Option<Monito
     }
     #[cfg(not(target_os = "windows"))]
     {
-        let b = get_overlay_monitor_logical_bounds(app)?;
+        let b = get_overlay_monitor_logical_bounds_for(window)?;
         Some(MonitorLogicalBounds {
             height: (b.height - 64.0).max(b.height * 0.5),
             ..b
         })
     }
+}
+
+/// Full-monitor bounds, work-area bounds and scale of the monitor containing
+/// the cursor — the toolbar docks and clamps against the *cursor's* screen
+/// (decision: toolbar follows the cursor monitor).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CursorMonitorInfo {
+    pub full: MonitorLogicalBounds,
+    pub work: MonitorLogicalBounds,
+    pub scale_factor: f64,
+}
+
+pub fn get_cursor_monitor_info(app: &AppHandle) -> Option<CursorMonitorInfo> {
+    let (cx, cy) = get_cursor_screen_pos()?;
+    let monitors = app.available_monitors().ok()?;
+    for m in monitors {
+        let pos = m.position();
+        let size = m.size();
+        if cx >= pos.x
+            && cx < pos.x + size.width as i32
+            && cy >= pos.y
+            && cy < pos.y + size.height as i32
+        {
+            let scale = m.scale_factor();
+            let full_pos = m.position();
+            let full_size = m.size();
+            let work = m.work_area();
+            let work_pos = work.position;
+            let work_size = work.size;
+            return Some(CursorMonitorInfo {
+                full: MonitorLogicalBounds {
+                    left: full_pos.x as f64 / scale,
+                    top: full_pos.y as f64 / scale,
+                    width: full_size.width as f64 / scale,
+                    height: full_size.height as f64 / scale,
+                },
+                work: MonitorLogicalBounds {
+                    left: work_pos.x as f64 / scale,
+                    top: work_pos.y as f64 / scale,
+                    width: work_size.width as f64 / scale,
+                    height: work_size.height as f64 / scale,
+                },
+                scale_factor: scale,
+            });
+        }
+    }
+    None
 }
 
 pub fn clamp_logical_position_to_monitor(

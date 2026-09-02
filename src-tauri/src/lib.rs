@@ -9,10 +9,9 @@ mod error;
 mod i18n;
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(target_os = "macos")]
-mod macos_cursor;
 mod monitor;
 mod overlay;
+mod overlay_windows;
 mod portable;
 mod shortcuts;
 #[cfg(target_os = "windows")]
@@ -192,6 +191,7 @@ pub fn run() {
             overlay_mode: Mutex::new(overlay::OverlayMode::Hidden),
             whiteboard_mode: Mutex::new(false),
             diagnostic_events: Mutex::new(Vec::new()),
+            monitors: Mutex::new(std::collections::HashMap::new()),
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
@@ -309,9 +309,26 @@ pub fn run() {
 
             shortcuts::register_shortcuts(&handle);
 
+            // Pre-create hidden overlay windows for extra monitors so the first
+            // multi-screen activation never waits on webview startup.
+            let precreate_handle = handle.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(1500));
+                let _ = precreate_handle.run_on_main_thread({
+                    let inner = precreate_handle.clone();
+                    move || {
+                        let extra = overlay_windows::enumerate_monitors(&inner)
+                            .len()
+                            .saturating_sub(1);
+                        if extra > 0 {
+                            overlay_windows::ensure_extra_overlay_windows(&inner, extra);
+                        }
+                    }
+                });
+            });
+
             let ctrlc_handle = handle.clone();
             ctrlc::set_handler(move || {
-                crate::monitor::release_drawing_cursor_clip();
                 ctrlc_handle.exit(0);
             })
             .ok();
@@ -320,20 +337,32 @@ pub fn run() {
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. }
-                if window.label() == "overlay" || window.label() == "toolbar" =>
+                if window.label().starts_with("overlay") || window.label() == "toolbar" =>
             {
                 api.prevent_close();
                 window.hide().ok();
             }
             // WebView2 can lose the transparent clear color after long idle /
             // GPU recycle and repaint opaque black once it regains focus.
-            tauri::WindowEvent::Focused(true) if window.label() == "overlay" => {
-                overlay::reassert_overlay_transparency(window.app_handle());
+            tauri::WindowEvent::Focused(true) if window.label().starts_with("overlay") => {
+                if let Some(w) = window
+                    .app_handle()
+                    .get_webview_window(window.label())
+                {
+                    overlay::reassert_window_transparency(&w);
+                }
             }
             // DPI change / monitor move can rebuild the compositor and drop the
             // transparent backdrop; re-assert it as soon as the scale settles.
-            tauri::WindowEvent::ScaleFactorChanged { .. } if window.label() == "overlay" => {
-                overlay::reassert_overlay_transparency(window.app_handle());
+            tauri::WindowEvent::ScaleFactorChanged { .. }
+                if window.label().starts_with("overlay") =>
+            {
+                if let Some(w) = window
+                    .app_handle()
+                    .get_webview_window(window.label())
+                {
+                    overlay::reassert_window_transparency(&w);
+                }
             }
             tauri::WindowEvent::Destroyed if window.label() == "settings" => {
                 #[cfg(target_os = "macos")]
