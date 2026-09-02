@@ -321,9 +321,16 @@ pub fn exit_drawing(app: AppHandle, state: tauri::State<'_, AppState>) {
     crate::deactivate_drawing(&app, &state);
 }
 
+/// Global whiteboard state: every overlay enters/leaves together. The
+/// `whiteboard-changed` broadcast is the only driver — sibling overlays apply
+/// the full enter/exit semantics (preserve-config reset etc.) themselves, and
+/// the initiating window skips via an idempotence guard.
 #[tauri::command]
-pub fn set_whiteboard_mode(state: tauri::State<'_, AppState>, active: bool) {
+pub fn set_whiteboard_mode(app: AppHandle, state: tauri::State<'_, AppState>, active: bool) {
     *lock_or_recover(&state.whiteboard_mode) = active;
+    if let Err(e) = app.emit("whiteboard-changed", active) {
+        warn!("Failed to emit whiteboard-changed: {}", e);
+    }
 }
 
 #[tauri::command]

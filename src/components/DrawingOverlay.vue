@@ -2307,6 +2307,21 @@ onMounted(async () => {
     }),
   )
 
+  // Global whiteboard: `set_whiteboard_mode` broadcasts after persisting, so
+  // every overlay (including the initiator) converges here. The initiator
+  // already applied its local semantics and skips via the mode guards inside
+  // enter/exit; siblings run the full enter/exit (preserve-config reset etc.).
+  unlisteners.push(
+    await listen<boolean>('whiteboard-changed', (event) => {
+      if (!sessionActive.value) return
+      if (event.payload && !whiteboardMode.value) {
+        void enterWhiteboardMode()
+      } else if (!event.payload && whiteboardMode.value) {
+        exitWhiteboardMode()
+      }
+    }),
+  )
+
   unlisteners.push(
     await listen<boolean>(TOOLBAR_PANEL_HOVER_EVENT, (event) => {
       if (isMacOS()) return
