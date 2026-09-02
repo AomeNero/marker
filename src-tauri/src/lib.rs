@@ -16,8 +16,8 @@ mod portable;
 mod shortcuts;
 #[cfg(target_os = "windows")]
 mod single_instance_win;
-mod timeline;
 mod theme;
+mod timeline;
 #[cfg(target_os = "windows")]
 mod win32;
 
@@ -353,10 +353,7 @@ pub fn run() {
             // WebView2 can lose the transparent clear color after long idle /
             // GPU recycle and repaint opaque black once it regains focus.
             tauri::WindowEvent::Focused(true) if window.label().starts_with("overlay") => {
-                if let Some(w) = window
-                    .app_handle()
-                    .get_webview_window(window.label())
-                {
+                if let Some(w) = window.app_handle().get_webview_window(window.label()) {
                     overlay::reassert_window_transparency(&w);
                 }
             }
@@ -365,10 +362,7 @@ pub fn run() {
             tauri::WindowEvent::ScaleFactorChanged { .. }
                 if window.label().starts_with("overlay") =>
             {
-                if let Some(w) = window
-                    .app_handle()
-                    .get_webview_window(window.label())
-                {
+                if let Some(w) = window.app_handle().get_webview_window(window.label()) {
                     overlay::reassert_window_transparency(&w);
                 }
             }

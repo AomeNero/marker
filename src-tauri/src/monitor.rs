@@ -144,7 +144,9 @@ pub struct MonitorLogicalBounds {
 }
 
 /// Monitor bounds in logical coordinates for toolbar window positioning.
-pub fn get_overlay_monitor_logical_bounds_for(window: &WebviewWindow) -> Option<MonitorLogicalBounds> {
+pub fn get_overlay_monitor_logical_bounds_for(
+    window: &WebviewWindow,
+) -> Option<MonitorLogicalBounds> {
     let monitor = window.current_monitor().ok()??;
     let pos = monitor.position();
     let size = monitor.size();

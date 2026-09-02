@@ -104,9 +104,10 @@ pub fn diff_topology(old: &[MonitorSpec], new: &[MonitorSpec]) -> Vec<TopoChange
             .position(|(i, n)| !used[i] && n.topology_key(origin) == key);
         if idx.is_none() {
             if let Some(name) = &o.name {
-                idx = new.iter().enumerate().position(|(i, n)| {
-                    !used[i] && n.name.as_deref() == Some(name.as_str())
-                });
+                idx = new
+                    .iter()
+                    .enumerate()
+                    .position(|(i, n)| !used[i] && n.name.as_deref() == Some(name.as_str()));
             }
         }
         match idx {
@@ -133,10 +134,7 @@ pub fn diff_topology(old: &[MonitorSpec], new: &[MonitorSpec]) -> Vec<TopoChange
 /// Deterministic label assignment for one activation: the cursor's monitor is
 /// served by the static `overlay` window; remaining monitors pair with dynamic
 /// labels in reading order (top-to-bottom, left-to-right).
-pub fn assign_labels(
-    monitors: &[MonitorSpec],
-    cursor: &MonitorSpec,
-) -> Vec<(String, MonitorSpec)> {
+pub fn assign_labels(monitors: &[MonitorSpec], cursor: &MonitorSpec) -> Vec<(String, MonitorSpec)> {
     let total_dynamic = monitors.len().saturating_sub(1);
     let labels: Vec<String> = (DYNAMIC_LABEL_BASE..DYNAMIC_LABEL_BASE + total_dynamic)
         .map(|i| format!("overlay-{i}"))
@@ -144,11 +142,7 @@ pub fn assign_labels(
     let mut rest: Vec<&MonitorSpec> = monitors.iter().filter(|m| **m != *cursor).collect();
     rest.sort_by_key(|m| (m.y, m.x));
     let mut pairs = vec![(PRIMARY_LABEL.to_string(), cursor.clone())];
-    pairs.extend(
-        labels
-            .into_iter()
-            .zip(rest.into_iter().cloned()),
-    );
+    pairs.extend(labels.into_iter().zip(rest.into_iter().cloned()));
     pairs
 }
 
@@ -383,10 +377,7 @@ pub fn assign_and_show_extra_overlays(app: &AppHandle, state: &AppState) {
         let Some(window) = app.get_webview_window(label) else {
             continue;
         };
-        if let Some((_, tauri_monitor)) = monitors
-            .iter()
-            .find(|(m, _)| m.same_geometry(spec))
-        {
+        if let Some((_, tauri_monitor)) = monitors.iter().find(|(m, _)| m.same_geometry(spec)) {
             place_overlay_on_monitor(&window, tauri_monitor);
         }
         window.set_ignore_cursor_events(false).ok();
@@ -544,7 +535,11 @@ fn topology_watch_tick(app: &AppHandle) {
                     entry.spec = m.clone();
                     entry.hidden = false;
                     changed = true;
-                    let _ = app.emit_to(label, "overlay-monitor-restored", assigned_payload(label, &m));
+                    let _ = app.emit_to(
+                        label,
+                        "overlay-monitor-restored",
+                        assigned_payload(label, &m),
+                    );
                 }
             }
             None => {
@@ -585,8 +580,18 @@ fn topology_watch_tick(app: &AppHandle) {
             crate::overlay::reassert_window_transparency(&window);
         }
         let mut registry = lock_or_recover(&state.monitors);
-        registry.insert(label.clone(), MonitorEntry { spec: spec.clone(), hidden: false });
-        let _ = app.emit_to(&label, "overlay-monitor-restored", assigned_payload(&label, &spec));
+        registry.insert(
+            label.clone(),
+            MonitorEntry {
+                spec: spec.clone(),
+                hidden: false,
+            },
+        );
+        let _ = app.emit_to(
+            &label,
+            "overlay-monitor-restored",
+            assigned_payload(&label, &spec),
+        );
         changed = true;
     }
 
@@ -626,8 +631,14 @@ mod tests {
     fn topology_key_normalizes_by_bounding_box_origin() {
         // Same arrangement; second has the OS primary on the right monitor,
         // which shifts every absolute coordinate by -1920.
-        let a = [mon(0, 0, 1920, 1080, 1.0, Some("A")), mon(1920, 0, 2560, 1440, 1.5, Some("B"))];
-        let b = [mon(-1920, 0, 1920, 1080, 1.0, Some("A")), mon(0, 0, 2560, 1440, 1.5, Some("B"))];
+        let a = [
+            mon(0, 0, 1920, 1080, 1.0, Some("A")),
+            mon(1920, 0, 2560, 1440, 1.5, Some("B")),
+        ];
+        let b = [
+            mon(-1920, 0, 1920, 1080, 1.0, Some("A")),
+            mon(0, 0, 2560, 1440, 1.5, Some("B")),
+        ];
         let origin_a = topology_origin(&a);
         let origin_b = topology_origin(&b);
         assert_eq!(a[1].topology_key(origin_a), b[1].topology_key(origin_b));
@@ -638,7 +649,10 @@ mod tests {
 
     #[test]
     fn diff_identical_topologies_emits_nothing() {
-        let t = [mon(0, 0, 1920, 1080, 1.0, Some("A")), mon(1920, 0, 1920, 1080, 1.0, Some("B"))];
+        let t = [
+            mon(0, 0, 1920, 1080, 1.0, Some("A")),
+            mon(1920, 0, 1920, 1080, 1.0, Some("B")),
+        ];
         assert!(diff_topology(&t, &t).is_empty());
     }
 
@@ -703,7 +717,10 @@ mod tests {
         ];
         // B moved from the right of A to the left: one reposition, order-agnostic.
         let changes = diff_topology(&old, &new);
-        assert!(matches!(changes.as_slice(), &[TopoChange::Repositioned { .. }]));
+        assert!(matches!(
+            changes.as_slice(),
+            &[TopoChange::Repositioned { .. }]
+        ));
     }
 
     // ---- assign_labels ----------------------------------------------------
@@ -731,10 +748,8 @@ mod tests {
             mon(1920, 0, 1920, 1080, 1.0, Some("R")),  // right
         ];
         let pairs = assign_labels(&monitors, &monitors[0]);
-        let dynamic: Vec<(&str, &MonitorSpec)> = pairs[1..]
-            .iter()
-            .map(|(l, m)| (l.as_str(), m))
-            .collect();
+        let dynamic: Vec<(&str, &MonitorSpec)> =
+            pairs[1..].iter().map(|(l, m)| (l.as_str(), m)).collect();
         // Reading order: top-to-bottom first, so the monitor above (T) gets
         // the lower label before the one to the right (R).
         assert_eq!(
@@ -772,6 +787,9 @@ mod tests {
             "overlay-4"
         );
         // Gaps in the numbering are reused (window was destroyed / never made).
-        assert_eq!(next_dynamic_label(&["overlay".into(), "overlay-3".into()]), "overlay-2");
+        assert_eq!(
+            next_dynamic_label(&["overlay".into(), "overlay-3".into()]),
+            "overlay-2"
+        );
     }
 }

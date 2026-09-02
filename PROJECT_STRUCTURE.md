@@ -75,10 +75,12 @@ marker/
 |------|------|
 | `src/lib.rs` / `main.rs` | 入口：托盘、窗口管理、事件路由、全局快捷键 |
 | `src/overlay.rs` | overlay/toolbar 窗口生命周期、停靠定位 |
+| `src/overlay_windows.rs` | **多显示器编排**：一屏一 overlay 窗口、拓扑 diff、热插拔 watcher、光标屏路由 |
+| `src/timeline.rs` | 全局撤销时间线（跨屏 Ctrl+Z 的轻量 op 记录，clear 折叠） |
 | `src/config.rs` | config.json 读写与归一化（快捷键/笔粗档位等） |
-| `src/win32.rs` | Win32 API：显示器工作区、透明度、光标限制 |
-| `src/monitor.rs` | 多显示器边界查询 |
-| `src/commands.rs` | 前端可调用的 IPC 命令 |
+| `src/win32.rs` | Win32 API：显示器工作区、透明度、无焦点置顶 |
+| `src/monitor.rs` | 显示器边界查询（按调用窗口/光标屏参数化） |
+| `src/commands.rs` | 前端可调用的 IPC 命令（含工具栏动作转发、时间线命令） |
 | `src/theme.rs` / `macos*.rs` / `single_instance_win.rs` / `portable.rs` 等 | 主题跟随、macOS 适配、单实例、便携版标记 |
 | `icons/` | 应用全套图标（ico/icns/png + NSIS/WiX 安装器图） |
 | `tauri.conf.json` | Tauri 主配置（窗口、打包、updater） |

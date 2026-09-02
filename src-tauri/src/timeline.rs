@@ -141,7 +141,7 @@ mod tests {
         t.commit("overlay", "add"); // screen 1 stroke
         t.commit("overlay-2", "add"); // screen 2 stroke
         t.commit("overlay", "add"); // screen 1 again
-        // Latest op belongs to the static overlay window.
+                                    // Latest op belongs to the static overlay window.
         assert_eq!(t.undo().unwrap().owner, "overlay");
         // Then the screen-2 stroke; one op remains active.
         assert_eq!(t.undo().unwrap().owner, "overlay-2");
@@ -175,11 +175,17 @@ mod tests {
         assert_eq!(popped.op_id, clear.op_id);
         assert!(!t.can_undo() || t.active.len() == 3);
         assert_eq!(
-            t.active.iter().map(|op| op.kind.as_str()).collect::<Vec<_>>(),
+            t.active
+                .iter()
+                .map(|op| op.kind.as_str())
+                .collect::<Vec<_>>(),
             vec!["add", "add", "erase"]
         );
         assert_eq!(
-            t.active.iter().map(|op| op.owner.as_str()).collect::<Vec<_>>(),
+            t.active
+                .iter()
+                .map(|op| op.owner.as_str())
+                .collect::<Vec<_>>(),
             vec!["overlay", "overlay-2", "overlay"]
         );
 

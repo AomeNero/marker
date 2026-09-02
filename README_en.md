@@ -54,6 +54,7 @@ winget install --id 9N6623X973JV --source msstore
 
 - **Lightweight & fast** — ~1.5 MB installer (Rust + Canvas), minimal memory; runs quietly in the system tray (no extra daemons or telemetry)
 - **Annotate anywhere** — draw over any app, including the taskbar
+- **Multi-display support** — draw on every screen at once, annotations stay on their own display; precise per-screen coordinates with mixed DPI; the toolbar follows the cursor's screen; displays hot-plugged mid-session recover automatically
 - **10 tools** — pen, highlighter, laser, arrow, rectangle, ellipse, line, eraser, text, stamp
 - **Flexible toolbar** — shows when you enter annotation, **auto-hides while you draw**, <kbd>Space</kbd> recalls / toggles it, or enable **always-on** in Settings; compact panel with **Expand** for full options, undo, copy, and whiteboard actions in-panel; also available as an **independent floating window**
 - **Hide / show annotations** — press <kbd>V</kbd> to temporarily hide all annotations (e.g. to interact with apps below), press again to restore
