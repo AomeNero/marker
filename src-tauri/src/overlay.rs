@@ -559,6 +559,7 @@ pub fn deactivate_drawing(app: &AppHandle, state: &AppState) {
         lock_or_recover(&state.timeline).reset();
     }
 
+    crate::overlay_windows::stop_topology_watcher();
     crate::overlay_windows::deactivate_overlays(app, state);
     hide_toolbar_window(app);
     emit_mode(app, OverlayMode::Hidden);
@@ -588,6 +589,7 @@ pub fn activate_drawing(app: &AppHandle, state: &AppState) {
 
     // Assign remaining monitors to dynamic overlay windows and show them.
     crate::overlay_windows::assign_and_show_extra_overlays(app, state);
+    crate::overlay_windows::start_topology_watcher(app);
 
     ensure_toolbar_window(app, state);
 

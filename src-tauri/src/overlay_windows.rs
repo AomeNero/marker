@@ -9,6 +9,8 @@
 
 use serde::Serialize;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tracing::{info, warn};
 
@@ -161,34 +163,23 @@ pub struct MonitorEntry {
 /// label → assignment.
 pub type MonitorRegistry = HashMap<String, MonitorEntry>;
 
-/// Find the registry label that previously served `monitor`: exact geometry
-/// match first, OS name as tiebreaker. Used when a monitor re-appears so its
-/// old window (with the strokes still in that webview) is restored to it.
-#[allow(dead_code)] // wired by the hotplug topology watcher later in this feature
-pub fn find_window_for_monitor(
-    registry: &MonitorRegistry,
-    monitor: &MonitorSpec,
-) -> Option<String> {
-    let mut labels: Vec<&String> = registry.keys().collect();
-    labels.sort();
-    let mut name_match = None;
-    for label in labels {
-        let entry = &registry[label];
-        if entry.spec.same_geometry(monitor) {
-            return Some(label.clone());
-        }
-        if name_match.is_none() && entry.spec.name.is_some() && entry.spec.name == monitor.name {
-            name_match = Some(label.clone());
-        }
-    }
-    name_match
-}
-
 /// Sorted overlay labels (static first, then numeric suffix order).
 pub fn label_sort_key(label: &str) -> (bool, usize) {
     match label.strip_prefix("overlay-").and_then(|s| s.parse().ok()) {
         Some(n) => (true, n),
         None => (false, 0), // "overlay" sorts before dynamic labels
+    }
+}
+
+/// Lowest unused dynamic overlay label (`overlay-2`, `overlay-3`, …).
+fn next_dynamic_label(taken: &[String]) -> String {
+    let mut i = DYNAMIC_LABEL_BASE;
+    loop {
+        let candidate = format!("overlay-{i}");
+        if !taken.iter().any(|l| l == &candidate) {
+            return candidate;
+        }
+        i += 1;
     }
 }
 
@@ -268,33 +259,43 @@ pub fn cursor_monitor(monitors: &[(MonitorSpec, tauri::Monitor)]) -> Option<Moni
 // Side-effecting orchestration (thin layer over the pure logic above)
 // ---------------------------------------------------------------------------
 
+/// Create a dynamic overlay window (hidden, click-through until assigned).
+/// Idempotent: returns the existing window when the label is already taken.
+fn create_dynamic_overlay_window(app: &AppHandle, label: &str) -> Option<WebviewWindow> {
+    if let Some(existing) = app.get_webview_window(label) {
+        return Some(existing);
+    }
+    let url = WebviewUrl::App("index.html".into());
+    let builder = WebviewWindowBuilder::new(app, label, url)
+        .title("Marker")
+        .transparent(true)
+        .decorations(false)
+        .always_on_top(true)
+        .shadow(false)
+        .skip_taskbar(true)
+        .resizable(false)
+        .visible(false)
+        .focused(false);
+    match builder.build() {
+        Ok(window) => {
+            window.set_ignore_cursor_events(true).ok();
+            crate::overlay::reassert_window_transparency(&window);
+            info!("created hidden overlay window {}", label);
+            Some(window)
+        }
+        Err(e) => {
+            warn!("Failed to create overlay window {}: {}", label, e);
+            None
+        }
+    }
+}
+
 /// Create hidden dynamic overlay windows (`overlay-2..`) so activation never
 /// waits on webview startup. Idempotent; skips labels that already exist.
 pub fn ensure_extra_overlay_windows(app: &AppHandle, dynamic_count: usize) {
     for i in DYNAMIC_LABEL_BASE..DYNAMIC_LABEL_BASE + dynamic_count {
         let label = format!("overlay-{i}");
-        if app.get_webview_window(&label).is_some() {
-            continue;
-        }
-        let url = WebviewUrl::App("index.html".into());
-        let builder = WebviewWindowBuilder::new(app, &label, url)
-            .title("Marker")
-            .transparent(true)
-            .decorations(false)
-            .always_on_top(true)
-            .shadow(false)
-            .skip_taskbar(true)
-            .resizable(false)
-            .visible(false)
-            .focused(false);
-        match builder.build() {
-            Ok(window) => {
-                window.set_ignore_cursor_events(true).ok();
-                crate::overlay::reassert_window_transparency(&window);
-                info!("created hidden overlay window {}", label);
-            }
-            Err(e) => warn!("Failed to create overlay window {}: {}", label, e),
-        }
+        create_dynamic_overlay_window(app, &label);
     }
 }
 
@@ -445,6 +446,153 @@ pub fn deactivate_overlays(app: &AppHandle, state: &AppState) {
         if let Some(entry) = registry.get_mut(&label) {
             entry.hidden = true;
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Hotplug topology watcher (annotation session only)
+// ---------------------------------------------------------------------------
+
+/// Session-scoped flag driving the 1s monitor-poll loop.
+static TOPOLOGY_WATCH_ACTIVE: AtomicBool = AtomicBool::new(false);
+
+/// Poll the monitor topology once per second while annotation is active.
+/// A lost display hides its window (the webview keeps the strokes); a
+/// restored display gets its old window back (geometry / name match); a
+/// newly-connected display gets a fresh window.
+pub fn start_topology_watcher(app: &AppHandle) {
+    if TOPOLOGY_WATCH_ACTIVE.swap(true, Ordering::SeqCst) {
+        return; // already running
+    }
+    let handle = app.clone();
+    std::thread::spawn(move || {
+        while TOPOLOGY_WATCH_ACTIVE.load(Ordering::SeqCst) {
+            std::thread::sleep(Duration::from_millis(1000));
+            if !TOPOLOGY_WATCH_ACTIVE.load(Ordering::SeqCst) {
+                break;
+            }
+            let app_for_tick = handle.clone();
+            let _ = handle.run_on_main_thread(move || {
+                topology_watch_tick(&app_for_tick);
+            });
+        }
+    });
+}
+
+pub fn stop_topology_watcher() {
+    TOPOLOGY_WATCH_ACTIVE.store(false, Ordering::SeqCst);
+}
+
+fn assigned_payload(label: &str, spec: &MonitorSpec) -> MonitorAssigned {
+    MonitorAssigned {
+        label: label.to_string(),
+        x: spec.x,
+        y: spec.y,
+        width: spec.width,
+        height: spec.height,
+        scale_factor: spec.scale_factor,
+    }
+}
+
+fn topology_watch_tick(app: &AppHandle) {
+    let state = app.state::<AppState>();
+    if crate::overlay::current_mode(&state) != crate::overlay::OverlayMode::Drawing {
+        return;
+    }
+    let monitors = enumerate_monitors(app);
+    let specs: Vec<MonitorSpec> = monitors.iter().map(|(m, _)| m.clone()).collect();
+    let mut registry = lock_or_recover(&state.monitors);
+    let mut used = vec![false; monitors.len()];
+    let mut changed = false;
+
+    // Pair each registry entry with a monitor (geometry first, OS name as
+    // tiebreaker for resolution changes). Unpaired → lost; geometry drift →
+    // reposition. Steady state emits nothing at all.
+    let labels: Vec<String> = registry.keys().cloned().collect();
+    for label in &labels {
+        let Some(entry) = registry.get_mut(label) else {
+            continue;
+        };
+        let mut idx: Option<usize> = specs
+            .iter()
+            .enumerate()
+            .find(|(i, m)| !used[*i] && m.same_geometry(&entry.spec))
+            .map(|(i, _)| i);
+        if idx.is_none() {
+            if let Some(name) = entry.spec.name.clone() {
+                idx = specs
+                    .iter()
+                    .enumerate()
+                    .find(|(i, m)| !used[*i] && m.name.as_deref() == Some(name.as_str()))
+                    .map(|(i, _)| i);
+            }
+        }
+        match idx {
+            Some(i) => {
+                used[i] = true;
+                let m = specs[i].clone();
+                if !entry.spec.same_geometry(&m) || entry.hidden {
+                    if let (Some(window), Some((_, tmon))) =
+                        (app.get_webview_window(label), monitors.get(i))
+                    {
+                        place_overlay_on_monitor(&window, tmon);
+                        window.set_ignore_cursor_events(false).ok();
+                        show_overlay_no_activate(&window);
+                        window.set_always_on_top(true).ok();
+                        crate::overlay::reassert_window_transparency(&window);
+                    }
+                    entry.spec = m.clone();
+                    entry.hidden = false;
+                    changed = true;
+                    let _ = app.emit_to(label, "overlay-monitor-restored", assigned_payload(label, &m));
+                }
+            }
+            None => {
+                if !entry.hidden {
+                    entry.hidden = true;
+                    if let Some(window) = app.get_webview_window(label) {
+                        window.set_ignore_cursor_events(true).ok();
+                        window.hide().ok();
+                    }
+                    let _ = app.emit_to(label, "overlay-monitor-lost", ());
+                    changed = true;
+                }
+            }
+        }
+    }
+    drop(registry);
+
+    // Newly connected displays (no registry pairing): create a fresh window.
+    // Dormant windows of still-lost displays are never recycled — their
+    // strokes belong to that display and reappear when it returns.
+    for (i, (_, tmon)) in monitors.iter().enumerate() {
+        if used[i] {
+            continue;
+        }
+        let spec = specs[i].clone();
+        let mut taken = overlay_labels(app);
+        {
+            let registry = lock_or_recover(&state.monitors);
+            taken.extend(registry.keys().cloned());
+        }
+        let label = next_dynamic_label(&taken);
+        create_dynamic_overlay_window(app, &label);
+        if let Some(window) = app.get_webview_window(&label) {
+            place_overlay_on_monitor(&window, tmon);
+            window.set_ignore_cursor_events(false).ok();
+            show_overlay_no_activate(&window);
+            window.set_always_on_top(true).ok();
+            crate::overlay::reassert_window_transparency(&window);
+        }
+        let mut registry = lock_or_recover(&state.monitors);
+        registry.insert(label.clone(), MonitorEntry { spec: spec.clone(), hidden: false });
+        let _ = app.emit_to(&label, "overlay-monitor-restored", assigned_payload(&label, &spec));
+        changed = true;
+    }
+
+    if changed {
+        crate::overlay::notify_overlay_geometry_changed(app);
+        crate::overlay::raise_toolbar_above_overlay(app);
     }
 }
 
@@ -603,57 +751,6 @@ mod tests {
         assert_eq!(pairs[0].0, "overlay");
     }
 
-    // ---- find_window_for_monitor -------------------------------------------
-
-    #[test]
-    fn find_window_exact_geometry_match_wins() {
-        let mut registry = MonitorRegistry::new();
-        registry.insert(
-            "overlay-2".into(),
-            MonitorEntry {
-                spec: mon(1920, 0, 1920, 1080, 1.0, Some("\\\\.\\DISPLAY9")),
-                hidden: true,
-            },
-        );
-        let monitor = mon(1920, 0, 1920, 1080, 1.0, Some("\\\\.\\DISPLAY1"));
-        assert_eq!(
-            find_window_for_monitor(&registry, &monitor).as_deref(),
-            Some("overlay-2")
-        );
-    }
-
-    #[test]
-    fn find_window_falls_back_to_name() {
-        let mut registry = MonitorRegistry::new();
-        registry.insert(
-            "overlay-2".into(),
-            MonitorEntry {
-                spec: mon(0, 0, 1280, 720, 1.0, Some("B")),
-                hidden: true,
-            },
-        );
-        // Same name, different resolution (user changed it while unplugged).
-        let monitor = mon(1920, 0, 1920, 1080, 1.0, Some("B"));
-        assert_eq!(
-            find_window_for_monitor(&registry, &monitor).as_deref(),
-            Some("overlay-2")
-        );
-    }
-
-    #[test]
-    fn find_window_no_match_returns_none() {
-        let mut registry = MonitorRegistry::new();
-        registry.insert(
-            "overlay-2".into(),
-            MonitorEntry {
-                spec: mon(0, 0, 1280, 720, 1.0, Some("B")),
-                hidden: true,
-            },
-        );
-        let monitor = mon(1920, 0, 1920, 1080, 1.5, Some("C"));
-        assert_eq!(find_window_for_monitor(&registry, &monitor), None);
-    }
-
     // ---- labels ------------------------------------------------------------
 
     #[test]
@@ -661,5 +758,20 @@ mod tests {
         let mut labels = vec!["overlay-10", "overlay", "overlay-2"];
         labels.sort_by_key(|l| label_sort_key(l));
         assert_eq!(labels, vec!["overlay", "overlay-2", "overlay-10"]);
+    }
+
+    #[test]
+    fn next_dynamic_label_starts_at_two_and_skips_taken() {
+        assert_eq!(next_dynamic_label(&[]), "overlay-2");
+        assert_eq!(
+            next_dynamic_label(&["overlay".into(), "overlay-2".into()]),
+            "overlay-3"
+        );
+        assert_eq!(
+            next_dynamic_label(&["overlay".into(), "overlay-2".into(), "overlay-3".into()]),
+            "overlay-4"
+        );
+        // Gaps in the numbering are reused (window was destroyed / never made).
+        assert_eq!(next_dynamic_label(&["overlay".into(), "overlay-3".into()]), "overlay-2");
     }
 }

@@ -2307,6 +2307,28 @@ onMounted(async () => {
     }),
   )
 
+  // Hotplug: this window's display vanished. Strokes stay in this webview —
+  // only interactive state is cleaned up (never hardReset here).
+  unlisteners.push(
+    await listen('overlay-monitor-lost', () => {
+      logSessionEvent('monitor lost', {})
+      if (isDrawing.value || isDragging || isMarqueeSelecting || capturedPointerId !== null) {
+        abortActivePointerInteraction()
+      }
+      clearSelection()
+    }),
+  )
+
+  // The display is back (possibly with new geometry): re-run the DPI-catchup
+  // resize so the preserved strokes are redrawn on the settled canvas.
+  unlisteners.push(
+    await listen('overlay-monitor-restored', () => {
+      logSessionEvent('monitor restored', {})
+      overlayLayoutReady.value = false
+      void scheduleOverlayResize()
+    }),
+  )
+
   // Global whiteboard: `set_whiteboard_mode` broadcasts after persisting, so
   // every overlay (including the initiator) converges here. The initiator
   // already applied its local semantics and skips via the mode guards inside
