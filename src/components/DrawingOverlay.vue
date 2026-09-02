@@ -3,7 +3,7 @@ import { ref, shallowRef, onMounted, onUnmounted, nextTick, computed, watch } fr
 import { invoke } from '@tauri-apps/api/core'
 import { listen, emit, type UnlistenFn } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { useDrawing, type Tool, type DrawAction } from '../composables/useDrawing'
+import { useDrawing, setDrawingOpSink, type Tool, type DrawAction } from '../composables/useDrawing'
 import type { TextOutlineStyle } from '../composables/drawingTypes'
 import { useTooltip } from '../composables/useTooltip'
 import {
@@ -348,6 +348,7 @@ const {
   setMarqueeRect,
   undo,
   redo,
+  clearRedo,
   canUndo,
   canRedo,
   canClear,
@@ -1728,8 +1729,14 @@ const onKeyDown = createKeyDownHandler(
     showPenTip,
     cycleCrosshairCursorStyle,
     showCrosshairTip,
-    undo,
-    redo,
+    undo: () => {
+      // Global timeline: the backend pops the latest op across all screens
+      // and tells the owning overlay (possibly this one) to undo.
+      void invoke('timeline_undo').catch((e) => console.error('timeline undo failed', e))
+    },
+    redo: () => {
+      void invoke('timeline_redo').catch((e) => console.error('timeline redo failed', e))
+    },
     removeSelected: () => {
       cancelSelectGestures()
       removeSelected()
@@ -1996,16 +2003,17 @@ async function handleToolbarAction(action: ToolbarAction) {
       break
     }
     case 'undo':
-      undo()
+      // Global timeline (multi-display): route through the backend like the
+      // keyboard path — the latest op may belong to another screen.
+      void invoke('timeline_undo').catch((e) => console.error('timeline undo failed', e))
       break
     case 'redo':
-      redo()
+      void invoke('timeline_redo').catch((e) => console.error('timeline redo failed', e))
       break
     case 'clearAll':
-      if (isDrawing.value || isDragging || capturedPointerId !== null) {
-        finishActivePointerInteraction()
-      }
-      clearAll()
+      // Same global path as the Alt+E shortcut: the backend folds the timeline
+      // into one clear op and broadcasts; every overlay (incl. this one) clears.
+      void invoke('clear_all_drawings').catch((e) => console.error('clear all failed', e))
       break
     case 'toggleWhiteboard':
       await toggleWhiteboardFromToolbar()
@@ -2065,6 +2073,17 @@ function resolveThemePref(general?: AppConfig['general']): ThemePreference {
 }
 
 onMounted(async () => {
+  // Global timeline sink: every committed op is recorded by the backend so
+  // Ctrl+Z can undo the latest op across all displays (multi-monitor).
+  setDrawingOpSink({
+    commit: (kind) => {
+      invoke('timeline_commit_op', { kind }).catch((e) => console.error('timeline commit failed', e))
+    },
+    resetTimeline: () => {
+      invoke('timeline_reset').catch((e) => console.error('timeline reset failed', e))
+    },
+  })
+
   void scheduleOverlayResize()
   window.addEventListener('resize', debouncedResize)
   window.addEventListener('keydown', syncPointerModFromKey)
@@ -2240,6 +2259,24 @@ onMounted(async () => {
         logActionEvent('canvas hard reset', { reason: 'clear-drawing-event' })
       }
       syncOverlayStateToToolbar()
+    }),
+  )
+
+  // Global timeline replay: the backend popped the latest op and the owner
+  // (broadcast target for a folded clear op) runs its plain local undo/redo.
+  unlisteners.push(
+    await listen<number>('timeline-undo', () => {
+      undo()
+    }),
+  )
+  unlisteners.push(
+    await listen<number>('timeline-redo', () => {
+      redo()
+    }),
+  )
+  unlisteners.push(
+    await listen('timeline-redo-cleared', () => {
+      clearRedo()
     }),
   )
 

@@ -342,6 +342,8 @@ pub struct AppState {
     pub diagnostic_events: Mutex<Vec<crate::diagnostics::DiagnosticEvent>>,
     /// Which overlay window currently serves which monitor (multi-display).
     pub monitors: Mutex<crate::overlay_windows::MonitorRegistry>,
+    /// Global undo timeline (lightweight op records, no stroke data).
+    pub timeline: Mutex<crate::timeline::Timeline>,
 }
 
 /// Lock a mutex with poison recovery — if a thread panicked while holding

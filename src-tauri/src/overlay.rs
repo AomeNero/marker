@@ -555,6 +555,9 @@ pub fn deactivate_drawing(app: &AppHandle, state: &AppState) {
 
     set_mode(state, OverlayMode::Hidden);
     *lock_or_recover(&state.whiteboard_mode) = false;
+    if !lock_or_recover(&state.config).general.preserve_drawings {
+        lock_or_recover(&state.timeline).reset();
+    }
 
     crate::overlay_windows::deactivate_overlays(app, state);
     hide_toolbar_window(app);
@@ -569,6 +572,7 @@ pub fn activate_drawing(app: &AppHandle, state: &AppState) {
     if let Some(window) = app.get_webview_window("overlay") {
         setup_overlay_size(app);
         if !preserve {
+            lock_or_recover(&state.timeline).reset();
             if let Err(e) = app.emit("clear-drawing", ()) {
                 warn!("Failed to emit clear-drawing: {}", e);
             }
@@ -689,6 +693,9 @@ pub fn clear_drawing(app: &AppHandle, state: &AppState) {
     if current_mode(state) == OverlayMode::Hidden {
         return;
     }
+    // Fold the timeline into one global clear op so a single Ctrl+Z restores
+    // every display (Alt+E and the toolbar clear button both land here).
+    lock_or_recover(&state.timeline).begin_global_clear();
     // `true` = undoable clear (Ctrl+Z restores). Activation without preserve emits `()`.
     if let Err(e) = app.emit("clear-drawing", true) {
         warn!("Failed to emit clear-drawing: {}", e);

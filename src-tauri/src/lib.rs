@@ -16,6 +16,7 @@ mod portable;
 mod shortcuts;
 #[cfg(target_os = "windows")]
 mod single_instance_win;
+mod timeline;
 mod theme;
 #[cfg(target_os = "windows")]
 mod win32;
@@ -192,6 +193,7 @@ pub fn run() {
             whiteboard_mode: Mutex::new(false),
             diagnostic_events: Mutex::new(Vec::new()),
             monitors: Mutex::new(std::collections::HashMap::new()),
+            timeline: Mutex::new(timeline::Timeline::new()),
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
@@ -200,6 +202,11 @@ pub fn run() {
             commands::get_overlay_monitor_work_logical_bounds,
             commands::is_pointer_over_toolbar_panel,
             commands::forward_toolbar_action,
+            commands::timeline_commit_op,
+            commands::timeline_undo,
+            commands::timeline_redo,
+            commands::timeline_reset,
+            commands::clear_all_drawings,
             commands::set_overlay_ignore_cursor_events,
             commands::save_shortcuts,
             commands::save_general,

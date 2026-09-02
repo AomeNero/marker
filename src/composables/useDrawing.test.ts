@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref, type Ref } from 'vue'
-import { useDrawing } from './useDrawing'
+import { useDrawing, setDrawingOpSink, type DrawingOpSink } from './useDrawing'
 
 function createMockCanvas(): HTMLCanvasElement {
   const ctx = {
@@ -812,6 +812,131 @@ describe('useDrawing', () => {
       drawing.redrawAll()
 
       expect(ctx.setTransform).toHaveBeenCalledWith(1.5, 0, 0, 1.5, 0, 0)
+    })
+  })
+
+  describe('global timeline op sink', () => {
+    let commits: string[]
+    let resets: number
+    let sink: DrawingOpSink
+
+    beforeEach(() => {
+      commits = []
+      resets = 0
+      sink = {
+        commit: (kind) => commits.push(kind),
+        resetTimeline: () => {
+          resets++
+        },
+      }
+      setDrawingOpSink(sink)
+    })
+
+    afterEach(() => {
+      // Restore the default no-op sink so other suites stay isolated.
+      setDrawingOpSink({ commit: () => {}, resetTimeline: () => {} })
+    })
+
+    it('commits add for pen strokes', () => {
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 10, y: 10 })
+      drawing.endDraw()
+      expect(commits).toEqual(['add'])
+    })
+
+    it('does not commit for laser strokes (ephemeral, not undoable)', () => {
+      drawing.currentTool.value = 'laser'
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 20, y: 20 })
+      drawing.endDraw()
+      expect(commits).toEqual([])
+    })
+
+    it('does not commit for cancelled strokes', () => {
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 20, y: 20 })
+      drawing.cancelDraw()
+      expect(commits).toEqual([])
+    })
+
+    it('commits erase and removeBatch for eraser strokes', () => {
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 50, y: 50 })
+      drawing.endDraw()
+
+      drawing.currentTool.value = 'eraser'
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 50, y: 50 })
+      drawing.endDraw()
+
+      expect(commits).toEqual(['add', 'erase'])
+    })
+
+    it('commits add for text and stamp actions', () => {
+      drawing.addTextAction('Hello', 10, 10, 0, 24, '#000000')
+      drawing.addStampAction('1', 50, 50, 24, '#FF3B30')
+      expect(commits).toEqual(['add', 'add'])
+    })
+
+    it('commits drag when a drag completes', () => {
+      drawing.startDraw({ x: 10, y: 10 })
+      drawing.draw({ x: 40, y: 10 })
+      drawing.endDraw()
+      const found = drawing.findActionAt({ x: 25, y: 10 })!
+      drawing.beginDrag(found.action)
+      drawing.updateDragOffset(10, 0)
+      drawing.endDrag()
+      expect(commits).toEqual(['add', 'drag'])
+    })
+
+    it('commits remove for removeAction', () => {
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 10, y: 10 })
+      drawing.endDraw()
+      const found = drawing.findActionAt({ x: 5, y: 5 })!
+      drawing.removeAction(found.index)
+      expect(commits).toEqual(['add', 'remove'])
+    })
+
+    it('commits removeBatch for removeSelected', () => {
+      drawing.currentTool.value = 'rect'
+      drawing.startDraw({ x: 10, y: 10 })
+      drawing.draw({ x: 40, y: 40 })
+      drawing.endDraw()
+      const a = drawing.findActionAt({ x: 10, y: 10 })!.action
+      drawing.setSelection([a])
+      drawing.removeSelected()
+      expect(commits).toEqual(['add', 'removeBatch'])
+    })
+
+    it('clearAll never commits (backend owns the global clear op)', () => {
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 10, y: 10 })
+      drawing.endDraw()
+      commits.length = 0
+      drawing.clearAll()
+      expect(commits).toEqual([])
+    })
+
+    it('hardReset resets the backend timeline', () => {
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 10, y: 10 })
+      drawing.endDraw()
+      drawing.hardReset()
+      expect(resets).toBe(1)
+    })
+
+    it('clearRedo drops the redo branch without touching history', () => {
+      drawing.startDraw({ x: 0, y: 0 })
+      drawing.draw({ x: 10, y: 10 })
+      drawing.endDraw()
+      drawing.undo()
+      expect(drawing.canRedo.value).toBe(true)
+
+      drawing.clearRedo()
+      expect(drawing.canRedo.value).toBe(false)
+      // History untouched: the action is still undone.
+      expect(drawing.findActionAt({ x: 5, y: 5 })).toBeNull()
     })
   })
 })

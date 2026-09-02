@@ -44,6 +44,26 @@ import {
 const HIT_GRID_SIZE = 192
 const HIT_GRID_MAX_CELLS = 64
 
+/**
+ * Backend global-timeline sink (multi-display undo). No-op by default so this
+ * module stays unit-testable without Tauri; DrawingOverlay injects the real
+ * invoke-backed sink at mount. Every committed op also invalidates redoable
+ * history on the OTHER windows (backend broadcasts `timeline-redo-cleared`).
+ */
+export interface DrawingOpSink {
+  commit(kind: string): void
+  resetTimeline(): void
+}
+
+let opSink: DrawingOpSink = {
+  commit: () => {},
+  resetTimeline: () => {},
+}
+
+export function setDrawingOpSink(sink: DrawingOpSink): void {
+  opSink = sink
+}
+
 // Adaptive point sampling in device-pixel space so density stays consistent across
 // DPR and large CSS viewports (see computeMinDistSq).
 let cachedMinDistSq = 4
@@ -735,6 +755,7 @@ export function useDrawing(
     marqueeRect.value = null
     undoStack.push({ type: 'removeBatch', removed: [...removed] })
     redoStack.length = 0
+    opSink.commit('removeBatch')
     invalidateCache()
     previewDirty = true
     markHistoryStacksChanged()
@@ -949,6 +970,7 @@ export function useDrawing(
     previewDirty = true
     markHistoryStacksChanged()
     flushRender()
+    opSink.commit('add')
   }
 
   function addStampAction(text: string, x: number, y: number, fontSize?: number, color?: string) {
@@ -975,6 +997,7 @@ export function useDrawing(
     previewDirty = true
     markHistoryStacksChanged()
     flushRender()
+    opSink.commit('add')
   }
 
   function processObjectEraserHits(action: DrawAction) {
@@ -1168,6 +1191,7 @@ export function useDrawing(
         undoStack.push({ type: 'removeBatch', removed: [...objectEraserBatch] })
         redoStack.length = 0
         markHistoryStacksChanged()
+        opSink.commit('removeBatch')
       }
       objectEraserBatch = []
       objectEraserRemovedSet = new Set()
@@ -1200,6 +1224,7 @@ export function useDrawing(
           undoStack.push({ type: 'erase', targets: eraseTargets })
           redoStack.length = 0
           markHistoryStacksChanged()
+          opSink.commit('erase')
         }
       }
       invalidateCache()
@@ -1212,6 +1237,7 @@ export function useDrawing(
       appendActionToHitGrid(action)
       historyDirty = true
       markHistoryStacksChanged()
+      opSink.commit('add')
     }
 
     currentAction.value = null
@@ -1428,6 +1454,7 @@ export function useDrawing(
         }
         redoStack.length = 0
         markHistoryStacksChanged()
+        opSink.commit(items.length === 1 ? 'drag' : 'dragBatch')
       }
     }
     previewAction.value = null
@@ -1452,6 +1479,17 @@ export function useDrawing(
     invalidateCache()
     previewDirty = true
     flushRender()
+  }
+
+  /**
+   * Drop redoable history without touching `history` — another window
+   * committed a new op, which globally invalidates our redo branch
+   * (backend `timeline-redo-cleared` broadcast).
+   */
+  function clearRedo() {
+    if (redoStack.length === 0) return
+    redoStack.length = 0
+    markHistoryStacksChanged()
   }
 
   function undo() {
@@ -1526,7 +1564,6 @@ export function useDrawing(
     if (redoStack.length === 0) return
     historyIndexDirty = true
     const entry = redoStack.pop()!
-
     if (entry.type === 'add') {
       history.push(entry.action)
       appendActionToHitGrid(entry.action)
@@ -1597,6 +1634,12 @@ export function useDrawing(
     flushRender()
   }
 
+  /**
+   * Clear everything (undoable via the folded `clear` entry). Never commits
+   * to the timeline sink: every clear path is backend-initiated (Alt+E, the
+   * toolbar, whiteboard transitions) and the backend has already recorded the
+   * global clear op — committing here would double it.
+   */
   function clearAll() {
     const clearedLasers = clearLaserStrokes()
     if (history.length === 0) {
@@ -1665,6 +1708,9 @@ export function useDrawing(
     history.length = 0
     undoStack.length = 0
     redoStack.length = 0
+    // Non-undoable discard: drop the backend timeline too (idempotent when
+    // every overlay resets simultaneously).
+    opSink.resetTimeline()
     clearLaserStrokes()
     clearHitGridState()
     hitGridDirty = false
@@ -1731,6 +1777,7 @@ export function useDrawing(
       invalidateCache()
       markHistoryStacksChanged()
       flushRender()
+      opSink.commit('remove')
     }
   }
 
@@ -1802,6 +1849,7 @@ export function useDrawing(
     addStampAction,
     undo,
     redo,
+    clearRedo,
     canUndo,
     canRedo,
     canClear,

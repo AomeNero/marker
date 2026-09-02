@@ -100,6 +100,62 @@ pub fn forward_toolbar_action(
     }
 }
 
+/// Record a stroke/edit op from `window` on the global timeline. A fresh op
+/// also invalidates the redo branches of every overlay.
+#[tauri::command]
+pub fn timeline_commit_op(
+    app: AppHandle,
+    window: tauri::WebviewWindow,
+    state: tauri::State<'_, AppState>,
+    kind: String,
+) {
+    lock_or_recover(&state.timeline).commit(window.label(), &kind);
+    if let Err(e) = app.emit(crate::timeline::REDO_CLEARED_EVENT, ()) {
+        warn!("Failed to emit timeline redo-cleared: {}", e);
+    }
+}
+
+fn emit_timeline_replay(app: &AppHandle, op: &crate::timeline::TimelineOp, event: &str) {
+    // Empty owner = global clear op: replay on every overlay window.
+    let targets: Vec<String> = if op.owner.is_empty() {
+        crate::overlay_windows::overlay_labels(app)
+    } else {
+        vec![op.owner.clone()]
+    };
+    for label in targets {
+        if let Err(e) = app.emit_to(&label, event, op.op_id) {
+            warn!("Failed to emit {} to {}: {}", event, label, e);
+        }
+    }
+}
+
+#[tauri::command]
+pub fn timeline_undo(app: AppHandle, state: tauri::State<'_, AppState>) {
+    let Some(op) = lock_or_recover(&state.timeline).undo() else {
+        return;
+    };
+    emit_timeline_replay(&app, &op, crate::timeline::UNDO_EVENT);
+}
+
+#[tauri::command]
+pub fn timeline_redo(app: AppHandle, state: tauri::State<'_, AppState>) {
+    let Some(op) = lock_or_recover(&state.timeline).redo() else {
+        return;
+    };
+    emit_timeline_replay(&app, &op, crate::timeline::REDO_EVENT);
+}
+
+#[tauri::command]
+pub fn timeline_reset(state: tauri::State<'_, AppState>) {
+    lock_or_recover(&state.timeline).reset();
+}
+
+/// Toolbar clear-all entry point — same global path as the Alt+E shortcut.
+#[tauri::command]
+pub fn clear_all_drawings(app: AppHandle, state: tauri::State<'_, AppState>) {
+    crate::clear_drawing(&app, &state);
+}
+
 #[tauri::command]
 pub fn set_overlay_ignore_cursor_events(
     app: AppHandle,
