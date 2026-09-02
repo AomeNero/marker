@@ -163,6 +163,23 @@ pub fn activate_overlay_for_drawing(overlay: &WebviewWindow) {
     });
 }
 
+/// Show (order front) a window without activating the app — macOS analog of
+/// Windows `SW_SHOWNA`, used for mid-session overlay restores so a hotplug
+/// never steals key focus from whatever the user is typing in.
+pub fn order_front_regardless(window: &WebviewWindow) {
+    let window = window.clone();
+    run_on_appkit_main(move || {
+        if let Ok(ns) = window.ns_window() {
+            if !ns.is_null() {
+                unsafe {
+                    let sel = sel_registerName(c"orderFrontRegardless".as_ptr());
+                    msg_send_void(ns, sel);
+                }
+            }
+        }
+    });
+}
+
 /// Pin the toolbar **NSWindow** one level above all overlay windows so it stays
 /// above ink on every display without an AppKit child relationship.
 ///

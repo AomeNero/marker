@@ -354,43 +354,33 @@ fn clamp_toolbar_to_cursor_monitor(app: &AppHandle) {
         return;
     };
 
-    let toolbar_scale = window.scale_factor().unwrap_or(info.scale_factor);
-
     let Ok(pos) = window.outer_position() else {
         return;
     };
-    let left = pos.x as f64 / toolbar_scale;
-    let top = pos.y as f64 / toolbar_scale;
 
     let panel_h = toolbar_panel_height_logical(&window, TOOLBAR_PANEL_HEIGHT_COMPACT);
-    let (x, y) = monitor::clamp_logical_position_to_monitor(
-        left,
-        top,
-        TOOLBAR_PANEL_WIDTH,
-        panel_h,
-        &info.full,
-        TOOLBAR_EDGE_MARGIN,
-    );
+    // Clamp in the CURSOR monitor's physical pixel domain: with mixed DPI the
+    // toolbar window's own scale (current screen) and the cursor monitor's
+    // scale can differ, so logical-space comparisons would mix units.
+    let scale = info.scale_factor;
+    let (mx, my, mw, mh) = info.full_phys;
+    let margin = (TOOLBAR_EDGE_MARGIN * scale).round() as i32;
+    let panel_w = (TOOLBAR_PANEL_WIDTH * scale).round() as i32;
+    let panel_h_phys = (panel_h * scale).round() as i32;
+    let min_x = mx + margin;
+    let min_y = my + margin;
+    let max_x = (mx + mw as i32 - panel_w - margin).max(min_x);
+    let max_y = (my + mh as i32 - panel_h_phys - margin).max(min_y);
+    let x = pos.x.clamp(min_x, max_x);
+    let y = pos.y.clamp(min_y, max_y);
 
-    if (x - left).abs() < 0.5 && (y - top).abs() < 0.5 {
+    if x == pos.x && y == pos.y {
         return;
     }
 
-    #[cfg(windows)]
-    {
-        let phys_x = (x * info.scale_factor).round() as i32;
-        let phys_y = (y * info.scale_factor).round() as i32;
-        window
-            .set_position(tauri::PhysicalPosition::new(phys_x, phys_y))
-            .ok();
-        if let Err(e) = app.emit("toolbar-window-positioned", ()) {
-            warn!("Failed to emit toolbar-window-positioned: {}", e);
-        }
-    }
-
-    #[cfg(not(windows))]
-    {
-        window.set_position(tauri::LogicalPosition::new(x, y)).ok();
+    window.set_position(tauri::PhysicalPosition::new(x, y)).ok();
+    if let Err(e) = app.emit("toolbar-window-positioned", ()) {
+        warn!("Failed to emit toolbar-window-positioned: {}", e);
     }
 }
 
@@ -418,33 +408,38 @@ pub fn position_toolbar_at(app: &AppHandle, x: f64, y: f64, panel_height: Option
         return;
     };
     let info = monitor::get_cursor_monitor_info(app);
-    let requested_x = x;
-    let requested_y = y;
+    let requested = (x, y);
     let panel_h = panel_height
         .filter(|h| *h >= 64.0)
         .unwrap_or_else(|| toolbar_panel_height_logical(&window, TOOLBAR_PANEL_HEIGHT_COMPACT));
-    let (x, y) = if let Some(ref info) = info {
-        monitor::clamp_logical_position_to_monitor(
-            x,
-            y,
-            TOOLBAR_PANEL_WIDTH,
-            panel_h,
-            &info.full,
-            TOOLBAR_EDGE_MARGIN,
-        )
-    } else {
-        (x, y)
-    };
     let state = app.state::<crate::config::AppState>();
+
+    // The webview reports logical coordinates; convert with the CURSOR
+    // monitor's scale and clamp in the physical domain (mixed-DPI safe).
     let scale_factor = info.as_ref().map(|i| i.scale_factor).unwrap_or(1.0);
+    let phys_x = (x * scale_factor).round() as i32;
+    let phys_y = (y * scale_factor).round() as i32;
+    let phys_w = ((TOOLBAR_PANEL_WIDTH * scale_factor).round() as i32).max(1);
+    let phys_h = ((panel_h * scale_factor).round() as i32).max(96);
+    let (phys_x, phys_y) = if let Some(info) = &info {
+        let (mx, my, mw, mh) = info.full_phys;
+        let margin = (TOOLBAR_EDGE_MARGIN * scale_factor).round() as i32;
+        let min_x = mx + margin;
+        let min_y = my + margin;
+        let max_x = (mx + mw as i32 - phys_w - margin).max(min_x);
+        let max_y = (my + mh as i32 - phys_h - margin).max(min_y);
+        (phys_x.clamp(min_x, max_x), phys_y.clamp(min_y, max_y))
+    } else {
+        (phys_x, phys_y)
+    };
 
     log_backend_event(
         &state,
         "ui",
         "toolbar popup positioned",
         Some(serde_json::json!({
-            "requested": { "x": requested_x, "y": requested_y },
-            "clamped": { "x": x, "y": y },
+            "requested": { "x": requested.0, "y": requested.1 },
+            "clamped": { "x": phys_x, "y": phys_y },
             "panelHeight": panel_h,
             "cursorMonitor": info,
             "scaleFactor": scale_factor,
@@ -454,17 +449,13 @@ pub fn position_toolbar_at(app: &AppHandle, x: f64, y: f64, panel_height: Option
 
     #[cfg(windows)]
     {
-        let phys_x = (x * scale_factor).round() as i32;
-        let phys_y = (y * scale_factor).round() as i32;
-        let phys_w = (TOOLBAR_PANEL_WIDTH * scale_factor).round() as u32;
-        let phys_h = (panel_h * scale_factor).round() as u32;
         if let Ok(hwnd) = window.hwnd() {
             crate::win32::position_window_on_monitor(
                 hwnd.0 as isize,
                 phys_x,
                 phys_y,
-                phys_w.max(1),
-                phys_h.max(96),
+                phys_w.max(1) as u32,
+                phys_h.max(96) as u32,
             );
         } else {
             window
@@ -472,8 +463,8 @@ pub fn position_toolbar_at(app: &AppHandle, x: f64, y: f64, panel_height: Option
                 .ok();
             window
                 .set_size(tauri::PhysicalSize::new(
-                    phys_w.max(1),
-                    phys_h.saturating_sub(1).max(1),
+                    phys_w.max(1) as u32,
+                    (phys_h.saturating_sub(1)).max(1) as u32,
                 ))
                 .ok();
         }
@@ -484,7 +475,9 @@ pub fn position_toolbar_at(app: &AppHandle, x: f64, y: f64, panel_height: Option
 
     #[cfg(not(windows))]
     {
-        window.set_position(tauri::LogicalPosition::new(x, y)).ok();
+        window
+            .set_position(tauri::PhysicalPosition::new(phys_x, phys_y))
+            .ok();
         if let Err(e) = app.emit("toolbar-window-positioned", ()) {
             warn!("Failed to emit toolbar-window-positioned: {}", e);
         }
@@ -549,6 +542,7 @@ pub fn deactivate_drawing(app: &AppHandle, state: &AppState) {
     *lock_or_recover(&state.whiteboard_mode) = false;
     if !lock_or_recover(&state.config).general.preserve_drawings {
         lock_or_recover(&state.timeline).reset();
+        crate::timeline::broadcast_state(app, &state.timeline);
     }
 
     crate::overlay_windows::stop_topology_watcher();
@@ -566,6 +560,7 @@ pub fn activate_drawing(app: &AppHandle, state: &AppState) {
         setup_overlay_size(app);
         if !preserve {
             lock_or_recover(&state.timeline).reset();
+            crate::timeline::broadcast_state(app, &state.timeline);
             if let Err(e) = app.emit("clear-drawing", ()) {
                 warn!("Failed to emit clear-drawing: {}", e);
             }
@@ -692,6 +687,7 @@ pub fn clear_drawing(app: &AppHandle, state: &AppState) {
     // Fold the timeline into one global clear op so a single Ctrl+Z restores
     // every display (Alt+E and the toolbar clear button both land here).
     lock_or_recover(&state.timeline).begin_global_clear();
+    crate::timeline::broadcast_state(app, &state.timeline);
     // `true` = undoable clear (Ctrl+Z restores). Activation without preserve emits `()`.
     if let Err(e) = app.emit("clear-drawing", true) {
         warn!("Failed to emit clear-drawing: {}", e);

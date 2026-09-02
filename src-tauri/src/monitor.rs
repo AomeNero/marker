@@ -192,11 +192,17 @@ pub fn get_overlay_monitor_work_logical_bounds_for(
 /// Full-monitor bounds, work-area bounds and scale of the monitor containing
 /// the cursor — the toolbar docks and clamps against the *cursor's* screen
 /// (decision: toolbar follows the cursor monitor).
+/// Physical-pixel rect of a monitor: (x, y, width, height).
+pub type PhysRect = (i32, i32, u32, u32);
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CursorMonitorInfo {
     pub full: MonitorLogicalBounds,
     pub work: MonitorLogicalBounds,
+    /// Full-monitor bounds in physical pixels — toolbar positioning clamps in
+    /// this domain so mixed-DPI setups never mix units.
+    pub full_phys: PhysRect,
     pub scale_factor: f64,
 }
 
@@ -230,6 +236,7 @@ pub fn get_cursor_monitor_info(app: &AppHandle) -> Option<CursorMonitorInfo> {
                     width: work_size.width as f64 / scale,
                     height: work_size.height as f64 / scale,
                 },
+                full_phys: (full_pos.x, full_pos.y, full_size.width, full_size.height),
                 scale_factor: scale,
             });
         }
@@ -237,47 +244,35 @@ pub fn get_cursor_monitor_info(app: &AppHandle) -> Option<CursorMonitorInfo> {
     None
 }
 
-pub fn clamp_logical_position_to_monitor(
-    left: f64,
-    top: f64,
-    panel_width: f64,
-    panel_height: f64,
-    monitor: &MonitorLogicalBounds,
-    margin: f64,
-) -> (f64, f64) {
-    let min_left = monitor.left + margin;
-    let min_top = monitor.top + margin;
-    let max_left = (monitor.left + monitor.width - panel_width - margin).max(min_left);
-    let max_top = (monitor.top + monitor.height - panel_height - margin).max(min_top);
-    (left.clamp(min_left, max_left), top.clamp(min_top, max_top))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn clamp_logical_position_keeps_panel_inside_monitor() {
-        let monitor = MonitorLogicalBounds {
-            left: 0.0,
-            top: 0.0,
-            width: 1920.0,
-            height: 1080.0,
+    fn cursor_monitor_info_phys_rect_is_consistent() {
+        // The physical bounds must match the logical ones at the same scale —
+        // toolbar clamping mixes them only through this invariant.
+        // 150 physical px @1.5 = 100 logical px; 1920 phys = 1280 logical.
+        let info = CursorMonitorInfo {
+            full: MonitorLogicalBounds {
+                left: 100.0,
+                top: 50.0,
+                width: 1280.0,
+                height: 720.0,
+            },
+            work: MonitorLogicalBounds {
+                left: 100.0,
+                top: 50.0,
+                width: 1280.0,
+                height: 656.0,
+            },
+            full_phys: (150, 75, 1920, 1080),
+            scale_factor: 1.5,
         };
-        let (x, y) = clamp_logical_position_to_monitor(100.0, 200.0, 272.0, 400.0, &monitor, 8.0);
-        assert_eq!(x, 100.0);
-        assert_eq!(y, 200.0);
-    }
-
-    #[test]
-    fn clamp_logical_position_limits_right_edge() {
-        let monitor = MonitorLogicalBounds {
-            left: 0.0,
-            top: 0.0,
-            width: 1920.0,
-            height: 1080.0,
-        };
-        let (x, _) = clamp_logical_position_to_monitor(2000.0, 200.0, 272.0, 400.0, &monitor, 8.0);
-        assert_eq!(x, 1920.0 - 272.0 - 8.0);
+        let (mx, my, mw, mh) = info.full_phys;
+        assert_eq!(mx as f64 / info.scale_factor, info.full.left);
+        assert_eq!(my as f64 / info.scale_factor, info.full.top);
+        assert_eq!(mw as f64 / info.scale_factor, info.full.width);
+        assert_eq!(mh as f64 / info.scale_factor, info.full.height);
     }
 }

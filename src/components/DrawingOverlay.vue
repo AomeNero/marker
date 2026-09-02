@@ -2164,18 +2164,30 @@ onMounted(async () => {
   // Multi-display: session state broadcast by another overlay window (or the
   // single executor of a forwarded toolbar action). Idempotent ref writes
   // only — no tips, no persistence, no diagnostics (side effects stay with
-  // the user action in the emitting window).
+  // the user action in the emitting window). Every write below must be
+  // change-guarded: this window also receives its own broadcasts, and an
+  // unguarded write (e.g. a fresh object identity for textOutline) would
+  // re-trigger the state watch → rebroadcast → infinite event loop.
+  // Whiteboard is intentionally NOT mirrored here: `whiteboard-changed`
+  // exclusively drives enter/exit so the semantics (preserve-config reset)
+  // cannot be short-circuited by event arrival order.
   unlisteners.push(
     await listen<OverlayStateSync>(OVERLAY_STATE_EVENT, (event) => {
       if (!sessionActive.value) return
       const state = event.payload
-      currentTool.value = state.currentTool
-      currentColor.value = state.currentColor
-      lineWidth.value = state.lineWidth
-      textOutline.value = normalizeTextOutline(state.textOutline)
-      // Whiteboard enter/exit semantics (preserve-config reset) are wired up
-      // by the whiteboard sync step; this only mirrors the visual flag.
-      whiteboardMode.value = state.whiteboardMode
+      if (currentTool.value !== state.currentTool) currentTool.value = state.currentTool
+      if (currentColor.value !== state.currentColor) currentColor.value = state.currentColor
+      if (lineWidth.value !== state.lineWidth) lineWidth.value = state.lineWidth
+      const outline = normalizeTextOutline(state.textOutline)
+      const cur = textOutline.value
+      if (
+        outline.enabled !== cur.enabled ||
+        outline.colorMode !== cur.colorMode ||
+        outline.color !== cur.color ||
+        outline.width !== cur.width
+      ) {
+        textOutline.value = outline
+      }
       setInkVisible(state.inkVisible)
     }),
   )

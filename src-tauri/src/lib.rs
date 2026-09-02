@@ -206,6 +206,7 @@ pub fn run() {
             commands::timeline_undo,
             commands::timeline_redo,
             commands::timeline_reset,
+            commands::get_timeline_state,
             commands::clear_all_drawings,
             commands::set_overlay_ignore_cursor_events,
             commands::save_shortcuts,

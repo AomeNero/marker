@@ -14,6 +14,32 @@ pub const UNDO_EVENT: &str = "timeline-undo";
 pub const REDO_EVENT: &str = "timeline-redo";
 /// A new commit invalidated every window's redo branch.
 pub const REDO_CLEARED_EVENT: &str = "timeline-redo-cleared";
+/// Authoritative global undo availability (toolbar buttons) — sent after any
+/// timeline mutation. Overlays' per-window stacks are NOT authoritative.
+pub const STATE_EVENT: &str = "timeline-state";
+
+/// Global timeline availability, serialized for the toolbar window.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TimelineState {
+    pub can_undo: bool,
+    pub can_redo: bool,
+}
+
+/// Push the current global availability to every webview (toolbar consumes).
+pub fn broadcast_state(app: &tauri::AppHandle, timeline: &std::sync::Mutex<Timeline>) {
+    let payload = {
+        let t = crate::config::lock_or_recover(timeline);
+        TimelineState {
+            can_undo: t.can_undo(),
+            can_redo: t.can_redo(),
+        }
+    };
+    use tauri::Emitter;
+    if let Err(e) = app.emit(STATE_EVENT, payload) {
+        tracing::warn!("Failed to emit timeline-state: {}", e);
+    }
+}
 
 /// One user-visible mutation, attributed to the overlay window it happened on.
 #[derive(Debug, Clone, PartialEq)]

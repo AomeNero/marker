@@ -93,7 +93,17 @@ pub fn forward_toolbar_action(
     state: tauri::State<'_, AppState>,
     action: serde_json::Value,
 ) {
+    // Prefer the cursor-screen overlay; fall back to any visible overlay (the
+    // static window may be hidden, e.g. its display was unplugged).
     let target = crate::overlay_windows::label_for_cursor(&app, &state)
+        .or_else(|| {
+            crate::overlay_windows::overlay_labels(&app)
+                .into_iter()
+                .find(|label| {
+                    app.get_webview_window(label)
+                        .is_some_and(|w| w.is_visible().unwrap_or(false))
+                })
+        })
         .unwrap_or_else(|| crate::overlay_windows::PRIMARY_LABEL.to_string());
     if let Err(e) = app.emit_to(&target, crate::overlay::TOOLBAR_ACTION_EVENT, action) {
         warn!("Failed to forward toolbar action to {}: {}", target, e);
@@ -113,6 +123,7 @@ pub fn timeline_commit_op(
     if let Err(e) = app.emit(crate::timeline::REDO_CLEARED_EVENT, ()) {
         warn!("Failed to emit timeline redo-cleared: {}", e);
     }
+    crate::timeline::broadcast_state(&app, &state.timeline);
 }
 
 fn emit_timeline_replay(app: &AppHandle, op: &crate::timeline::TimelineOp, event: &str) {
@@ -135,6 +146,7 @@ pub fn timeline_undo(app: AppHandle, state: tauri::State<'_, AppState>) {
         return;
     };
     emit_timeline_replay(&app, &op, crate::timeline::UNDO_EVENT);
+    crate::timeline::broadcast_state(&app, &state.timeline);
 }
 
 #[tauri::command]
@@ -143,11 +155,22 @@ pub fn timeline_redo(app: AppHandle, state: tauri::State<'_, AppState>) {
         return;
     };
     emit_timeline_replay(&app, &op, crate::timeline::REDO_EVENT);
+    crate::timeline::broadcast_state(&app, &state.timeline);
 }
 
 #[tauri::command]
-pub fn timeline_reset(state: tauri::State<'_, AppState>) {
+pub fn timeline_reset(app: AppHandle, state: tauri::State<'_, AppState>) {
     lock_or_recover(&state.timeline).reset();
+    crate::timeline::broadcast_state(&app, &state.timeline);
+}
+
+#[tauri::command]
+pub fn get_timeline_state(state: tauri::State<'_, AppState>) -> crate::timeline::TimelineState {
+    let timeline = lock_or_recover(&state.timeline);
+    crate::timeline::TimelineState {
+        can_undo: timeline.can_undo(),
+        can_redo: timeline.can_redo(),
+    }
 }
 
 /// Toolbar clear-all entry point — same global path as the Alt+E shortcut.

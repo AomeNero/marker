@@ -52,83 +52,11 @@ impl MonitorSpec {
             && (self.scale_factor * 100.0).round() == (other.scale_factor * 100.0).round()
     }
 
-    /// Arrangement-relative identity: position relative to the topology's
-    /// bounding-box origin + size + scale. Normalizing by the bounding box
-    /// keeps identity stable when the OS primary changes and shifts every
-    /// absolute coordinate.
-    fn topology_key(&self, origin: (i32, i32)) -> (i32, i32, u32, u32, i32) {
-        (
-            self.x - origin.0,
-            self.y - origin.1,
-            self.width,
-            self.height,
-            (self.scale_factor * 100.0).round() as i32,
-        )
+    /// Pairing rule shared by activation and the hotplug watcher: geometry
+    /// first, OS name second (survives resolution changes within a session).
+    fn matches(&self, other: &MonitorSpec) -> bool {
+        self.same_geometry(other) || self.name.is_some() && self.name == other.name
     }
-}
-
-fn topology_origin(specs: &[MonitorSpec]) -> (i32, i32) {
-    (
-        specs.iter().map(|m| m.x).min().unwrap_or(0),
-        specs.iter().map(|m| m.y).min().unwrap_or(0),
-    )
-}
-
-/// One topology diff between two enumerations.
-#[allow(dead_code)] // wired by the hotplug topology watcher later in this feature
-#[derive(Debug, Clone, PartialEq)]
-pub enum TopoChange {
-    /// Monitor present in `new` with no counterpart in `old`.
-    Added(MonitorSpec),
-    /// Monitor present in `old` with no counterpart in `new`.
-    Removed(MonitorSpec),
-    /// Matched monitor whose bounds or scale changed.
-    Repositioned { from: MonitorSpec, to: MonitorSpec },
-}
-
-/// Diff two monitor topologies. Match priority: arrangement key first (stable
-/// geometry), OS name second (survives resolution changes within a session —
-/// geometry keys diverge when a display switches mode). Exact matches emit
-/// nothing.
-#[allow(dead_code)] // wired by the hotplug topology watcher later in this feature
-pub fn diff_topology(old: &[MonitorSpec], new: &[MonitorSpec]) -> Vec<TopoChange> {
-    let origin = topology_origin(new);
-    let mut used = vec![false; new.len()];
-    let mut changes = Vec::new();
-
-    for o in old {
-        let key = o.topology_key(origin);
-        let mut idx = new
-            .iter()
-            .enumerate()
-            .position(|(i, n)| !used[i] && n.topology_key(origin) == key);
-        if idx.is_none() {
-            if let Some(name) = &o.name {
-                idx = new
-                    .iter()
-                    .enumerate()
-                    .position(|(i, n)| !used[i] && n.name.as_deref() == Some(name.as_str()));
-            }
-        }
-        match idx {
-            Some(i) => {
-                used[i] = true;
-                if !o.same_geometry(&new[i]) {
-                    changes.push(TopoChange::Repositioned {
-                        from: o.clone(),
-                        to: new[i].clone(),
-                    });
-                }
-            }
-            None => changes.push(TopoChange::Removed(o.clone())),
-        }
-    }
-    for (i, n) in new.iter().enumerate() {
-        if !used[i] {
-            changes.push(TopoChange::Added(n.clone()));
-        }
-    }
-    changes
 }
 
 /// Deterministic label assignment for one activation: the cursor's monitor is
@@ -349,6 +277,11 @@ pub fn show_overlay_no_activate(window: &WebviewWindow) {
             return;
         }
     }
+    #[cfg(target_os = "macos")]
+    {
+        crate::macos::order_front_regardless(window);
+        return;
+    }
     window.show().ok();
 }
 
@@ -356,6 +289,12 @@ pub fn show_overlay_no_activate(window: &WebviewWindow) {
 /// them, and record every assignment (including the static window's) in the
 /// registry. Called from `activate_drawing` after `setup_overlay_size` placed
 /// the static window on the cursor monitor.
+///
+/// Strokes live in each window's webview, so label↔monitor pairing prefers
+/// the previous session's registry entries (geometry / name match) before
+/// falling back to the deterministic reading order — preserve_drawings then
+/// restores each display's own annotations even when the cursor screen or
+/// monitor order changed between sessions.
 pub fn assign_and_show_extra_overlays(app: &AppHandle, state: &AppState) {
     let monitors = enumerate_monitors(app);
     let Some(cursor) = cursor_monitor(&monitors) else {
@@ -363,7 +302,39 @@ pub fn assign_and_show_extra_overlays(app: &AppHandle, state: &AppState) {
         return;
     };
     let specs: Vec<MonitorSpec> = monitors.iter().map(|(m, _)| m.clone()).collect();
-    let pairs = assign_labels(&specs, &cursor);
+    let proposed = assign_labels(&specs, &cursor);
+
+    // Continuity pass: reuse a label's previous monitor when it re-appears.
+    let pairs: Vec<(String, MonitorSpec)> = {
+        let registry = lock_or_recover(&state.monitors);
+        let mut taken: Vec<String> = Vec::new();
+        let mut resolved: Vec<(String, MonitorSpec)> = Vec::new();
+        for (label, spec) in proposed {
+            if label == PRIMARY_LABEL {
+                resolved.push((label, spec));
+                continue;
+            }
+            let previous = registry
+                .iter()
+                .filter(|(l, entry)| {
+                    entry.spec.matches(&spec) && !taken.contains(l) && l != &PRIMARY_LABEL
+                })
+                .map(|(l, _)| l.clone())
+                .min(); // deterministic pick if several match
+            match previous {
+                Some(prev) => {
+                    taken.push(prev.clone());
+                    resolved.push((prev, spec));
+                }
+                None => {
+                    taken.push(label.clone());
+                    resolved.push((label, spec));
+                }
+            }
+        }
+        resolved
+    };
+
     ensure_extra_overlay_windows(app, pairs.len().saturating_sub(1));
 
     let mut assigned: Vec<String> = Vec::new();
@@ -485,6 +456,24 @@ fn assigned_payload(label: &str, spec: &MonitorSpec) -> MonitorAssigned {
     }
 }
 
+/// Window action deferred out of the registry critical section (M-5 pattern:
+/// collect under lock, apply after drop so no emit/window op holds the lock).
+enum PendingAction {
+    /// Restore a paired window to its (possibly moved) monitor.
+    Restore {
+        label: String,
+        spec: MonitorSpec,
+        monitor: tauri::Monitor,
+    },
+    /// Hide a window whose monitor vanished (webview data preserved).
+    Hide { label: String },
+    /// Freshly connected display → brand-new window.
+    Create {
+        spec: MonitorSpec,
+        monitor: tauri::Monitor,
+    },
+}
+
 fn topology_watch_tick(app: &AppHandle) {
     let state = app.state::<AppState>();
     if crate::overlay::current_mode(&state) != crate::overlay::OverlayMode::Drawing {
@@ -492,113 +481,135 @@ fn topology_watch_tick(app: &AppHandle) {
     }
     let monitors = enumerate_monitors(app);
     let specs: Vec<MonitorSpec> = monitors.iter().map(|(m, _)| m.clone()).collect();
-    let mut registry = lock_or_recover(&state.monitors);
-    let mut used = vec![false; monitors.len()];
-    let mut changed = false;
+    let mut pending: Vec<PendingAction> = Vec::new();
 
-    // Pair each registry entry with a monitor (geometry first, OS name as
-    // tiebreaker for resolution changes). Unpaired → lost; geometry drift →
-    // reposition. Steady state emits nothing at all.
-    let labels: Vec<String> = registry.keys().cloned().collect();
-    for label in &labels {
-        let Some(entry) = registry.get_mut(label) else {
-            continue;
-        };
-        let mut idx: Option<usize> = specs
-            .iter()
-            .enumerate()
-            .find(|(i, m)| !used[*i] && m.same_geometry(&entry.spec))
-            .map(|(i, _)| i);
-        if idx.is_none() {
-            if let Some(name) = entry.spec.name.clone() {
-                idx = specs
-                    .iter()
-                    .enumerate()
-                    .find(|(i, m)| !used[*i] && m.name.as_deref() == Some(name.as_str()))
-                    .map(|(i, _)| i);
-            }
-        }
-        match idx {
-            Some(i) => {
-                used[i] = true;
-                let m = specs[i].clone();
-                if !entry.spec.same_geometry(&m) || entry.hidden {
-                    if let (Some(window), Some((_, tmon))) =
-                        (app.get_webview_window(label), monitors.get(i))
-                    {
-                        place_overlay_on_monitor(&window, tmon);
-                        window.set_ignore_cursor_events(false).ok();
-                        show_overlay_no_activate(&window);
-                        window.set_always_on_top(true).ok();
-                        crate::overlay::reassert_window_transparency(&window);
-                    }
-                    entry.spec = m.clone();
-                    entry.hidden = false;
-                    changed = true;
-                    let _ = app.emit_to(
-                        label,
-                        "overlay-monitor-restored",
-                        assigned_payload(label, &m),
-                    );
-                }
-            }
-            None => {
-                if !entry.hidden {
-                    entry.hidden = true;
-                    if let Some(window) = app.get_webview_window(label) {
-                        window.set_ignore_cursor_events(true).ok();
-                        window.hide().ok();
-                    }
-                    let _ = app.emit_to(label, "overlay-monitor-lost", ());
-                    changed = true;
-                }
-            }
-        }
-    }
-    drop(registry);
-
-    // Newly connected displays (no registry pairing): create a fresh window.
-    // Dormant windows of still-lost displays are never recycled — their
-    // strokes belong to that display and reappear when it returns.
-    for (i, (_, tmon)) in monitors.iter().enumerate() {
-        if used[i] {
-            continue;
-        }
-        let spec = specs[i].clone();
-        let mut taken = overlay_labels(app);
-        {
-            let registry = lock_or_recover(&state.monitors);
-            taken.extend(registry.keys().cloned());
-        }
-        let label = next_dynamic_label(&taken);
-        create_dynamic_overlay_window(app, &label);
-        if let Some(window) = app.get_webview_window(&label) {
-            place_overlay_on_monitor(&window, tmon);
-            window.set_ignore_cursor_events(false).ok();
-            show_overlay_no_activate(&window);
-            window.set_always_on_top(true).ok();
-            crate::overlay::reassert_window_transparency(&window);
-        }
+    {
         let mut registry = lock_or_recover(&state.monitors);
-        registry.insert(
-            label.clone(),
-            MonitorEntry {
-                spec: spec.clone(),
-                hidden: false,
-            },
-        );
-        let _ = app.emit_to(
-            &label,
-            "overlay-monitor-restored",
-            assigned_payload(&label, &spec),
-        );
-        changed = true;
+        let mut used = vec![false; monitors.len()];
+
+        // Pair each registry entry with a monitor (shared pairing rule:
+        // geometry first, OS name as tiebreaker for resolution changes).
+        // Unpaired → lost; geometry drift → reposition. Steady state emits
+        // nothing at all.
+        let labels: Vec<String> = registry.keys().cloned().collect();
+        for label in labels {
+            let Some(entry) = registry.get_mut(&label) else {
+                continue;
+            };
+            let idx = specs
+                .iter()
+                .enumerate()
+                .find(|(i, m)| !used[*i] && entry.spec.matches(m))
+                .map(|(i, _)| i);
+            match idx {
+                Some(i) => {
+                    used[i] = true;
+                    let m = specs[i].clone();
+                    if !entry.spec.same_geometry(&m) || entry.hidden {
+                        entry.spec = m.clone();
+                        entry.hidden = false;
+                        if let Some((_, tmon)) = monitors.get(i) {
+                            pending.push(PendingAction::Restore {
+                                label,
+                                spec: m,
+                                monitor: tmon.clone(),
+                            });
+                        }
+                    }
+                }
+                None => {
+                    if !entry.hidden {
+                        entry.hidden = true;
+                        pending.push(PendingAction::Hide { label });
+                    }
+                }
+            }
+        }
+
+        // Newly connected displays (no registry pairing): a brand-new window.
+        // Dormant windows of still-lost displays are never recycled — their
+        // strokes belong to that display and reappear when it returns.
+        for (i, (_, tmon)) in monitors.iter().enumerate() {
+            if used[i] {
+                continue;
+            }
+            pending.push(PendingAction::Create {
+                spec: specs[i].clone(),
+                monitor: tmon.clone(),
+            });
+        }
     }
 
-    if changed {
-        crate::overlay::notify_overlay_geometry_changed(app);
-        crate::overlay::raise_toolbar_above_overlay(app);
+    if pending.is_empty() {
+        return;
     }
+    // Session may have ended while we computed the diff.
+    if crate::overlay::current_mode(&state) != crate::overlay::OverlayMode::Drawing {
+        return;
+    }
+
+    for action in pending {
+        match action {
+            PendingAction::Hide { label } => {
+                if let Some(window) = app.get_webview_window(&label) {
+                    window.set_ignore_cursor_events(true).ok();
+                    window.hide().ok();
+                }
+                let _ = app.emit_to(&label, "overlay-monitor-lost", ());
+            }
+            PendingAction::Restore {
+                label,
+                spec,
+                monitor,
+            } => {
+                if let Some(window) = app.get_webview_window(&label) {
+                    apply_overlay_assignment(&window, &monitor);
+                }
+                let _ = app.emit_to(
+                    &label,
+                    "overlay-monitor-restored",
+                    assigned_payload(&label, &spec),
+                );
+            }
+            PendingAction::Create { spec, monitor } => {
+                let mut taken = overlay_labels(app);
+                {
+                    let registry = lock_or_recover(&state.monitors);
+                    taken.extend(registry.keys().cloned());
+                }
+                let label = next_dynamic_label(&taken);
+                create_dynamic_overlay_window(app, &label);
+                if let Some(window) = app.get_webview_window(&label) {
+                    apply_overlay_assignment(&window, &monitor);
+                }
+                lock_or_recover(&state.monitors).insert(
+                    label.clone(),
+                    MonitorEntry {
+                        spec: spec.clone(),
+                        hidden: false,
+                    },
+                );
+                let _ = app.emit_to(
+                    &label,
+                    "overlay-monitor-restored",
+                    assigned_payload(&label, &spec),
+                );
+            }
+        }
+    }
+
+    crate::overlay::notify_overlay_geometry_changed(app);
+    crate::overlay::raise_toolbar_above_overlay(app);
+}
+
+/// Place, reveal (no focus steal), topmost and re-assert transparency — the
+/// shared tail of every overlay assignment/restore path.
+fn apply_overlay_assignment(window: &WebviewWindow, monitor: &tauri::Monitor) {
+    place_overlay_on_monitor(window, monitor);
+    window.set_ignore_cursor_events(false).ok();
+    show_overlay_no_activate(window);
+    window.set_always_on_top(true).ok();
+    crate::overlay::reassert_window_transparency(window);
 }
 
 #[cfg(test)]
@@ -628,99 +639,14 @@ mod tests {
     }
 
     #[test]
-    fn topology_key_normalizes_by_bounding_box_origin() {
-        // Same arrangement; second has the OS primary on the right monitor,
-        // which shifts every absolute coordinate by -1920.
-        let a = [
-            mon(0, 0, 1920, 1080, 1.0, Some("A")),
-            mon(1920, 0, 2560, 1440, 1.5, Some("B")),
-        ];
-        let b = [
-            mon(-1920, 0, 1920, 1080, 1.0, Some("A")),
-            mon(0, 0, 2560, 1440, 1.5, Some("B")),
-        ];
-        let origin_a = topology_origin(&a);
-        let origin_b = topology_origin(&b);
-        assert_eq!(a[1].topology_key(origin_a), b[1].topology_key(origin_b));
-        assert_eq!(a[0].topology_key(origin_a), b[0].topology_key(origin_b));
-    }
-
-    // ---- diff_topology ----------------------------------------------------
-
-    #[test]
-    fn diff_identical_topologies_emits_nothing() {
-        let t = [
-            mon(0, 0, 1920, 1080, 1.0, Some("A")),
-            mon(1920, 0, 1920, 1080, 1.0, Some("B")),
-        ];
-        assert!(diff_topology(&t, &t).is_empty());
-    }
-
-    #[test]
-    fn diff_detects_added_and_removed() {
-        let old = [mon(0, 0, 1920, 1080, 1.0, Some("A"))];
-        let new = [
-            mon(0, 0, 1920, 1080, 1.0, Some("A")),
-            mon(1920, 0, 1920, 1080, 1.0, Some("B")),
-        ];
-        let changes = diff_topology(&old, &new);
-        assert_eq!(changes, vec![TopoChange::Added(new[1].clone())]);
-
-        let changes = diff_topology(&new, &old);
-        assert_eq!(changes, vec![TopoChange::Removed(new[1].clone())]);
-    }
-
-    #[test]
-    fn diff_name_match_reports_reposition_on_resolution_change() {
-        let old = [
-            mon(0, 0, 1920, 1080, 1.0, Some("A")),
-            mon(1920, 0, 1920, 1080, 1.0, Some("B")),
-        ];
-        // B switches resolution: geometry differs but the name survives.
-        let new = [
-            mon(0, 0, 1920, 1080, 1.0, Some("A")),
-            mon(1920, 0, 1280, 720, 1.0, Some("B")),
-        ];
-        let changes = diff_topology(&old, &new);
-        assert_eq!(
-            changes,
-            vec![TopoChange::Repositioned {
-                from: old[1].clone(),
-                to: new[1].clone()
-            }]
-        );
-    }
-
-    #[test]
-    fn diff_geometry_match_survives_windows_renumbering() {
-        let old = [
-            mon(0, 0, 1920, 1080, 1.0, Some("\\\\.\\DISPLAY1")),
-            mon(1920, 0, 1920, 1080, 1.5, Some("\\\\.\\DISPLAY2")),
-        ];
-        // Replug renumbers the OS names but the arrangement is unchanged.
-        let new = [
-            mon(0, 0, 1920, 1080, 1.0, Some("\\\\.\\DISPLAY2")),
-            mon(1920, 0, 1920, 1080, 1.5, Some("\\\\.\\DISPLAY1")),
-        ];
-        assert!(diff_topology(&old, &new).is_empty());
-    }
-
-    #[test]
-    fn diff_is_independent_of_input_order() {
-        let old = [
-            mon(1920, 0, 1920, 1080, 1.0, Some("B")),
-            mon(0, 0, 1920, 1080, 1.0, Some("A")),
-        ];
-        let new = [
-            mon(0, 0, 1920, 1080, 1.0, Some("A")),
-            mon(-1920, 0, 1920, 1080, 1.0, Some("B")),
-        ];
-        // B moved from the right of A to the left: one reposition, order-agnostic.
-        let changes = diff_topology(&old, &new);
-        assert!(matches!(
-            changes.as_slice(),
-            &[TopoChange::Repositioned { .. }]
-        ));
+    fn matches_geometry_first_then_name() {
+        let a = mon(0, 0, 1920, 1080, 1.0, Some("A"));
+        // Same geometry, renumbered OS name → still a match.
+        assert!(a.matches(&mon(0, 0, 1920, 1080, 1.0, Some("B"))));
+        // Resolution changed but the OS name survived (mode switch).
+        assert!(a.matches(&mon(0, 0, 1280, 720, 1.0, Some("A"))));
+        // Different geometry AND name → different monitor.
+        assert!(!a.matches(&mon(1920, 0, 1920, 1080, 1.5, Some("C"))));
     }
 
     // ---- assign_labels ----------------------------------------------------

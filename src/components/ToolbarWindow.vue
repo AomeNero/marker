@@ -65,8 +65,9 @@ function applyOverlayState(state: OverlayStateSync) {
   textOutline.value = normalizeTextOutline(state.textOutline)
   whiteboardMode.value = state.whiteboardMode
   inkVisible.value = state.inkVisible
-  canUndo.value = state.canUndo
-  canRedo.value = state.canRedo
+  // canUndo/canRedo come from the backend's global timeline (`timeline-state`),
+  // not from any single overlay's local stack — a screen without strokes would
+  // otherwise grey out undo for the whole session.
   canClear.value = state.canClear
 }
 
@@ -167,6 +168,23 @@ onMounted(async () => {
       applyOverlayState(event.payload)
     }),
   )
+
+  // Authoritative global undo availability (multi-display: the latest op may
+  // belong to a screen other than the cursor's).
+  unlisteners.push(
+    await listen<{ canUndo: boolean; canRedo: boolean }>('timeline-state', (event) => {
+      canUndo.value = event.payload.canUndo
+      canRedo.value = event.payload.canRedo
+    }),
+  )
+
+  try {
+    const timeline = await invoke<{ canUndo: boolean; canRedo: boolean }>('get_timeline_state')
+    canUndo.value = timeline.canUndo
+    canRedo.value = timeline.canRedo
+  } catch {
+    // Timeline stays at defaults until the first mutation broadcasts state.
+  }
 
   unlisteners.push(
     await listen<AppConfig>('config-changed', (event) => {
