@@ -83,6 +83,23 @@ pub fn is_pointer_over_toolbar_panel(app: AppHandle) -> bool {
     crate::overlay::is_pointer_over_toolbar_panel(&app)
 }
 
+/// Forward a toolbar action to exactly one overlay window — the one on the
+/// cursor's monitor — so multi-display setups execute each action once.
+/// The executor applies the action locally and broadcasts the new session
+/// state, which sibling overlays apply idempotently.
+#[tauri::command]
+pub fn forward_toolbar_action(
+    app: AppHandle,
+    state: tauri::State<'_, AppState>,
+    action: serde_json::Value,
+) {
+    let target = crate::overlay_windows::label_for_cursor(&app, &state)
+        .unwrap_or_else(|| crate::overlay_windows::PRIMARY_LABEL.to_string());
+    if let Err(e) = app.emit_to(&target, crate::overlay::TOOLBAR_ACTION_EVENT, action) {
+        warn!("Failed to forward toolbar action to {}: {}", target, e);
+    }
+}
+
 #[tauri::command]
 pub fn set_overlay_ignore_cursor_events(
     app: AppHandle,

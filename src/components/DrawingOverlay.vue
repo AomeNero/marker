@@ -23,6 +23,7 @@ import {
   TOOLBAR_PANEL_HEIGHT_EVENT,
   OVERLAY_POINTER_SCREEN_EVENT,
   emitOverlayState,
+  type OverlayStateSync,
   type ToolbarAction,
 } from '../composables/overlayBridge'
 import type { AppConfig } from '../types/app'
@@ -2138,6 +2139,25 @@ onMounted(async () => {
   unlisteners.push(
     await listen(OVERLAY_STATE_REQUEST_EVENT, () => {
       syncOverlayStateToToolbar()
+    }),
+  )
+
+  // Multi-display: session state broadcast by another overlay window (or the
+  // single executor of a forwarded toolbar action). Idempotent ref writes
+  // only — no tips, no persistence, no diagnostics (side effects stay with
+  // the user action in the emitting window).
+  unlisteners.push(
+    await listen<OverlayStateSync>(OVERLAY_STATE_EVENT, (event) => {
+      if (!sessionActive.value) return
+      const state = event.payload
+      currentTool.value = state.currentTool
+      currentColor.value = state.currentColor
+      lineWidth.value = state.lineWidth
+      textOutline.value = normalizeTextOutline(state.textOutline)
+      // Whiteboard enter/exit semantics (preserve-config reset) are wired up
+      // by the whiteboard sync step; this only mirrors the visual flag.
+      whiteboardMode.value = state.whiteboardMode
+      setInkVisible(state.inkVisible)
     }),
   )
 

@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core'
 import type { TextOutlineStyle, Tool } from './drawingTypes'
 
 export const OVERLAY_STATE_EVENT = 'overlay-state-sync'
@@ -44,8 +45,14 @@ export type ToolbarAction =
   | { type: 'togglePin' }
   | { type: 'exitDrawing' }
 
-export function emitToolbarAction(action: ToolbarAction): void {
-  void import('@tauri-apps/api/event').then(({ emit }) => emit(TOOLBAR_ACTION_EVENT, action))
+/**
+ * Send a toolbar action to the backend, which forwards it to exactly one
+ * overlay window (the one on the cursor's monitor) so each action executes
+ * once on multi-display setups. The executor applies it locally and its
+ * state broadcast updates sibling overlays and this toolbar.
+ */
+export function forwardToolbarAction(action: ToolbarAction): void {
+  void invoke('forward_toolbar_action', { action })
 }
 
 export function emitOverlayState(state: OverlayStateSync): void {

@@ -32,6 +32,10 @@ fn ensure_overlay_transparent(window: &WebviewWindow) {
     }
 }
 
+/// Toolbar → overlay action transport (frontend `TOOLBAR_ACTION_EVENT`).
+/// Routed by `forward_toolbar_action` to exactly one overlay window.
+pub const TOOLBAR_ACTION_EVENT: &str = "toolbar-action";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OverlayMode {
     Hidden,

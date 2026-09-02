@@ -14,7 +14,7 @@ import {
   TOOLBAR_PANEL_HOVER_EVENT,
   TOOLBAR_POINTER_UP_EVENT,
   OVERLAY_POINTER_SCREEN_EVENT,
-  emitToolbarAction,
+  forwardToolbarAction,
   type OverlayStateSync,
   type OverlayPointerScreen,
 } from '../composables/overlayBridge'
@@ -110,7 +110,7 @@ function onToolbarKeyDown(e: KeyboardEvent) {
   // Overlay key handlers do not run while this window has OS focus.
   if (isCopyShortcut(e)) {
     e.preventDefault()
-    emitToolbarAction({ type: 'copy' })
+    forwardToolbarAction({ type: 'copy' })
     return
   }
 
@@ -233,17 +233,17 @@ onUnmounted(() => {
       :can-clear="canClear"
       :pointer-x="pointerX"
       :pointer-y="pointerY"
-      @select-tool="emitToolbarAction({ type: 'selectTool', tool: $event })"
-      @select-color="emitToolbarAction({ type: 'selectColor', color: $event })"
-      @update-line-width="emitToolbarAction({ type: 'updateLineWidth', width: $event })"
-      @update-text-outline="emitToolbarAction({ type: 'updateTextOutline', textOutline: $event })"
-      @undo="emitToolbarAction({ type: 'undo' })"
-      @redo="emitToolbarAction({ type: 'redo' })"
-      @clear-all="emitToolbarAction({ type: 'clearAll' })"
-      @toggle-whiteboard="emitToolbarAction({ type: 'toggleWhiteboard' })"
-      @toggle-ink-visible="emitToolbarAction({ type: 'toggleInkVisible' })"
-      @copy="emitToolbarAction({ type: 'copy' })"
-      @exit-drawing="emitToolbarAction({ type: 'exitDrawing' })"
+      @select-tool="forwardToolbarAction({ type: 'selectTool', tool: $event })"
+      @select-color="forwardToolbarAction({ type: 'selectColor', color: $event })"
+      @update-line-width="forwardToolbarAction({ type: 'updateLineWidth', width: $event })"
+      @update-text-outline="forwardToolbarAction({ type: 'updateTextOutline', textOutline: $event })"
+      @undo="forwardToolbarAction({ type: 'undo' })"
+      @redo="forwardToolbarAction({ type: 'redo' })"
+      @clear-all="forwardToolbarAction({ type: 'clearAll' })"
+      @toggle-whiteboard="forwardToolbarAction({ type: 'toggleWhiteboard' })"
+      @toggle-ink-visible="forwardToolbarAction({ type: 'toggleInkVisible' })"
+      @copy="forwardToolbarAction({ type: 'copy' })"
+      @exit-drawing="forwardToolbarAction({ type: 'exitDrawing' })"
       @close="onToolbarClose"
       @panel-hover="onPanelHover"
       @panel-drag="onPanelDrag"

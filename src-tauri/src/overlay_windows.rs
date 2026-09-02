@@ -192,6 +192,21 @@ pub fn label_sort_key(label: &str) -> (bool, usize) {
     }
 }
 
+/// The overlay window label whose monitor currently contains the cursor —
+/// the single executor for toolbar actions (the screen the user is on).
+pub fn label_for_cursor(app: &AppHandle, state: &AppState) -> Option<String> {
+    let (cx, cy) = crate::monitor::get_cursor_screen_pos()?;
+    let registry = lock_or_recover(&state.monitors);
+    let mut labels: Vec<&String> = registry.keys().collect();
+    labels.sort();
+    for label in labels {
+        if registry[label].spec.contains_point(cx, cy) {
+            return Some(label.clone());
+        }
+    }
+    None
+}
+
 /// Overlay window labels currently registered with the app, sorted
 /// (static `overlay` first, then `overlay-2`, `overlay-3`, …).
 pub fn overlay_labels(app: &AppHandle) -> Vec<String> {
