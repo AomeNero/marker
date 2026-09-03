@@ -38,8 +38,8 @@ body {
 .hero-logo {
   display: flex; align-items: center; justify-content: center;
   width: 72px; height: 72px; border-radius: 20px;
-  background: linear-gradient(135deg, #FF3B30, #FF6B35);
-  box-shadow: 0 12px 36px rgba(255,59,48,0.4), inset 0 2px 4px rgba(255,255,255,0.4);
+  background: #e6e6e6;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.45), inset 0 2px 4px rgba(255,255,255,0.6);
   color: #fff; margin-bottom: 24px;
 }
 .hero-logo svg { width: 42px; height: 42px; }
@@ -115,48 +115,37 @@ body {
 /* Marker SVG Overlay inside Browser */
 .anno-svg { position: absolute; inset: 0; z-index: 100; pointer-events: none; width: 100%; height: 100%; }
 
-/* Settings Panel */
-.floating-panel {
-  position: absolute; top: 50px; right: 100px; transform: rotate(2.5deg);
-  z-index: 3; width: 342px; background: rgba(30,30,32,0.97);
-  border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 30px 70px rgba(0,0,0,0.6), 0 4px 20px rgba(0,0,0,0.3);
-  overflow: hidden; backdrop-filter: blur(20px);
+/* Floating one-line toolbar (mirrors ToolToolbar.vue) */
+.floating-toolbar {
+  position: absolute; top: 255px; right: 0; transform: rotate(2.5deg);
+  z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
 }
-.panel-drag { height: 10px; display: flex; justify-content: center; align-items: center; }
-.panel-drag-indicator { width: 32px; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.12); }
-.panel-content { padding: 2px 16px 16px; }
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.section-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); }
-.section-hint { font-size: 11px; color: rgba(255,255,255,0.3); }
-.panel-tools-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 18px; }
-.tool-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 54px; border-radius: 8px; background: rgba(255,255,255,0.05); border: none; position: relative; gap: 3px; }
-.tool-btn.active { background: rgba(10,132,255,0.3); box-shadow: inset 0 0 0 1.5px rgba(10,132,255,0.5); }
-.tool-btn svg { width: 18px; height: 18px; stroke: rgba(255,255,255,0.8); stroke-width: 2; fill: none; }
-.tool-btn.active svg { stroke: #fff; }
-.tool-btn .tool-label { font-size: 10px; color: rgba(255,255,255,0.5); }
-.tool-btn.active .tool-label { color: rgba(255,255,255,0.9); }
-.tool-btn .tool-shortcut { position: absolute; top: 3px; right: 5px; font-size: 9px; color: rgba(255,255,255,0.25); }
-.section-sep { height: 1px; background: rgba(255,255,255,0.06); margin: 0 -16px 14px; }
-.color-section-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 10px; }
-.color-row { display: flex; gap: 21px; margin-bottom: 8px; }
-.color-dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; position: relative; }
-.color-dot.active { border-color: rgba(255,255,255,0.3); }
-.color-dot.active::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-.custom-color { display: flex; align-items: center; gap: 8px; margin-top: 6px; margin-bottom: 14px; }
-.custom-color-circle { width: 26px; height: 26px; border-radius: 50%; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); position: relative; }
-.custom-color-circle::after { content: '+'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
-.custom-color-text { font-size: 12px; color: rgba(255,255,255,0.45); }
-.width-section-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 10px; }
-.width-row { display: flex; gap: 4px; margin-bottom: 16px; }
-.width-btn { flex: 1; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
-.width-btn.active { background: rgba(10,132,255,0.35); box-shadow: inset 0 0 0 1.5px rgba(10,132,255,0.5); }
-.width-bar { border-radius: 2px; background: rgba(255,255,255,0.7); }
-.width-btn.active .width-bar { background: #fff; }
-.panel-footer { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px; }
-.shortcut-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: rgba(255,255,255,0.35); }
-.shortcut-row kbd { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 1px 5px; font-family: inherit; font-size: 11px; color: rgba(255,255,255,0.5); }
-.shortcut-row .desc { color: rgba(255,255,255,0.3); }
+.tb-surface {
+  background: #1e1e20;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.25);
+}
+.tb-bar { display: flex; align-items: center; gap: 2px; padding: 8px 6px; }
+.tb-grip { width: 16px; height: 24px; margin-right: 2px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.35); opacity: 0.65; flex-shrink: 0; }
+.tb-btn { width: 30px; height: 30px; flex-shrink: 0; border-radius: 9px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; position: relative; }
+.tb-btn svg { width: 15px; height: 15px; stroke: rgba(255,255,255,0.65); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.tb-btn.active { background: #183d63; box-shadow: inset 0 0 0 1px rgba(10,132,255,0.4); }
+.tb-btn.active svg { stroke: #fff; }
+.tb-btn.disabled { opacity: 0.32; }
+.tb-caret { position: absolute; right: 2px; bottom: 1px; width: 9px; height: 9px; stroke: rgba(255,255,255,0.8); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: 0.55; }
+.tb-div { width: 1px; height: 22px; background: rgba(255,255,255,0.05); margin: 0 6px; flex-shrink: 0; }
+.tb-width { width: 24px; height: 30px; flex-shrink: 0; border-radius: 7px; background: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: center; }
+.tb-width.active { background: #183d63; box-shadow: inset 0 0 0 1px rgba(10,132,255,0.4); }
+.tb-width-line { width: 17px; border-radius: 99px; background: rgba(255,255,255,0.4); }
+.tb-width.active .tb-width-line { background: #fff; }
+.tb-swatch-dot { width: 16px; height: 16px; border-radius: 50%; background: #FF3B30; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25); }
+.tb-flyout { display: flex; align-items: center; gap: 4px; padding: 8px; width: max-content; }
+.tb-flyout-tool { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 9px; background: rgba(255,255,255,0.04); font-size: 10.5px; color: rgba(255,255,255,0.7); }
+.tb-flyout-tool svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.tb-flyout-tool.active { background: #183d63; box-shadow: inset 0 0 0 1px rgba(10,132,255,0.4); color: #fff; }
+.tb-flyout-close { width: 32px; height: 32px; flex-shrink: 0; border-radius: 9px; background: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: center; }
+.tb-flyout-close svg { width: 15px; height: 15px; stroke: rgba(255,255,255,0.7); stroke-width: 2; fill: none; stroke-linecap: round; }
 
 /* Floating Tool Cards */
 .tool-card {
@@ -313,107 +302,77 @@ body {
     </svg>
   </div>
 
-  <!-- Settings Panel -->
-  <div class="floating-panel">
-    <div class="panel-drag"><div class="panel-drag-indicator"></div></div>
-    <div class="panel-content">
-      <div class="section-header">
-        <span class="section-title">工具</span>
-        <span class="section-hint">按 1-7 / E / T / N 切换</span>
+  <!-- Floating one-line toolbar (pen-group flyout open) -->
+  <div class="floating-toolbar">
+    <div class="tb-surface tb-flyout">
+      <div class="tb-flyout-tool active">
+        <svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+        <span>画笔</span>
       </div>
-      <div class="panel-tools-grid">
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
-          <span class="tool-label">画笔</span>
-          <span class="tool-shortcut">1</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
-          <span class="tool-label">荧光笔</span>
-          <span class="tool-shortcut">2</span>
-        </div>
-        <div class="tool-btn active">
-          <svg viewBox="0 0 24 24"><path d="M7 7h10"/><path d="M7 7v10"/><path d="M7 7l10 10"/></svg>
-          <span class="tool-label">箭头</span>
-          <span class="tool-shortcut">3</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
-          <span class="tool-label">矩形</span>
-          <span class="tool-shortcut">4</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-          <span class="tool-label">椭圆</span>
-          <span class="tool-shortcut">5</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
-          <span class="tool-label">直线</span>
-          <span class="tool-shortcut">6</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
-          <span class="tool-label">橡皮擦</span>
-          <span class="tool-shortcut">7</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/></svg>
-          <span class="tool-label">激光笔</span>
-          <span class="tool-shortcut">8</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
-          <span class="tool-label">文字</span>
-          <span class="tool-shortcut">T</span>
-        </div>
-        <div class="tool-btn">
-          <svg viewBox="0 0 24 24"><path d="M10 12h11"/><path d="M10 18h11"/><path d="M10 6h11"/><path d="M4 10h2"/><path d="M4 6h1v4"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
-          <span class="tool-label">序号</span>
-          <span class="tool-shortcut">N</span>
-        </div>
+      <div class="tb-flyout-tool">
+        <svg viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+        <span>荧光笔</span>
+      </div>
+      <div class="tb-flyout-tool">
+        <svg viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+        <span>激光笔</span>
+      </div>
+      <div class="tb-flyout-close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+    </div>
+
+    <div class="tb-surface tb-bar">
+      <div class="tb-grip">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:currentColor;stroke-linecap:round;"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </div>
+      <div class="tb-btn active">
+        <svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+        <svg class="tb-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+        <svg class="tb-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
       </div>
 
-      <div class="section-sep"></div>
-      <div class="color-section-title">颜色</div>
-      <div class="color-row">
-        <div class="color-dot" style="background:#FF3B30;"></div>
-        <div class="color-dot" style="background:#FF6B35;"></div>
-        <div class="color-dot" style="background:#FFCC02;"></div>
-        <div class="color-dot" style="background:#34C759;"></div>
-        <div class="color-dot active" style="background:#007AFF;"></div>
-        <div class="color-dot" style="background:#5856D6;"></div>
-        <div class="color-dot" style="background:#FFFFFF;"></div>
+      <span class="tb-div"></span>
+
+      <div class="tb-btn">
+        <div class="tb-swatch-dot"></div>
+        <svg class="tb-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
       </div>
-      <div class="color-row">
-        <div class="color-dot" style="background:#AF52DE;"></div>
-        <div class="color-dot" style="background:#FF2D55;"></div>
-        <div class="color-dot" style="background:#00C7BE;"></div>
-        <div class="color-dot" style="background:#8E8E93;"></div>
-        <div class="color-dot" style="background:#636366;"></div>
-        <div class="color-dot" style="background:#3A3A3C;"></div>
-        <div class="color-dot" style="background:#000000; border-color: rgba(255,255,255,0.15);"></div>
+      <div class="tb-width"><div class="tb-width-line" style="height:2.5px;"></div></div>
+      <div class="tb-width"><div class="tb-width-line" style="height:5px;"></div></div>
+      <div class="tb-width active"><div class="tb-width-line" style="height:7px;"></div></div>
+      <div class="tb-width"><div class="tb-width-line" style="height:12px;"></div></div>
+      <div class="tb-width"><div class="tb-width-line" style="height:19px;"></div></div>
+
+      <span class="tb-div"></span>
+
+      <div class="tb-btn disabled">
+        <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
       </div>
-      <div class="custom-color">
-        <div class="custom-color-circle"></div>
-        <span class="custom-color-text">自定义颜色</span>
+      <div class="tb-btn disabled">
+        <svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
       </div>
 
-      <div class="section-sep"></div>
-      <div class="width-section-title">线宽</div>
-      <div class="width-row">
-        <div class="width-btn"><div class="width-bar" style="width:28px; height:1px;"></div></div>
-        <div class="width-btn"><div class="width-bar" style="width:28px; height:2px;"></div></div>
-        <div class="width-btn active"><div class="width-bar" style="width:28px; height:3px;"></div></div>
-        <div class="width-btn"><div class="width-bar" style="width:28px; height:5px; border-radius:3px;"></div></div>
-        <div class="width-btn"><div class="width-bar" style="width:28px; height:8px; border-radius:4px;"></div></div>
-      </div>
+      <span class="tb-div"></span>
 
-      <div class="panel-footer">
-        <div class="shortcut-row"><span><kbd>Ctrl</kbd> + 拖动</span><span class="desc">矩形</span></div>
-        <div class="shortcut-row"><span><kbd>Shift</kbd> + 拖动</span><span class="desc">椭圆</span></div>
-        <div class="shortcut-row"><span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动</span><span class="desc">箭头</span></div>
-        <div class="shortcut-row"><span><kbd>Q</kbd> / <kbd>R</kbd> / 右键</span><span class="desc">切换颜色</span></div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 3c-1.7 0-2.8 0-3.7.3a6.3 6.3 0 0 0-4 4C4 8.2 4 9.3 4 11v2c0 1.7 0 2.8.3 3.7a6.3 6.3 0 0 0 4 4c.9.3 2 .3 3.7.3s2.8 0 3.7-.3a6.3 6.3 0 0 0 4-4c.3-.9.3-2 .3-3.7v-2c0-1.7 0-2.8-.3-3.7a6.3 6.3 0 0 0-4-4C14.8 3 13.7 3 12 3Z"/></svg>
       </div>
     </div>
   </div>

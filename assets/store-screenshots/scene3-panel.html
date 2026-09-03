@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1920, height=1080">
-<title>Marker - Settings Panel</title>
+<title>Marker - Compact Toolbar</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html {
@@ -17,7 +17,6 @@ html {
 body {
   width: 1920px;
   height: 1080px;
-  /* overflow: hidden; */
   font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
   background: transparent;
   position: relative;
@@ -26,141 +25,166 @@ body {
   justify-content: center;
 }
 
-/* Desktop background - matching scene1 */
-.desktop-bg {
-  display: none;
-}
 /* Main row: equal-height left + right */
 .main-row {
   position: relative;
   z-index: 50;
   display: flex;
-  align-items: stretch;
-  gap: 80px;
-}
-
-/* The Settings Panel - matching actual app UI */
-.settings-panel {
-  width: 342px;
-  flex-shrink: 0;
-  background: rgba(30,30,32,0.97);
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 16px 64px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.3);
-  padding: 0;
-  overflow: hidden;
-}
-
-/* Drag handle */
-.panel-drag {
-  height: 10px;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  cursor: grab;
-}
-.panel-drag-indicator {
-  width: 32px;
-  height: 3px;
-  border-radius: 2px;
-  background: rgba(255,255,255,0.12);
+  gap: 100px;
 }
 
-/* Panel content */
-.panel-content {
-  padding: 2px 16px 16px;
-}
-
-/* Section: Tools */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-}
-.section-hint {
-  font-size: 11px;
-  color: rgba(255,255,255,0.3);
-}
-
-.tools-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-  margin-bottom: 18px;
-}
-.tool-btn {
+/* ===== One-line toolbar mockup (mirrors ToolToolbar.vue) ===== */
+.demo-col {
+  width: 850px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 54px;
+}
+/* Outer box reserves the SCALED footprint (543×157 layout × 1.5) so nothing overlaps. */
+.toolbar-outer {
+  width: 815px;
+  height: 236px;
+}
+.toolbar-stack {
+  width: 543px;
+  transform: scale(1.5);
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.tb-surface {
+  background: #1e1e20;
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 8px;
-  background: rgba(255,255,255,0.05);
-  border: none;
-  cursor: pointer;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.25);
+}
+.tb-bar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 6px;
+}
+.tb-grip {
+  width: 16px;
+  height: 24px;
+  margin-right: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.35);
+  opacity: 0.65;
+  flex-shrink: 0;
+}
+.tb-btn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  gap: 3px;
 }
-.tool-btn.active {
-  background: rgba(10,132,255,0.3);
-  box-shadow: inset 0 0 0 1.5px rgba(10,132,255,0.5);
+.tb-btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: rgba(255,255,255,0.65);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.tool-btn svg {
-  width: 18px;
-  height: 18px;
+.tb-btn.active {
+  background: #183d63;
+  box-shadow: inset 0 0 0 1px rgba(10,132,255,0.4);
+}
+.tb-btn.active svg { stroke: #fff; }
+.tb-btn.disabled { opacity: 0.32; }
+.tb-caret {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  width: 9px;
+  height: 9px;
   stroke: rgba(255,255,255,0.8);
   stroke-width: 2;
   fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.55;
 }
-.tool-btn.active svg { stroke: #fff; }
-.tool-btn .tool-label {
-  font-size: 10px;
-  color: rgba(255,255,255,0.5);
+.tb-div {
+  width: 1px;
+  height: 22px;
+  background: rgba(255,255,255,0.05);
+  margin: 0 6px;
+  flex-shrink: 0;
 }
-.tool-btn.active .tool-label { color: rgba(255,255,255,0.9); }
-.tool-btn .tool-shortcut {
-  position: absolute;
-  top: 3px;
-  right: 5px;
-  font-size: 9px;
-  color: rgba(255,255,255,0.25);
+.tb-width {
+  width: 24px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tb-width.active {
+  background: #183d63;
+  box-shadow: inset 0 0 0 1px rgba(10,132,255,0.4);
+}
+.tb-width-line {
+  width: 17px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.4);
+}
+.tb-width.active .tb-width-line { background: #fff; }
+.tb-swatch-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #FF3B30;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
 }
 
-/* Section: Colors */
-.section-sep {
-  height: 1px;
-  background: rgba(255,255,255,0.06);
-  margin: 0 -16px 14px;
-}
-.color-section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 10px;
-}
-.color-row {
+/* Settings flyout (opened above the bar) */
+.tb-flyout {
+  align-self: flex-start;
   display: flex;
-  gap: 21px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  width: max-content;
 }
-.color-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
+.tb-colors-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.tb-swatch {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
 }
-.color-dot.active {
-  border-color: rgba(255,255,255,0.3);
+.tb-swatch > i {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
 }
-.color-dot.active::after {
+.tb-swatch.active { transform: scale(1.18); }
+.tb-swatch.active > i { box-shadow: 0 0 0 1.5px rgba(255,255,255,0.3), inset 0 0 0 1px rgba(0,0,0,0.2); }
+.tb-swatch.active::after {
   content: '✓';
   position: absolute;
   inset: 0;
@@ -168,102 +192,89 @@ body {
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  font-style: normal;
+  text-shadow: 0 0 2px rgba(0,0,0,0.5);
 }
-.custom-color {
+.tb-swatch-custom {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: conic-gradient(from 90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.5);
+}
+.tb-swatch-custom::after {
+  content: '+';
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 300;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+}
+.tb-flyout-close {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-left: auto;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tb-flyout-close svg {
+  width: 12px;
+  height: 12px;
+  stroke: rgba(255,255,255,0.7);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+}
+.tb-flyout-sep {
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.tb-copy-btn {
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+}
+.tb-copy-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: rgba(255,255,255,0.7);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.demo-hint {
+  margin-top: 36px;
+  font-size: 15px;
+  color: rgba(255,255,255,0.35);
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
-  margin-bottom: 14px;
 }
-.custom-color-circle {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
-  position: relative;
-}
-.custom-color-circle::after {
-  content: '+';
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  text-shadow: 0 0 4px rgba(0,0,0,0.8);
-}
-.custom-color-text {
-  font-size: 12px;
-  color: rgba(255,255,255,0.45);
-}
-
-/* Section: Line Width */
-.width-section-title {
-  font-size: 13px;
+.demo-hint b {
+  color: rgba(255,255,255,0.6);
   font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 10px;
-}
-.width-row {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-}
-.width-btn {
-  flex: 1;
-  height: 40px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.width-btn.active {
-  background: rgba(10,132,255,0.35);
-  box-shadow: inset 0 0 0 1.5px rgba(10,132,255,0.5);
-}
-.width-bar {
-  border-radius: 2px;
-  background: rgba(255,255,255,0.7);
-}
-.width-btn.active .width-bar { background: #fff; }
-
-/* Footer shortcuts */
-.panel-footer {
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 12px;
-}
-.shortcut-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.35);
-}
-.shortcut-row kbd {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-family: inherit;
-  font-size: 11px;
-  color: rgba(255,255,255,0.5);
-}
-.shortcut-row .desc {
-  color: rgba(255,255,255,0.3);
 }
 
 /* Right side feature descriptions */
 .features-side {
-  max-width: 440px;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -286,6 +297,16 @@ body {
   font-size: 16px;
   color: rgba(255,255,255,0.35);
   margin-bottom: 40px;
+  line-height: 1.6;
+}
+.features-side .sub kbd {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
 }
 .feature-item {
   display: flex;
@@ -307,6 +328,8 @@ body {
   height: 20px;
   stroke-width: 2;
   fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .feature-text h4 {
   font-size: 15px;
@@ -382,162 +405,150 @@ body {
 </head>
 <body>
 
-<div class="desktop-bg"></div>
 <!-- Main row wrapper -->
 <div class="main-row">
 
-<!-- The Actual Settings Panel -->
-<div class="settings-panel">
-  <div class="panel-drag"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" stroke-linecap="round" style="width:14px;height:24px;"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg></div>
-  <div class="panel-content">
-    <!-- Tools Section -->
-    <div class="section-header">
-      <span class="section-title">工具</span>
-      <span class="section-hint">按 1-7 / E / T / N 切换</span>
+<!-- Left: the actual one-line toolbar with settings flyout open -->
+<div class="demo-col">
+  <div class="toolbar-outer">
+  <div class="toolbar-stack">
+
+    <!-- Settings flyout (colors + copy) -->
+    <div class="tb-surface tb-flyout">
+      <div class="tb-colors-row">
+        <div class="tb-swatch active"><i style="background:#FF3B30;"></i></div>
+        <div class="tb-swatch"><i style="background:#FF6B35;"></i></div>
+        <div class="tb-swatch"><i style="background:#FFCC02;"></i></div>
+        <div class="tb-swatch"><i style="background:#34C759;"></i></div>
+        <div class="tb-swatch"><i style="background:#007AFF;"></i></div>
+        <div class="tb-swatch"><i style="background:#5856D6;"></i></div>
+        <div class="tb-swatch"><i style="background:#FFFFFF;"></i></div>
+        <div class="tb-swatch"><i style="background:#000000;"></i></div>
+        <div class="tb-swatch"><div class="tb-swatch-custom"></div></div>
+        <div class="tb-flyout-close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+      </div>
+      <div class="tb-flyout-sep"></div>
+      <div class="tb-copy-btn">
+        <svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        <span>复制</span>
+      </div>
     </div>
-    <div class="tools-grid">
-      <div class="tool-btn active">
+
+    <!-- One-line toolbar bar -->
+    <div class="tb-surface tb-bar">
+      <!-- Drag grip -->
+      <div class="tb-grip">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:currentColor;stroke-linecap:round;"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </div>
+      <!-- Pen group (active) -->
+      <div class="tb-btn active">
         <svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
-        <span class="tool-label">画笔</span>
-        <span class="tool-shortcut">1</span>
+        <svg class="tb-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
       </div>
-      <div class="tool-btn">
-        <svg viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
-        <span class="tool-label">荧光笔</span>
-        <span class="tool-shortcut">2</span>
-      </div>
-      
-<div class="tool-btn">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/></svg>
-        <span class="tool-label">激光笔</span>
-        <span class="tool-shortcut">3</span>
-      </div><div class="tool-btn">
-        <svg viewBox="0 0 24 24"><path d="M7 7h10"/><path d="M7 7v10"/><path d="M7 7l10 10"/></svg>
-        <span class="tool-label">箭头</span>
-        <span class="tool-shortcut">4</span>
-      </div>
-      <div class="tool-btn">
-        <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
-        <span class="tool-label">矩形</span>
-        <span class="tool-shortcut">5</span>
-      </div>
-      <div class="tool-btn">
+      <!-- Shape group -->
+      <div class="tb-btn">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-        <span class="tool-label">椭圆</span>
-        <span class="tool-shortcut">6</span>
+        <svg class="tb-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
       </div>
-      <div class="tool-btn">
-        <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
-        <span class="tool-label">直线</span>
-        <span class="tool-shortcut">7</span>
-      </div>
-      <div class="tool-btn">
+      <!-- Eraser -->
+      <div class="tb-btn">
         <svg viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
-        <span class="tool-label">橡皮擦</span>
-        <span class="tool-shortcut">E</span>
       </div>
-      <div class="tool-btn">
+      <!-- Text -->
+      <div class="tb-btn">
         <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
-        <span class="tool-label">文字</span>
-        <span class="tool-shortcut">T</span>
       </div>
-      <div class="tool-btn">
-        <svg viewBox="0 0 24 24"><path d="M10 12h11"/><path d="M10 18h11"/><path d="M10 6h11"/><path d="M4 10h2"/><path d="M4 6h1v4"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
-        <span class="tool-label">序号</span>
-        <span class="tool-shortcut">N</span>
+      <!-- Hide ink -->
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
       </div>
-    </div>
 
-    <!-- Colors Section -->
-    <div class="section-sep"></div>
-    <div class="color-section-title">颜色</div>
-    <div class="color-row">
-      <div class="color-dot" style="background:#FF3B30;"></div>
-      <div class="color-dot active" style="background:#FF6B35;"></div>
-      <div class="color-dot" style="background:#FFCC02;"></div>
-      <div class="color-dot" style="background:#34C759;"></div>
-      <div class="color-dot" style="background:#007AFF;"></div>
-      <div class="color-dot" style="background:#5856D6;"></div>
-      <div class="color-dot" style="background:#FFFFFF;"></div>
-    </div>
-    <div class="color-row">
-      <div class="color-dot" style="background:#AF52DE;"></div>
-      <div class="color-dot" style="background:#FF2D55;"></div>
-      <div class="color-dot" style="background:#00C7BE;"></div>
-      <div class="color-dot" style="background:#8E8E93;"></div>
-      <div class="color-dot" style="background:#636366;"></div>
-      <div class="color-dot" style="background:#3A3A3C;"></div>
-      <div class="color-dot" style="background:#000000; border-color: rgba(255,255,255,0.15);"></div>
-    </div>
-    <div class="custom-color">
-      <div class="custom-color-circle"></div>
-      <span class="custom-color-text">自定义颜色</span>
-    </div>
+      <span class="tb-div"></span>
 
-    <!-- Line Width Section -->
-    <div class="section-sep"></div>
-    <div class="width-section-title">线宽</div>
-    <div class="width-row">
-      <div class="width-btn"><div class="width-bar" style="width:28px; height:1px;"></div></div>
-      <div class="width-btn"><div class="width-bar" style="width:28px; height:2px;"></div></div>
-      <div class="width-btn active"><div class="width-bar" style="width:28px; height:3px;"></div></div>
-      <div class="width-btn"><div class="width-bar" style="width:28px; height:5px; border-radius:3px;"></div></div>
-      <div class="width-btn"><div class="width-bar" style="width:28px; height:8px; border-radius:4px;"></div></div>
-    </div>
+      <!-- Color flyout button -->
+      <div class="tb-btn">
+        <div class="tb-swatch-dot"></div>
+        <svg class="tb-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <!-- Stroke widths XS/S/M/L/XL, M active -->
+      <div class="tb-width"><div class="tb-width-line" style="height:2.5px;"></div></div>
+      <div class="tb-width"><div class="tb-width-line" style="height:5px;"></div></div>
+      <div class="tb-width active"><div class="tb-width-line" style="height:7px;"></div></div>
+      <div class="tb-width"><div class="tb-width-line" style="height:12px;"></div></div>
+      <div class="tb-width"><div class="tb-width-line" style="height:19px;"></div></div>
 
-    <!-- Footer -->
-    <div class="panel-footer">
-      <div class="shortcut-row"><span><kbd>Ctrl</kbd> + 拖动</span><span class="desc">矩形</span></div>
-      <div class="shortcut-row"><span><kbd>Shift</kbd> + 拖动</span><span class="desc">椭圆</span></div>
-      <div class="shortcut-row"><span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动</span><span class="desc">箭头</span></div>
-      <div class="shortcut-row"><span><kbd>Q</kbd> / <kbd>R</kbd> / 右键</span><span class="desc">切换颜色</span></div>
+      <span class="tb-div"></span>
+
+      <!-- Undo / redo / clear / save -->
+      <div class="tb-btn disabled">
+        <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+      </div>
+      <div class="tb-btn disabled">
+        <svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+      </div>
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+      </div>
+
+      <span class="tb-div"></span>
+
+      <!-- Whiteboard -->
+      <div class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 3c-1.7 0-2.8 0-3.7.3a6.3 6.3 0 0 0-4 4C4 8.2 4 9.3 4 11v2c0 1.7 0 2.8.3 3.7a6.3 6.3 0 0 0 4 4c.9.3 2 .3 3.7.3s2.8 0 3.7-.3a6.3 6.3 0 0 0 4-4c.3-.9.3-2 .3-3.7v-2c0-1.7 0-2.8-.3-3.7a6.3 6.3 0 0 0-4-4C14.8 3 13.7 3 12 3Z"/></svg>
+      </div>
     </div>
   </div>
+  </div>
+
+  <div class="demo-hint">点 <b>▾</b> 展开工具组 · 色块 <b>▾</b> 打开选色盘</div>
 </div>
 
 <!-- Right side features -->
 <div class="features-side">
   <div class="accent-line"></div>
-  <h2>直观的工具面板<br>所见即所得</h2>
-  <div class="sub">按 <kbd style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:1px 5px; font-family:inherit; font-size:13px; color:rgba(255,255,255,0.5);">Space</kbd> 呼出设置面板，涵盖工具、颜色、线宽全部选项。</div>
+  <h2>一行工具栏<br>所有选项触手可及</h2>
+  <div class="sub">按 <kbd>Space</kbd> 呼出，落笔自动隐藏。工具、颜色、线宽、撤销重做，全部收纳在这一行。</div>
 
   <div class="feature-item">
     <div class="feature-icon" style="background:rgba(255,59,48,0.12);">
-      <svg viewBox="0 0 24 24" stroke="#FF3B30"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg viewBox="0 0 24 24" stroke="#FF3B30"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
     </div>
     <div class="feature-text">
-      <h4>14 种预设颜色 + 自定义</h4>
-      <p>按 Q / R 快速切换，右键弹出选色盘</p>
+      <h4>8 种预设颜色 + 自定义</h4>
+      <p>色块一点即换，Q / R 快速循环，右键弹出选色盘</p>
     </div>
   </div>
 
   <div class="feature-item">
     <div class="feature-icon" style="background:rgba(10,132,255,0.12);">
-      <svg viewBox="0 0 24 24" stroke="#007AFF"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+      <svg viewBox="0 0 24 24" stroke="#007AFF"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
     </div>
     <div class="feature-text">
-      <h4>5 级线宽调节</h4>
-      <p>从极细到极粗精确控制，适配各种标注</p>
+      <h4>画笔 / 形状智能分组</h4>
+      <p>10 种工具收纳为两组，点 ▾ 展开即选，常用工具一步直达</p>
     </div>
   </div>
 
   <div class="feature-item">
     <div class="feature-icon" style="background:rgba(52,199,89,0.12);">
-      <svg viewBox="0 0 24 24" stroke="#34C759"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+      <svg viewBox="0 0 24 24" stroke="#34C759"><path d="M4 7h16"/><path d="M6 12h12"/><path d="M8 17h8"/></svg>
     </div>
     <div class="feature-text">
-      <h4>全键盘操作</h4>
-      <p>无需点击菜单，数字键 + 修饰键覆盖所有操作</p>
+      <h4>5 档线宽即时切换</h4>
+      <p>极细到极粗一键直达，Ctrl + 滚轮微调</p>
     </div>
   </div>
 
   <div class="feature-item">
     <div class="feature-icon" style="background:rgba(88,86,214,0.12);">
-      <svg viewBox="0 0 24 24" stroke="#5856D6"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      <svg viewBox="0 0 24 24" stroke="#5856D6"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
     </div>
     <div class="feature-text">
       <h4>完整撤销 / 重做</h4>
-      <p>Ctrl+Z 撤销、Ctrl+Shift+Z 重做，支持删除与清屏的恢复</p>
+      <p>Ctrl+Z 撤销、Ctrl+Shift+Z 重做，清屏与删除都可恢复</p>
     </div>
   </div>
 </div>
