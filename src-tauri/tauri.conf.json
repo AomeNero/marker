@@ -32,7 +32,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdFN0ZERDQwRjkyMDkwMzcKUldRM2tDRDVRTjEvZnBZQzJIY2krYk1uVGx4ckFKb2JhTE0vWTd0QXFSTGwvMHZOdTI3d1hYL1kK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNGM0U4RjFGN0FDRTg0NUIKUldSYmhNNTZINDgrUDZlajRUZmppaDRKS3JYakIvOXZ4NlZqUURwWEhpZnJ4bC9iaGZkbktOWmUK",
       "endpoints": [
         "https://marker.aomenero.com/latest.json"
       ]
@@ -44,7 +44,9 @@
     "createUpdaterArtifacts": true,
     "fileAssociations": [
       {
-        "ext": ["marker"],
+        "ext": [
+          "marker"
+        ],
         "name": "Marker annotations",
         "description": "Marker 标注文件",
         "role": "Editor"
@@ -62,7 +64,10 @@
         "installMode": "currentUser",
         "installerIcon": "./icons/installer-icon.ico",
         "sidebarImage": "./icons/installer-sidebar.bmp",
-        "languages": ["SimpChinese", "English"]
+        "languages": [
+          "SimpChinese",
+          "English"
+        ]
       },
       "wix": {
         "language": "zh-CN",
