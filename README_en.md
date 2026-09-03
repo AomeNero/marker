@@ -21,7 +21,7 @@
   <img src="assets/Marker_en.png" width="720" alt="Marker" />
 </p>
 
-**Contents:** [Download](#download) · [Quick Start](#quick-start) · [Features](#features) · [Shortcuts](#keyboard-shortcuts) · [Feedback](#feedback--issues) · [Development](#development)
+**Contents:** [Download](#download) · [Quick Start](#quick-start) · [Features](#features) · [Shortcuts](#keyboard-shortcuts) · [Annotation Files](#annotation-files) · [Feedback](#feedback--issues) · [Development](#development)
 
 ## Download
 
@@ -60,6 +60,7 @@ winget install --id 9N6623X973JV --source msstore
 - **Hide / show annotations** — press <kbd>V</kbd> to temporarily hide all annotations (e.g. to interact with apps below), press again to restore
 - **Full keyboard control** — every action has a shortcut, no menus needed
 - **Preserve drawings** — enable **Keep after exit** under Whiteboard & content to resume on re-enter
+- **Annotation file save / load** — save every screen's annotations (whiteboard included) to a `.marker` file, reopen it to restore the scene, or insert it on top as a template; installed builds open `.marker` files on double-click
 - **Whiteboard mode** — set default entry to whiteboard, or press <kbd>W</kbd> to toggle; content rules are in **Whiteboard & content** settings
 - **Whiteboard copy** — copy the whiteboard as an image with <kbd>Ctrl</kbd>/<kbd>Command</kbd> + <kbd>C</kbd>
 
@@ -104,6 +105,8 @@ On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd
 | Cycle eraser mode (stroke / object) | <kbd>E</kbd> again while eraser selected | <kbd>E</kbd> again while eraser selected |
 | Toolbar always-on / layout | Settings → General | Settings → General |
 | Copy screen / whiteboard | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| Save annotations (all screens) | <kbd>Alt</kbd> + <kbd>S</kbd> | <kbd>Option</kbd> + <kbd>S</kbd> |
+| Open file (replace) / Insert (overlay) | <kbd>Alt</kbd> + <kbd>O</kbd> / <kbd>I</kbd> | <kbd>Option</kbd> + <kbd>O</kbd> / <kbd>I</kbd> |
 | Whiteboard toggle | <kbd>W</kbd> | <kbd>W</kbd> |
 | Undo / Redo | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> |
 | Stroke width | <kbd>Ctrl</kbd> + Scroll | <kbd>Command</kbd> + Scroll (pen, laser & shapes share; highlighter/eraser/text separate) |
@@ -159,6 +162,19 @@ In **Settings → General** (toolbar display and stroke width — see [Features]
 - **Auto start** — launch the app automatically at system startup
 
 </details>
+
+## Annotation Files
+
+Annotations can be saved as `.marker` files (JSON) — take your board home, prep lessons ahead of time, or build reusable annotation templates.
+
+- **Save** — the toolbar **Save** button or <kbd>Alt</kbd> + <kbd>S</kbd>; writes silently and shows the full path:
+  - Portable build: `data\annotations\` next to the executable
+  - Installed build: `Documents\Marker\`
+  - Auto timestamped names: `markeryyyyMMddHHmmss.marker`
+- **Open (restore the scene)** — tray menu **Open annotations** or <kbd>Alt</kbd> + <kbd>O</kbd>: clears the current board and loads the file; a single <kbd>Ctrl</kbd> + <kbd>Z</kbd> undoes the whole load
+- **Insert (overlay a template)** — tray menu **Insert annotations** or <kbd>Alt</kbd> + <kbd>I</kbd>: stacks the file's content on top of current annotations, handy for reusing arrow / stamp layouts
+- **Multi-display** — one file holds every screen's annotations; on load each slice returns to its own display, and content whose screen is missing moves to the primary screen (with a notice) — nothing is dropped
+- **Double-click** — installed builds register the `.marker` file association; portable builds pick files from the tray menu instead
 
 ## Feedback & Issues
 

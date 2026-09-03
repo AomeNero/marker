@@ -1,6 +1,6 @@
 # Marker 项目结构说明（清理参考）
 
-> 生成于 2026-08-28 · 针对 AomeNero 自用定制版（v1.0.1）
+> 生成于 2026-09-03 · 针对 AomeNero 自用定制版（v1.0.2）
 > 技术栈：Tauri v2 + Vue 3 + TypeScript + Vite（前端）｜Rust（后端）
 
 ## 目录树总览
@@ -60,9 +60,9 @@ marker/
 | `components/ToolbarWindow.vue` | 工具栏独立窗口壳（与 overlay 的状态桥接） |
 | `components/TextBox.vue` | 文字输入框 |
 | `components/SettingsView.vue` + `settings/` | 设置窗口（通用/关于/诊断三个标签页） |
-| `composables/` | 绘图引擎（useDrawing）、几何/渲染、快捷键、主题、tooltip 等 |
+| `composables/` | 绘图引擎（useDrawing，含 load 撤销条目）、几何/渲染、快捷键、主题、tooltip 等 |
 | `constants/` | 颜色/工具/笔粗档位/印章/激光等常量 |
-| `utils/` | 工具栏定位、拖拽模式、橡皮模式等纯逻辑（均带测试） |
+| `utils/` | 工具栏定位、拖拽模式、橡皮模式、`.marker` 格式与加载路由（annotationFile*）等纯逻辑（均带测试） |
 | `i18n/` | 中英文语言包（en.ts / zh-CN.ts） |
 | `types/` | TS 类型定义 |
 | `test/` | vitest 全局 setup |
@@ -76,7 +76,8 @@ marker/
 | `src/lib.rs` / `main.rs` | 入口：托盘、窗口管理、事件路由、全局快捷键 |
 | `src/overlay.rs` | overlay/toolbar 窗口生命周期、停靠定位 |
 | `src/overlay_windows.rs` | **多显示器编排**：一屏一 overlay 窗口、拓扑 diff、热插拔 watcher、光标屏路由 |
-| `src/timeline.rs` | 全局撤销时间线（跨屏 Ctrl+Z 的轻量 op 记录，clear 折叠） |
+| `src/timeline.rs` | 全局撤销时间线（跨屏 Ctrl+Z 的轻量 op 记录，clear/load 折叠） |
+| `src/annotation_file.rs` | `.marker` 标注文件薄壳：保存目录解析、文件对话框（async + 隐藏 overlay）、读写、屏幕清单、加载 undo op、托盘/双击入口 |
 | `src/config.rs` | config.json 读写与归一化（快捷键/笔粗档位等） |
 | `src/win32.rs` | Win32 API：显示器工作区、透明度、无焦点置顶 |
 | `src/monitor.rs` | 显示器边界查询（按调用窗口/光标屏参数化） |

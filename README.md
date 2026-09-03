@@ -21,7 +21,7 @@
   <img src="assets/Marker.png" width="720" alt="Marker" />
 </p>
 
-**目录：** [下载安装](#下载安装) · [快速开始](#快速开始) · [功能一览](#功能一览) · [快捷键](#快捷键一览) · [反馈](#反馈与-issue) · [开发构建](#开发构建)
+**目录：** [下载安装](#下载安装) · [快速开始](#快速开始) · [功能一览](#功能一览) · [快捷键](#快捷键一览) · [标注文件](#标注文件) · [反馈](#反馈与-issue) · [开发构建](#开发构建)
 
 ## 下载安装
 
@@ -60,6 +60,7 @@ winget install --id 9N6623X973JV --source msstore
 - **隐藏 / 显示标注** — 按 <kbd>V</kbd> 临时隐藏全部标注（例如需要点击下层应用时），再按恢复
 - **全键盘操控** — 每个操作都有快捷键，无需菜单
 - **保留标注** — 可在「白板与内容」中开启退出后保留；下次进入自动恢复
+- **标注文件保存 / 加载** — 一键把全部屏幕的标注（含白板）存为 `.marker` 文件，随时打开恢复现场、或叠加到当前画面作为模板；安装版可直接双击 `.marker` 文件打开
 - **白板模式** — 可设为默认进入白板，或按 <kbd>W</kbd> 切换；内容与切换行为均在「白板与内容」中配置
 - **白板复制** — 在白板模式下按 <kbd>Ctrl</kbd>/<kbd>Command</kbd> + <kbd>C</kbd> 可复制当前白板为图片
 
@@ -104,6 +105,8 @@ winget install --id 9N6623X973JV --source msstore
 | 切换橡皮擦模式（轨迹 / 对象） | 选中橡皮擦后再按 <kbd>E</kbd> | 选中橡皮擦后再按 <kbd>E</kbd> |
 | 工具栏常驻 / 布局 | 设置 → 常规 | 设置 → 常规 |
 | 复制屏幕 / 白板 | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| 保存标注（全部屏幕） | <kbd>Alt</kbd> + <kbd>S</kbd> | <kbd>Option</kbd> + <kbd>S</kbd> |
+| 打开标注文件（替换）/ 插入（叠加） | <kbd>Alt</kbd> + <kbd>O</kbd> / <kbd>I</kbd> | <kbd>Option</kbd> + <kbd>O</kbd> / <kbd>I</kbd> |
 | 白板模式切换 | <kbd>W</kbd> | <kbd>W</kbd> |
 | 撤销 / 重做 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> |
 | 调整线宽 | <kbd>Ctrl</kbd> + 滚轮 | <kbd>Command</kbd> + 滚轮（画笔、激光笔与形状共用；荧光笔/橡皮擦/文字各自独立） |
@@ -159,6 +162,19 @@ winget install --id 9N6623X973JV --source msstore
 - **开机自动启动** — 系统启动时自动在后台运行
 
 </details>
+
+## 标注文件
+
+标注可以存成 `.marker` 文件（JSON 格式），跨设备迁移、课前备课、标注模板都靠它。
+
+- **保存** — 工具栏「保存」按钮或 <kbd>Alt</kbd> + <kbd>S</kbd>，静默写入并提示完整路径：
+  - 绿色版：程序目录下 `data\annotations\`
+  - 安装版：`文档\Marker\`
+  - 文件名自动带时间戳：`markeryyyyMMddHHmmss.marker`
+- **打开（替换现场）** — 托盘右键「打开标注文件」或 <kbd>Alt</kbd> + <kbd>O</kbd>：清空当前标注并载入文件，一次 <kbd>Ctrl</kbd> + <kbd>Z</kbd> 可整体撤销
+- **插入（叠加模板）** — 托盘右键「插入标注文件」或 <kbd>Alt</kbd> + <kbd>I</kbd>：把文件内容叠加到当前标注之上，常用于复用箭头、编号等常用布局
+- **多显示器** — 一个文件包含所有屏幕的标注；加载时按显示器自动匹配归位，找不到对应屏幕的内容会移到主屏并给出提示，不会丢失
+- **双击打开** — 安装版已注册 `.marker` 文件关联，双击文件即可唤起 Marker 打开；绿色版请通过托盘菜单选择文件
 
 ## 反馈与 Issue
 
