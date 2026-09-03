@@ -1,6 +1,6 @@
 # Marker 项目结构说明（清理参考）
 
-> 生成于 2026-09-03 · 针对 AomeNero 自用定制版（v1.1.1）
+> 生成于 2026-09-03 · 针对 AomeNero 自用定制版（v1.0.2）
 > 技术栈：Tauri v2 + Vue 3 + TypeScript + Vite（前端）｜Rust（后端）
 
 ## 目录树总览
