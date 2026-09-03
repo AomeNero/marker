@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue'
-import { Undo2, Redo2, Trash2, Squircle, Copy, GripVertical, X, ChevronDown, Eye, EyeOff, FolderOpen, Save } from '@lucide/vue'
+import { Undo2, Redo2, Trash2, Squircle, Copy, GripVertical, X, ChevronDown, Eye, EyeOff, Save } from '@lucide/vue'
 import type { Tool } from '../composables/useDrawing'
 import { useI18n } from '../i18n'
 import {
@@ -66,7 +66,6 @@ const emit = defineEmits<{
   undo: []
   redo: []
   clearAll: []
-  openFile: []
   saveFile: []
   toggleWhiteboard: []
   toggleInkVisible: []
@@ -769,16 +768,7 @@ onUnmounted(() => {
           <button
             type="button"
             class="overlay-toolbar-action"
-            :title="`${t('toolbar.openFile')} (Ctrl+O)`"
-            :aria-label="t('toolbar.openFile')"
-            @click="emit('openFile')"
-          >
-            <FolderOpen :size="15" />
-          </button>
-          <button
-            type="button"
-            class="overlay-toolbar-action"
-            :title="`${t('toolbar.saveFile')} (Ctrl+S)`"
+            :title="`${t('toolbar.saveFile')} (Alt+S)`"
             :aria-label="t('toolbar.saveFile')"
             @click="emit('saveFile')"
           >

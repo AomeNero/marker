@@ -160,7 +160,6 @@ export default {
     undo: 'Undo',
     redo: 'Redo',
     clear: 'Clear all',
-    openFile: 'Open annotations',
     saveFile: 'Save annotations',
     whiteboard: 'Whiteboard',
     exitWhiteboard: 'Exit whiteboard',

@@ -66,28 +66,67 @@ fn read_marker_file(path: PathBuf) -> Result<AnnotationFilePayload, String> {
     })
 }
 
+/// Hide (or re-show) every overlay + the toolbar around the native file
+/// dialog: always-on-top annotation chrome would otherwise sit above the
+/// dialog and swallow the pointer. Session state is untouched — strokes stay
+/// in their webviews, the timeline keeps running.
+fn set_overlays_for_dialog(app: &AppHandle, show: bool) {
+    let state = app.state::<AppState>();
+    // Restore must not resurrect overlays if the user left drawing mode
+    // while the dialog was open.
+    if crate::overlay::current_mode(&state) != crate::overlay::OverlayMode::Drawing {
+        return;
+    }
+    for label in crate::overlay_windows::overlay_labels(app) {
+        if let Some(window) = app.get_webview_window(&label) {
+            if show {
+                crate::overlay_windows::show_overlay_no_activate(&window);
+            } else {
+                window.hide().ok();
+            }
+        }
+    }
+    if show {
+        crate::overlay::set_toolbar_window_visible(app, true);
+    } else {
+        crate::overlay::hide_toolbar_window(app);
+    }
+}
+
 /// File dialog → raw `.marker` content. `Ok(None)` = user cancelled.
 ///
 /// Async + `spawn_blocking`: the native dialog must not run on the main
 /// thread — a sync command would stall the event loop's message pump and the
-/// whole app freezes as soon as the pointer hovers the dialog.
+/// whole app freezes as soon as the pointer hovers the dialog. Overlays and
+/// toolbar are hidden while it is up so the pointer reaches the dialog.
 #[tauri::command]
 pub async fn pick_annotations_file(
     app: AppHandle,
 ) -> Result<Option<AnnotationFilePayload>, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let s = crate::i18n::strings();
-        let picked = app
-            .dialog()
-            .file()
-            .set_title(s.open_annotations)
-            .add_filter(s.annotations_file, &[MARKER_EXT])
-            .blocking_pick_file();
-        let Some(picked) = picked else {
-            return Ok(None);
-        };
-        let path = picked.into_path().map_err(|e| e.to_string())?;
-        read_marker_file(path).map(Some)
+        let _ = app.run_on_main_thread({
+            let app = app.clone();
+            move || set_overlays_for_dialog(&app, false)
+        });
+        let result = || -> Result<Option<AnnotationFilePayload>, String> {
+            let s = crate::i18n::strings();
+            let picked = app
+                .dialog()
+                .file()
+                .set_title(s.open_annotations)
+                .add_filter(s.annotations_file, &[MARKER_EXT])
+                .blocking_pick_file();
+            let Some(picked) = picked else {
+                return Ok(None);
+            };
+            let path = picked.into_path().map_err(|e| e.to_string())?;
+            read_marker_file(path).map(Some)
+        }();
+        let _ = app.run_on_main_thread({
+            let app = app.clone();
+            move || set_overlays_for_dialog(&app, true)
+        });
+        result
     })
     .await
     .map_err(|e| format!("dialog task failed: {e}"))?

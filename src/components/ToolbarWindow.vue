@@ -258,7 +258,6 @@ onUnmounted(() => {
       @undo="forwardToolbarAction({ type: 'undo' })"
       @redo="forwardToolbarAction({ type: 'redo' })"
       @clear-all="forwardToolbarAction({ type: 'clearAll' })"
-      @open-file="forwardToolbarAction({ type: 'openFile' })"
       @save-file="forwardToolbarAction({ type: 'saveFile' })"
       @toggle-whiteboard="forwardToolbarAction({ type: 'toggleWhiteboard' })"
       @toggle-ink-visible="forwardToolbarAction({ type: 'toggleInkVisible' })"

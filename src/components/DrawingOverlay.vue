@@ -1953,9 +1953,6 @@ function logToolbarAction(action: ToolbarAction) {
     case 'clearAll':
       logActionEvent('canvas cleared', { reason })
       break
-    case 'openFile':
-      logActionEvent('annotations open requested', { reason })
-      break
     case 'saveFile':
       logActionEvent('annotations save requested', { reason })
       break
@@ -2041,9 +2038,6 @@ async function handleToolbarAction(action: ToolbarAction) {
       // Same global path as the Alt+E shortcut: the backend folds the timeline
       // into one clear op and broadcasts; every overlay (incl. this one) clears.
       void invoke('clear_all_drawings').catch((e) => console.error('clear all failed', e))
-      break
-    case 'openFile':
-      void runAnnotationFileAction('open')
       break
     case 'saveFile':
       void runAnnotationFileAction('save')

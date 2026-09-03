@@ -58,7 +58,7 @@ export interface KeyboardActions {
   exitWhiteboardMode: () => void
   copyScreen: () => void
   copyWhiteboard: () => void
-  /** Mod+S / Mod+O / Mod+I — annotation file save / open / insert. */
+  /** Alt+S / Alt+O / Alt+I — annotation file save / open / insert. */
   saveAnnotations?: () => void
   openAnnotations?: () => void
   insertAnnotations?: () => void
@@ -296,22 +296,22 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
       return
     }
 
-    // Annotation files: Mod+S save, Mod+O open (replace), Mod+I insert.
-    if (modDown(e) && (e.key === 's' || e.key === 'S')) {
+    // Annotation files: Alt+S save, Alt+O open (replace), Alt+I insert.
+    if (e.altKey && (e.key === 's' || e.key === 'S')) {
       e.preventDefault()
-      logActionEvent('annotations save requested', { reason: 'keyboard', shortcut: 'mod+s' })
+      logActionEvent('annotations save requested', { reason: 'keyboard', shortcut: 'alt+s' })
       actions.saveAnnotations?.()
       return
     }
-    if (modDown(e) && (e.key === 'o' || e.key === 'O')) {
+    if (e.altKey && (e.key === 'o' || e.key === 'O')) {
       e.preventDefault()
-      logActionEvent('annotations open requested', { reason: 'keyboard', shortcut: 'mod+o' })
+      logActionEvent('annotations open requested', { reason: 'keyboard', shortcut: 'alt+o' })
       actions.openAnnotations?.()
       return
     }
-    if (modDown(e) && (e.key === 'i' || e.key === 'I')) {
+    if (e.altKey && (e.key === 'i' || e.key === 'I')) {
       e.preventDefault()
-      logActionEvent('annotations insert requested', { reason: 'keyboard', shortcut: 'mod+i' })
+      logActionEvent('annotations insert requested', { reason: 'keyboard', shortcut: 'alt+i' })
       actions.insertAnnotations?.()
       return
     }

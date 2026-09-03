@@ -156,7 +156,6 @@ export default {
     undo: '撤销',
     redo: '重做',
     clear: '清空',
-    openFile: '打开标注文件',
     saveFile: '保存标注',
     whiteboard: '白板',
     exitWhiteboard: '退出白板',
