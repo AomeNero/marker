@@ -9,6 +9,10 @@ pub struct Strings {
     pub tray_tooltip: &'static str,
     pub toggle_drawing: &'static str,
     pub clear_drawing: &'static str,
+    pub open_annotations: &'static str,
+    pub insert_annotations: &'static str,
+    pub save_annotations: &'static str,
+    pub annotations_file: &'static str,
 }
 
 const ZH: Strings = Strings {
@@ -20,6 +24,10 @@ const ZH: Strings = Strings {
     tray_tooltip: "Marker - 屏幕标注工具",
     toggle_drawing: "开始标注",
     clear_drawing: "清除标注",
+    open_annotations: "打开标注文件",
+    insert_annotations: "插入标注文件",
+    save_annotations: "保存标注",
+    annotations_file: "Marker 标注文件",
 };
 
 const EN: Strings = Strings {
@@ -31,6 +39,10 @@ const EN: Strings = Strings {
     tray_tooltip: "Marker - Screen annotation",
     toggle_drawing: "Toggle annotation",
     clear_drawing: "Clear annotations",
+    open_annotations: "Open annotations",
+    insert_annotations: "Insert annotations",
+    save_annotations: "Save annotations",
+    annotations_file: "Marker annotations",
 };
 
 static USE_CHINESE: AtomicBool = AtomicBool::new(false);

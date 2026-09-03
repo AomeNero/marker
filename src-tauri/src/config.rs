@@ -344,6 +344,9 @@ pub struct AppState {
     pub monitors: Mutex<crate::overlay_windows::MonitorRegistry>,
     /// Global undo timeline (lightweight op records, no stroke data).
     pub timeline: Mutex<crate::timeline::Timeline>,
+    /// `.marker` path from a cold-start launch (double-click while not running);
+    /// opened once the overlay webviews have mounted.
+    pub pending_file_open: Mutex<Option<String>>,
 }
 
 /// Lock a mutex with poison recovery — if a thread panicked while holding

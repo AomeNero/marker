@@ -1,6 +1,7 @@
 #[cfg(not(any(target_os = "windows", target_os = "macos")))]
 compile_error!("Marker only supports Windows and macOS.");
 
+mod annotation_file;
 mod clipboard;
 mod commands;
 mod config;
@@ -40,11 +41,20 @@ pub fn rebuild_tray_menu(app: &AppHandle) -> Result<(), Box<dyn std::error::Erro
     let s = i18n::strings();
     if let Some(tray) = app.tray_by_id("main") {
         let settings_item = MenuItemBuilder::with_id("settings", s.settings).build(app)?;
+        let open_item = MenuItemBuilder::with_id("open-annotations", s.open_annotations).build(app)?;
+        let insert_item =
+            MenuItemBuilder::with_id("insert-annotations", s.insert_annotations).build(app)?;
+        let save_item = MenuItemBuilder::with_id("save-annotations", s.save_annotations).build(app)?;
         let help_item = MenuItemBuilder::with_id("help", s.help).build(app)?;
         let about_item = MenuItemBuilder::with_id("about", s.about).build(app)?;
         let quit_item = MenuItemBuilder::with_id("quit", s.quit).build(app)?;
         let menu = MenuBuilder::new(app)
             .item(&settings_item)
+            .separator()
+            .item(&open_item)
+            .item(&insert_item)
+            .item(&save_item)
+            .separator()
             .item(&help_item)
             .item(&about_item)
             .separator()
@@ -96,11 +106,24 @@ fn focus_settings_window(app: &AppHandle, tab: Option<&str>) {
 
 /// Second launch while the app is already running (desktop icon / pinned taskbar /
 /// opening the .app again on macOS). Match tray left-click: toggle annotation.
+/// A `.marker` argument (file-association double-click) opens that file instead.
 ///
 /// Previously this only focused the settings window, which no-ops when settings
 /// was never opened — so relaunch appeared to do nothing. `toggle_drawing` is the
 /// same path as the tray and global shortcut; safe on macOS Accessory policy.
-fn on_second_instance(app: &AppHandle) {
+fn on_second_instance(app: &AppHandle, args: Vec<String>) {
+    if let Some(path) = args.iter().find(|a| a.to_lowercase().ends_with(".marker")) {
+        let state = app.state::<AppState>();
+        log_backend_event(
+            &state,
+            "session",
+            "annotations file requested",
+            Some(serde_json::json!({ "reason": "second-instance", "path": path })),
+            "info",
+        );
+        annotation_file::request_file_action(app, &state, "open", Some(path));
+        return;
+    }
     let state = app.state::<AppState>();
     log_backend_event(
         &state,
@@ -170,12 +193,12 @@ pub fn run() {
 
     let builder = tauri::Builder::default();
     #[cfg(target_os = "windows")]
-    let builder = builder.plugin(single_instance_win::init(|app, _args, _cwd| {
-        on_second_instance(app);
+    let builder = builder.plugin(single_instance_win::init(|app, args, _cwd| {
+        on_second_instance(app, args);
     }));
     #[cfg(not(target_os = "windows"))]
-    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-        on_second_instance(app);
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+        on_second_instance(app, args);
     }));
     builder
         .plugin(tauri_plugin_autostart::init(
@@ -194,6 +217,7 @@ pub fn run() {
             diagnostic_events: Mutex::new(Vec::new()),
             monitors: Mutex::new(std::collections::HashMap::new()),
             timeline: Mutex::new(timeline::Timeline::new()),
+            pending_file_open: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
@@ -228,6 +252,11 @@ pub fn run() {
             diagnostics::append_diagnostic_event,
             clipboard::copy_screen,
             clipboard::copy_whiteboard,
+            annotation_file::get_overlay_screen_specs,
+            annotation_file::pick_annotations_file,
+            annotation_file::read_annotations_file,
+            annotation_file::save_annotations_file,
+            annotation_file::record_load_op,
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -260,6 +289,11 @@ pub fn run() {
                     crate::overlay::show_toolbar_after_tray_menu(app);
                     match event.id().as_ref() {
                         "settings" => open_settings(app),
+                        "open-annotations" | "insert-annotations" | "save-annotations" => {
+                            let state = app.state::<AppState>();
+                            let mode = event.id().as_ref().strip_suffix("-annotations").unwrap_or("");
+                            annotation_file::request_file_action(app, &state, mode, None);
+                        }
                         "help" => open_settings_tab(app, Some("help")),
                         "about" => open_settings_tab(app, Some("about")),
                         "quit" => app.exit(0),
@@ -342,6 +376,29 @@ pub fn run() {
             })
             .ok();
 
+            // Cold-start `.marker` argument (file-association double-click while
+            // not running): defer until overlay webviews have mounted, then open.
+            if let Some(path) = std::env::args()
+                .skip(1)
+                .find(|a| a.to_lowercase().ends_with(".marker"))
+            {
+                *lock_or_recover(&handle.state::<AppState>().pending_file_open) = Some(path);
+                let open_handle = handle.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_millis(800));
+                    let state = open_handle.state::<AppState>();
+                    let pending = lock_or_recover(&state.pending_file_open).take();
+                    if let Some(path) = pending {
+                        annotation_file::request_file_action(
+                            &open_handle,
+                            &state,
+                            "open",
+                            Some(&path),
+                        );
+                    }
+                });
+            }
+
             Ok(())
         })
         .on_window_event(|window, event| match event {
@@ -373,6 +430,26 @@ pub fn run() {
             }
             _ => {}
         })
-        .run(tauri::generate_context!())
-        .expect("error while running Marker");
+        .build(tauri::generate_context!())
+        .expect("error while building Marker")
+        .run(|app, event| {
+            // macOS file association: Finder hands opened documents to the
+            // running instance here (single-instance forwards cold launches).
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = event {
+                if let Some(path) = urls.iter().find_map(|url| url.to_file_path().ok()) {
+                    let state = app.state::<AppState>();
+                    annotation_file::request_file_action(
+                        app,
+                        &state,
+                        "open",
+                        Some(&path.display().to_string()),
+                    );
+                }
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                let _ = (app, event);
+            }
+        });
 }

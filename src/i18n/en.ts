@@ -69,6 +69,13 @@ export default {
     whiteboardMode: 'Whiteboard mode enabled',
     whiteboardExit: 'Exited whiteboard mode',
     whiteboardReady: 'Whiteboard is ready',
+    savedTo: 'Annotations saved: {path}',
+    saveFailed: 'Save failed',
+    loadedOk: 'Loaded {count} annotations',
+    loadedMissingScreens:
+      'Loaded {count} annotations; {screens} screen(s) not found, content moved to the primary screen',
+    loadFailed: 'Could not read the annotations file',
+    loadUnsupported: 'File was saved by a newer Marker — please update',
   },
   textBox: {
     placeholder: 'Type here...',
@@ -153,6 +160,8 @@ export default {
     undo: 'Undo',
     redo: 'Redo',
     clear: 'Clear all',
+    openFile: 'Open annotations',
+    saveFile: 'Save annotations',
     whiteboard: 'Whiteboard',
     exitWhiteboard: 'Exit whiteboard',
     copy: 'Copy',

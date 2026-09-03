@@ -187,6 +187,17 @@ export function useDrawing(
       }
     | { type: 'removeBatch'; removed: { action: DrawAction; index: number }[] }
     | { type: 'clear'; actions: DrawAction[]; prevUndoStack: UndoEntry[] }
+    /**
+     * One annotation-file load (open = replace whole board, insert = append).
+     * Open stores the full pre-load board + stack so undo restores exactly.
+     */
+    | {
+        type: 'load'
+        mode: 'open' | 'insert'
+        previous: DrawAction[]
+        prevUndoStack: UndoEntry[]
+        loaded: DrawAction[]
+      }
 
   function clonePoint(p: Point): Point {
     return {
@@ -1551,6 +1562,27 @@ export function useDrawing(
       history.push(...entry.actions)
       undoStack.push(...entry.prevUndoStack)
       hitGridDirty = true
+    } else if (entry.type === 'load') {
+      if (entry.mode === 'open') {
+        history.length = 0
+        history.push(...entry.previous)
+        undoStack.length = 0
+        undoStack.push(...entry.prevUndoStack)
+        clearHitGridState()
+        hitGridDirty = true
+        selectedActions.value = []
+        marqueeRect.value = null
+      } else {
+        for (const action of entry.loaded) {
+          const idx = history.lastIndexOf(action)
+          if (idx !== -1) {
+            history.splice(idx, 1)
+            deleteActionFromHitGrid(action)
+          }
+        }
+        historyIndexDirty = true
+        pruneSelection(entry.loaded)
+      }
     }
 
     redoStack.push(entry)
@@ -1625,6 +1657,20 @@ export function useDrawing(
       hitGridDirty = false
       selectedActions.value = []
       marqueeRect.value = null
+    } else if (entry.type === 'load') {
+      if (entry.mode === 'open') {
+        history.length = 0
+        history.push(...entry.loaded)
+        undoStack.length = 0
+        clearHitGridState()
+        hitGridDirty = true
+        selectedActions.value = []
+        marqueeRect.value = null
+      } else {
+        history.push(...entry.loaded)
+        for (const action of entry.loaded) appendActionToHitGrid(action)
+        historyIndexDirty = true
+      }
     }
 
     undoStack.push(entry)
@@ -1675,6 +1721,52 @@ export function useDrawing(
     previewDirty = true
     markHistoryStacksChanged()
     flushRender()
+  }
+
+  /**
+   * Apply a loaded annotation-file slice (undoable via the folded `load`
+   * entry). Never commits to the timeline sink: loads are backend-recorded
+   * global ops (open folds existing ops; insert stacks on top) — committing
+   * here would double them.
+   */
+  function applyLoadedActions(actions: DrawAction[], mode: 'open' | 'insert') {
+    // Every overlay pushes its (possibly empty) load entry: the global undo
+    // op is broadcast to ALL overlays, and each must pop the matching entry.
+    historyIndexDirty = true
+
+    const entry: UndoEntry = {
+      type: 'load',
+      mode,
+      previous: mode === 'open' ? [...history] : [],
+      prevUndoStack: mode === 'open' ? [...undoStack] : [],
+      loaded: actions,
+    }
+
+    if (mode === 'open') {
+      history.length = 0
+      undoStack.length = 0
+      clearLaserStrokes()
+      clearHitGridState()
+      hitGridDirty = false
+    }
+    history.push(...actions)
+    for (const action of actions) appendActionToHitGrid(action)
+    redoStack.length = 0
+    undoStack.push(entry)
+
+    invalidateCache()
+    selectedActions.value = []
+    marqueeRect.value = null
+    currentAction.value = null
+    previewAction.value = null
+    previewDirty = true
+    markHistoryStacksChanged()
+    flushRender()
+  }
+
+  /** Current strokes for a `.marker` export (copied by the serializer). */
+  function getHistoryActions(): DrawAction[] {
+    return history
   }
 
   function exportAsDataURL(backgroundColor?: string) {
@@ -1854,6 +1946,8 @@ export function useDrawing(
     canRedo,
     canClear,
     clearAll,
+    applyLoadedActions,
+    getHistoryActions,
     exportAsDataURL,
     hardReset,
     redrawAll,

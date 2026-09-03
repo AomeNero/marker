@@ -39,6 +39,8 @@ export type ToolbarAction =
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'clearAll' }
+  | { type: 'openFile' }
+  | { type: 'saveFile' }
   | { type: 'toggleWhiteboard' }
   | { type: 'copy' }
   | { type: 'toggleInkVisible' }

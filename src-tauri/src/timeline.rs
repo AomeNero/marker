@@ -111,17 +111,29 @@ impl Timeline {
         if self.active.is_empty() && self.undone.is_empty() {
             return None;
         }
+        Some(self.begin_global("clear"))
+    }
+
+    /// Global op for a frontend-orchestrated annotation-file load. Unlike a
+    /// clear, the op is ALWAYS recorded — opening onto an empty board must
+    /// still be undoable. Every overlay pushes a matching local `load` entry
+    /// (possibly empty) so the broadcast replay stays consistent.
+    pub fn begin_global_load(&mut self) -> TimelineOp {
+        self.begin_global("load")
+    }
+
+    fn begin_global(&mut self, kind: &str) -> TimelineOp {
         let op_id = self.next_op_id;
         self.next_op_id += 1;
         let op = TimelineOp {
             op_id,
             owner: String::new(),
-            kind: "clear".to_string(),
+            kind: kind.to_string(),
             frozen: std::mem::take(&mut self.active),
         };
         self.undone.clear();
         self.active.push(op.clone());
-        Some(op)
+        op
     }
 
     /// Drop all history (non-undoable hard reset).
@@ -240,6 +252,45 @@ mod tests {
         let mut t = Timeline::new();
         assert!(t.begin_global_clear().is_none());
         assert!(t.is_empty());
+    }
+
+    #[test]
+    fn global_load_is_always_recorded_and_folds_active_ops() {
+        let mut t = Timeline::new();
+        t.commit("overlay", "add");
+        t.commit("overlay-2", "add");
+        let load = t.begin_global_load();
+        assert_eq!(load.owner, "");
+        assert_eq!(load.kind, "load");
+        assert_eq!(load.frozen.len(), 2);
+        assert!(t.can_undo());
+        assert!(!t.can_redo());
+
+        // Undo releases the folded pre-open ops back to active.
+        let popped = t.undo().unwrap();
+        assert_eq!(popped.kind, "load");
+        assert_eq!(t.active.len(), 2);
+
+        // Loading onto an empty board is still undoable.
+        let mut empty = Timeline::new();
+        let load = empty.begin_global_load();
+        assert_eq!(load.frozen.len(), 0);
+        assert!(empty.can_undo());
+        assert_eq!(empty.undo().unwrap().kind, "load");
+    }
+
+    #[test]
+    fn insert_stacks_as_global_op_without_folding() {
+        let mut t = Timeline::new();
+        t.commit("overlay", "add");
+        t.commit("", "insert");
+        assert_eq!(t.active.len(), 2);
+        // One undo removes just the insert; the pre-insert stroke survives.
+        let popped = t.undo().unwrap();
+        assert_eq!(popped.kind, "insert");
+        assert_eq!(popped.owner, "");
+        assert_eq!(t.active.len(), 1);
+        assert_eq!(t.active[0].kind, "add");
     }
 
     #[test]

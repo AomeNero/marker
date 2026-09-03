@@ -84,6 +84,16 @@ import { resolveToolbarSelectTool } from '../utils/toolbarSelectTool'
 import { resolveStrokeSmoothing } from '../utils/strokeSmoothing'
 import { setStrokeSmoothing } from '../composables/strokeSmoothingState'
 import { normalizePressure } from '../constants/penStroke'
+import { MarkerFileError } from '../utils/annotationFile'
+import {
+  ANNOTATIONS_APPLY_LOAD_EVENT,
+  ANNOTATIONS_EXPORT_EVENT,
+  ANNOTATIONS_EXPORT_REQUEST_EVENT,
+  ANNOTATIONS_FILE_REQUEST_EVENT,
+  loadAnnotationsFile,
+  saveAnnotationsToFile,
+  type LoadMode,
+} from '../utils/annotationFileTransfer'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
@@ -353,6 +363,8 @@ const {
   canRedo,
   canClear,
   clearAll,
+  applyLoadedActions,
+  getHistoryActions,
   exportAsDataURL,
   hardReset,
   redrawAll,
@@ -1757,6 +1769,15 @@ const onKeyDown = createKeyDownHandler(
     copyWhiteboard: () => {
       void copyWhiteboard('keyboard')
     },
+    saveAnnotations: () => {
+      void runAnnotationFileAction('save')
+    },
+    openAnnotations: () => {
+      void runAnnotationFileAction('open')
+    },
+    insertAnnotations: () => {
+      void runAnnotationFileAction('insert')
+    },
     toggleToolbarPopupVisible,
     toggleInkVisible: () => {
       setInkVisible(!inkVisible.value)
@@ -1932,6 +1953,12 @@ function logToolbarAction(action: ToolbarAction) {
     case 'clearAll':
       logActionEvent('canvas cleared', { reason })
       break
+    case 'openFile':
+      logActionEvent('annotations open requested', { reason })
+      break
+    case 'saveFile':
+      logActionEvent('annotations save requested', { reason })
+      break
     case 'toggleWhiteboard':
       logActionEvent('whiteboard toggle requested', { reason })
       break
@@ -2014,6 +2041,12 @@ async function handleToolbarAction(action: ToolbarAction) {
       // Same global path as the Alt+E shortcut: the backend folds the timeline
       // into one clear op and broadcasts; every overlay (incl. this one) clears.
       void invoke('clear_all_drawings').catch((e) => console.error('clear all failed', e))
+      break
+    case 'openFile':
+      void runAnnotationFileAction('open')
+      break
+    case 'saveFile':
+      void runAnnotationFileAction('save')
       break
     case 'toggleWhiteboard':
       await toggleWhiteboardFromToolbar()
@@ -2292,6 +2325,37 @@ onMounted(async () => {
     }),
   )
 
+  // `.marker` file flows: reply to export sweeps, apply routed load slices,
+  // and run tray-requested file actions (primary overlay only acts).
+  unlisteners.push(
+    await listen(ANNOTATIONS_EXPORT_REQUEST_EVENT, () => {
+      void emit(ANNOTATIONS_EXPORT_EVENT, {
+        label: getCurrentWindow().label,
+        actions: getHistoryActions(),
+      }).catch((e) => console.error('annotations export failed', e))
+    }),
+  )
+  unlisteners.push(
+    await listen<{ mode: LoadMode; actions: DrawAction[] }>(ANNOTATIONS_APPLY_LOAD_EVENT, (event) => {
+      const { mode, actions } = event.payload
+      if (isDrawing.value || isDragging || isMarqueeSelecting || capturedPointerId !== null) {
+        abortActivePointerInteraction()
+      }
+      applyLoadedActions(actions, mode)
+      syncOverlayStateToToolbar()
+      logActionEvent('annotations loaded', { mode, count: actions.length })
+    }),
+  )
+  unlisteners.push(
+    await listen<{ mode: 'open' | 'insert' | 'save'; path?: string | null }>(
+      ANNOTATIONS_FILE_REQUEST_EVENT,
+      (event) => {
+        const { mode, path } = event.payload
+        void runAnnotationFileAction(mode, path ?? undefined)
+      },
+    ),
+  )
+
   unlisteners.push(
     await listen('toolbar-window-closed', () => {
       toolbarPanelHovered.value = false
@@ -2511,6 +2575,40 @@ function exitDrawing(reason: 'keyboard' | 'toolbar' | 'unknown' = 'unknown') {
   showQuickColors.value = false
   textBoxPos.value = null
   invoke('exit_drawing')
+}
+
+/** Save / open / insert `.marker` files, with the result surfaced as a tip. */
+async function runAnnotationFileAction(
+  mode: 'open' | 'insert' | 'save',
+  presetPath?: string,
+) {
+  try {
+    const result =
+      mode === 'save' ? await saveAnnotationsToFile() : await loadAnnotationsFile(mode, presetPath)
+    if (result.kind === 'saved') {
+      showTip(t('overlay.savedTo', { path: result.path }))
+    } else if (result.kind === 'loaded') {
+      showTip(
+        result.missingScreens > 0
+          ? t('overlay.loadedMissingScreens', {
+              count: String(result.loadedCount),
+              screens: String(result.missingScreens),
+            })
+          : t('overlay.loadedOk', { count: String(result.loadedCount) }),
+      )
+    }
+  } catch (err) {
+    console.error(`Annotation file ${mode} failed:`, err)
+    if (mode === 'save') {
+      showTip(t('overlay.saveFailed'))
+    } else {
+      showTip(
+        err instanceof MarkerFileError && err.code === 'unsupported-version'
+          ? t('overlay.loadUnsupported')
+          : t('overlay.loadFailed'),
+      )
+    }
+  }
 }
 </script>
 
