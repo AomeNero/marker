@@ -67,20 +67,30 @@ fn read_marker_file(path: PathBuf) -> Result<AnnotationFilePayload, String> {
 }
 
 /// File dialog → raw `.marker` content. `Ok(None)` = user cancelled.
+///
+/// Async + `spawn_blocking`: the native dialog must not run on the main
+/// thread — a sync command would stall the event loop's message pump and the
+/// whole app freezes as soon as the pointer hovers the dialog.
 #[tauri::command]
-pub fn pick_annotations_file(app: AppHandle) -> Result<Option<AnnotationFilePayload>, String> {
-    let s = crate::i18n::strings();
-    let picked = app
-        .dialog()
-        .file()
-        .set_title(s.open_annotations)
-        .add_filter(s.annotations_file, &[MARKER_EXT])
-        .blocking_pick_file();
-    let Some(picked) = picked else {
-        return Ok(None);
-    };
-    let path = picked.into_path().map_err(|e| e.to_string())?;
-    read_marker_file(path).map(Some)
+pub async fn pick_annotations_file(
+    app: AppHandle,
+) -> Result<Option<AnnotationFilePayload>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let s = crate::i18n::strings();
+        let picked = app
+            .dialog()
+            .file()
+            .set_title(s.open_annotations)
+            .add_filter(s.annotations_file, &[MARKER_EXT])
+            .blocking_pick_file();
+        let Some(picked) = picked else {
+            return Ok(None);
+        };
+        let path = picked.into_path().map_err(|e| e.to_string())?;
+        read_marker_file(path).map(Some)
+    })
+    .await
+    .map_err(|e| format!("dialog task failed: {e}"))?
 }
 
 /// Read an explicit `.marker` path (file-association double-click).
