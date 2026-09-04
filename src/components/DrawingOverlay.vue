@@ -2237,6 +2237,9 @@ onMounted(async () => {
       // widthPresets come from the settings window; applying also snaps lineWidths
       // (idempotent when the echo is our own save_line_widths).
       applyLineWidthsFromConfig(event.payload.general)
+      // Keep the stashed session tool in sync with saved toolState, otherwise
+      // Alt+G restores the tool from app startup instead of the last session.
+      applyToolStateFromConfig(event.payload.general)
       preserveDrawings.value = event.payload.general?.preserveDrawings ?? false
       whiteboardPreserveDrawings.value = event.payload.general?.whiteboardPreserveDrawings ?? true
       setAngleSnapStep((event.payload.general?.angleSnapStep as 15 | 30 | 45 | undefined) ?? 15)
