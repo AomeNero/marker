@@ -1,71 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg"
-     xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="1254" height="1254" viewBox="0 0 1254 1254">
-  <title>Editable vector logo</title>
-  <desc>Vector redraw of the supplied icon, with editable paths and gradients.</desc>
-
+<svg id="_图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1254 1254">
+  <!-- Generator: Adobe Illustrator 30.0.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 123)  -->
   <defs>
-    <radialGradient id="backgroundGradient" cx="50%" cy="47%" r="73%">
-      <stop offset="0" stop-color="#fcfcfb"/>
-      <stop offset="0.72" stop-color="#f7f6f4"/>
-      <stop offset="1" stop-color="#ecebe9"/>
-    </radialGradient>
+    <style>
+      .st0 {
+        fill: url(#_未命名的渐变_3);
+        fill-rule: evenodd;
+      }
 
-    <linearGradient id="ringGradient" x1="0.14" y1="0.16" x2="0.85" y2="0.87">
+      .st1 {
+        fill: none;
+        stroke: url(#_未命名的渐变_2);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 120px;
+      }
+    </style>
+    <linearGradient id="_未命名的渐变_2" data-name="未命名的渐变 2" x1="-1657.64" y1="1167.84" x2="-1656.31" y2="1166.52" gradientTransform="translate(1167956.22 740010.45) rotate(-2.06) scale(688 -669)" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ff2c20"/>
-      <stop offset="0.52" stop-color="#ff3327"/>
+      <stop offset=".52" stop-color="#ff3327"/>
       <stop offset="1" stop-color="#ff3b2c"/>
     </linearGradient>
-
-    <linearGradient id="penGradient" x1="0.18" y1="0.92" x2="0.81" y2="0.08">
+    <linearGradient id="_未命名的渐变_3" data-name="未命名的渐变 3" x1="-1652.42" y1="1168.03" x2="-1651.63" y2="1169.08" gradientTransform="translate(390539.54 299548.25) scale(235.76 -256.08)" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#092a67"/>
-      <stop offset="0.52" stop-color="#0f377a"/>
+      <stop offset=".52" stop-color="#0f377a"/>
       <stop offset="1" stop-color="#173f84"/>
     </linearGradient>
   </defs>
-
-  <!-- Layer: background -->
-  <g id="background">
-    <rect width="1254" height="1254" fill="#ffffff"/>
-    <rect x="1" y="1" width="1252" height="1252" rx="198" ry="198"
-          fill="url(#backgroundGradient)"/>
+  <g id="open-ring">
+    <path class="st1" d="M835.33,247.4c-69.81-51.85-154.98-77.32-239.12-74.31-249.72,8.97-444.68,218.45-435.71,468.18,8.98,249.72,221.32,448.65,473.75,439.58,252.43-9.07,468.72-230.19,459.26-493.48l-1.12-31.22"/>
   </g>
-
-  <!-- Layer: open circular mark -->
-  <g id="open-ring" fill="none" stroke="url(#ringGradient)"
-     stroke-width="64" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M 753 389
-             C 703 349, 641 328, 579 328
-             C 395 328, 246 477, 246 661
-             C 246 847, 397 997, 583 997
-             C 777 997, 934 840, 934 646
-             C 934 637, 934 630, 934 623"/>
-  </g>
-
-  <!-- Layer: pen nib; inner arrow is a genuine compound-path cutout -->
   <g id="pen-nib">
-    <path fill="url(#penGradient)" fill-rule="evenodd" clip-rule="evenodd"
-          d="M 952 279
-             Q 966 264, 980 277
-             L 1067 365
-             Q 1080 378, 1068 391
-             L 974 491
-             Q 969 497, 960 500
-             L 861 526
-             Q 841 531, 838 512
-             L 856 385
-             Q 857 379, 862 374
-             Z
-
-             M 886 403
-             L 917 403
-             L 917 444
-             L 958 444
-             L 958 474
-             L 934 479
-             L 901 486
-             L 878 460
-             Z"/>
+    <path class="st0" d="M1052.99,159.07c11.61-12.46,23.25-13.28,34.87-2.49l108.36,109.6c10.8,10.8,11.2,21.58,1.24,32.39l-117.07,124.55c-4.14,4.99-9.97,8.72-17.44,11.2l-123.3,32.39c-16.6,4.14-26.16-1.65-28.65-17.44l22.42-158.18c.84-4.99,3.33-9.55,7.47-13.7l112.09-118.33h.01ZM970.78,313.51h38.61v51.06h51.06v37.36l-29.9,6.22-41.1,8.72-28.65-32.39,9.97-70.98h.01Z"/>
   </g>
 </svg>

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src=".github/assets/icon.png" width="80" height="80" alt="Marker icon" />
+  <img src="assets/icon.png" width="80" height="80" alt="Marker icon" />
   <h1>Marker</h1>
   <p>
     <a href="./README.md">English</a>
@@ -13,6 +13,7 @@
   </p>
   <p><strong>轻量级屏幕标注工具</strong>（~4.5 MB）— 按下快捷键（<strong>快捷键优先</strong>），随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。<strong>免费开源。</strong></p>
 </div>
+
 
 
 
