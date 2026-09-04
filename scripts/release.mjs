@@ -89,7 +89,7 @@ function previewNotes(tag) {
   try {
     const prevTag = run(`git describe --tags --abbrev=0 ${tag}^`, { capture: true, allowFail: true })
     if (!prevTag) {
-      console.log('(No previous tag — notes will be generated on CI)')
+      console.log('(No previous tag — write release notes manually, see docs/releasing.md)')
       return
     }
     const log = run(`git log ${prevTag}..HEAD --pretty=format:%s`, { capture: true })
@@ -99,10 +99,10 @@ function previewNotes(tag) {
       if (/^chore\(release\):/i.test(line)) continue
       console.log(`  • ${line}`)
     }
-    console.log(`\nCI will format these into ✨ New / 🛠 Fixes / 🧹 Improvements sections.`)
+    console.log(`\nWrite these into the release notes manually — see docs/releasing.md.`)
     console.log(`Compare: https://github.com/AomeNero/marker/compare/${prevTag}...${tag}`)
   } catch {
-    console.log('(Could not preview — notes will be generated on CI)')
+    console.log('(Could not preview — write release notes manually, see docs/releasing.md)')
   }
 }
 
@@ -153,13 +153,12 @@ Usage:
   run(`git push origin ${tag}`)
 
   console.log(`
-✔ Release ${tag} started.
+✔ Release ${tag} prepared (version bumped, tagged, pushed).
 
-  Release page : https://github.com/AomeNero/marker/releases/tag/${tag}
-  Actions      : https://github.com/AomeNero/marker/actions/workflows/release.yml
-
-Notes are generated automatically by .github/workflows/release.yml
-using .github/release.yml categories + conventional commit fallback.
+  Next steps on this machine (see docs/releasing.md):
+    1. npm run build:release       # signed build + portable + updater-dist/
+    2. Create the GitHub release for ${tag} and upload the artifacts
+    3. Upload updater-dist/* to https://marker.aomenero.com
 `)
 }
 

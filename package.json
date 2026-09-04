@@ -36,6 +36,7 @@
     "build:mac-arm64": "tauri build --target aarch64-apple-darwin",
     "build:msix": "bash scripts/build-msix.sh",
     "build:portable": "bash scripts/build-portable.sh",
+    "build:release": "node scripts/build-release.mjs",
     "build:all": "tauri build && bash scripts/build-msix.sh && bash scripts/build-portable.sh",
     "build:fe": "vue-tsc --noEmit && vite build",
     "test": "vitest run && node --test scripts/*.test.mjs",

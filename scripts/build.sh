@@ -4,8 +4,8 @@
 # (target dir is configured in .cargo/config.toml)
 # Usage: bash scripts/build.sh
 #
-# Local machines have no TAURI_SIGNING_PRIVATE_KEY, so updater artifacts are
-# disabled via --config. Official releases must use `npm run release`.
+# Updater artifacts are disabled here so no minisign key is needed for a quick
+# local build. For official releases use `npm run build:release` — see docs/releasing.md.
 
 set -euo pipefail
 

@@ -22,7 +22,7 @@
 
 - 状态：已上线（定制版）
 - 更新端点：`https://marker.aomenero.com/latest.json`（Tauri Updater，minisign 签名校验）
-- 静态文件：`updater-dist/`（MSI + latest.json），构建后上传即可
+- 静态文件：`updater-dist/`（MSI + latest.json），由 `npm run build:release` 自动生成后上传站点根目录（完整发布流程见 `docs/releasing.md`）
 - 遗留事项：可选提交 `https://marker.aomenero.com/sitemap.xml` 到 Google Search Console 与 Bing 站长平台
 
 ### GitHub Releases
