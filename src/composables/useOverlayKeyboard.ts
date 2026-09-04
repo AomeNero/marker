@@ -156,9 +156,11 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
         actions.cycleColor(1)
       } else if (e.key === ' ') {
         e.preventDefault()
+        ctx.showQuickColors.value = false
+        // Pinned toolbar: Space only dismisses the palette, never the popup toggle
+        if (ctx.toolbarPinned.value) return
         logActionEvent('toolbar popup toggled', { reason: 'keyboard', context: 'quick-colors' })
         ctx.mousePos.value = { ...ctx.quickColorsPos.value }
-        ctx.showQuickColors.value = false
         actions.toggleToolbarPopupVisible()
       }
       return
@@ -173,8 +175,10 @@ export function createKeyDownHandler(ctx: KeyboardContext, actions: KeyboardActi
       return
     }
 
-    // Toolbar popup toggle (Space) — also recalls the bar after draw-hide in pinned mode
+    // Toolbar popup toggle (Space) — no-op while the bar is pinned always-on,
+    // otherwise the toggle would move/hide the pinned toolbar window
     if (e.key === ' ') {
+      if (ctx.toolbarPinned.value) return
       e.preventDefault()
       logActionEvent('toolbar popup toggled', { reason: 'keyboard' })
       ctx.mousePos.value = { x: ctx.lastPointerX(), y: ctx.lastPointerY() }

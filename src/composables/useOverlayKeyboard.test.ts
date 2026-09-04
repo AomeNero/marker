@@ -387,10 +387,11 @@ describe('useOverlayKeyboard', () => {
       expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(1)
     })
 
-    it('space toggles toolbar even when pinned (recall after draw-hide)', () => {
+    it('space is a no-op when toolbar is pinned', () => {
       ;(ctx.toolbarPinned as Ref<boolean>).value = true
       handler(key(' '))
-      expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(1)
+      expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(0)
+      expect(ctx.mousePos.value).toEqual({ x: 0, y: 0 })
     })
 
     it('space updates mousePos from lastPointer', () => {
@@ -490,6 +491,13 @@ describe('useOverlayKeyboard', () => {
       handler(key(' '))
       expect(ctx.showQuickColors.value).toBe(false)
       expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(1)
+    })
+
+    it('Space with pinned toolbar only closes quick colors', () => {
+      ;(ctx.toolbarPinned as Ref<boolean>).value = true
+      handler(key(' '))
+      expect(ctx.showQuickColors.value).toBe(false)
+      expect(actions.calls.toggleToolbarPopupVisible).toHaveLength(0)
     })
 
     it('Ctrl+C copies screen in quick color mode when pointer idle', () => {
