@@ -238,6 +238,7 @@ pub fn run() {
             commands::save_shortcuts,
             commands::save_general,
             commands::save_line_widths,
+            commands::save_tool_state,
             commands::save_locale,
             commands::apply_app_theme,
             commands::exit_drawing,

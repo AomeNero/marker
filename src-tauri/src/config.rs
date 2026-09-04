@@ -92,6 +92,87 @@ impl LineWidthsConfig {
     }
 }
 
+/// Tool ids accepted in persisted tool state (mirrors the frontend `Tool` union).
+const VALID_TOOL_IDS: [&str; 11] = [
+    "select",
+    "pen",
+    "highlighter",
+    "laser",
+    "arrow",
+    "rect",
+    "ellipse",
+    "line",
+    "eraser",
+    "text",
+    "stamp",
+];
+
+fn default_text_outline_width() -> f64 {
+    3.0
+}
+
+/// Text outline style persisted with the tool state. Validation mirrors the
+/// frontend `normalizeTextOutline` (mode fallback, hex colors, width clamp).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TextOutlineConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default, rename = "colorMode")]
+    pub color_mode: Option<String>,
+    #[serde(default)]
+    pub color: Option<String>,
+    #[serde(default = "default_text_outline_width")]
+    pub width: f64,
+}
+
+/// Last-used toolbar state (tool / color / text outline), restored on session start.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct ToolStateConfig {
+    #[serde(default)]
+    pub tool: Option<String>,
+    #[serde(default)]
+    pub color: Option<String>,
+    #[serde(default, rename = "textOutline")]
+    pub text_outline: Option<TextOutlineConfig>,
+}
+
+fn is_valid_hex_color(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 7 && bytes[0] == b'#' && bytes[1..].iter().all(u8::is_ascii_hexdigit)
+}
+
+impl ToolStateConfig {
+    /// Unknown tool ids / malformed colors drop to `None`; the frontend keeps
+    /// its in-memory defaults for those fields.
+    pub fn normalized(mut self) -> Self {
+        if let Some(tool) = &self.tool {
+            if !VALID_TOOL_IDS.contains(&tool.as_str()) {
+                self.tool = None;
+            }
+        }
+        if let Some(color) = &self.color {
+            if !is_valid_hex_color(color) {
+                self.color = None;
+            }
+        }
+        if let Some(outline) = &mut self.text_outline {
+            if !matches!(outline.color_mode.as_deref(), Some("auto") | Some("fixed")) {
+                outline.color_mode = Some("auto".to_string());
+            }
+            if let Some(color) = &outline.color {
+                if !is_valid_hex_color(color) {
+                    outline.color = None;
+                }
+            }
+            if !outline.width.is_finite() {
+                outline.width = default_text_outline_width();
+            }
+            outline.width = outline.width.clamp(1.0, 12.0);
+        }
+        self
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum DragMode {
     #[serde(rename = "off")]
@@ -198,6 +279,8 @@ pub struct GeneralConfig {
     pub stroke_smoothing: StrokeSmoothing,
     #[serde(default, rename = "lineWidths")]
     pub line_widths: LineWidthsConfig,
+    #[serde(default, rename = "toolState")]
+    pub tool_state: ToolStateConfig,
     #[serde(default = "default_width_presets", rename = "widthPresets")]
     pub width_presets: Vec<u32>,
     #[serde(default = "default_auto_start", rename = "autoStart")]
@@ -223,6 +306,7 @@ impl Default for GeneralConfig {
             crosshair_cursor_style: CrosshairCursorStyle::Crosshair,
             stroke_smoothing: StrokeSmoothing::Standard,
             line_widths: LineWidthsConfig::default(),
+            tool_state: ToolStateConfig::default(),
             width_presets: default_width_presets(),
             auto_start: default_auto_start(),
             theme: ThemePreference::Dark,
@@ -289,6 +373,7 @@ impl GeneralConfig {
         }
         self.width_presets = normalize_width_presets(&self.width_presets);
         self.line_widths = self.line_widths.normalized_with(&self.width_presets);
+        self.tool_state = self.tool_state.normalized();
         self
     }
 }
@@ -866,6 +951,66 @@ mod tests {
         // Eraser snaps inside its 3-step subset [1,5,9]: 6→5.
         assert_eq!(normalized.line_widths.eraser, 5);
         assert_eq!(normalized.line_widths.text, 9);
+    }
+
+    #[test]
+    fn tool_state_defaults_to_all_none() {
+        let general = GeneralConfig::default();
+        assert_eq!(general.tool_state, ToolStateConfig::default());
+        assert_eq!(general.tool_state.tool, None);
+        assert_eq!(general.tool_state.color, None);
+        assert_eq!(general.tool_state.text_outline, None);
+    }
+
+    #[test]
+    fn tool_state_invalid_tool_and_color_are_cleared() {
+        let state = ToolStateConfig {
+            tool: Some("magic".to_string()),
+            color: Some("red".to_string()),
+            text_outline: None,
+        }
+        .normalized();
+        assert_eq!(state.tool, None);
+        assert_eq!(state.color, None);
+    }
+
+    #[test]
+    fn tool_state_valid_values_roundtrip() {
+        let state = ToolStateConfig {
+            tool: Some("laser".to_string()),
+            color: Some("#ffcc02".to_string()),
+            text_outline: Some(TextOutlineConfig {
+                enabled: true,
+                color_mode: Some("fixed".to_string()),
+                color: Some("#FFFFFF".to_string()),
+                width: 99.0,
+            }),
+        }
+        .normalized();
+        assert_eq!(state.tool.as_deref(), Some("laser"));
+        assert_eq!(state.color.as_deref(), Some("#ffcc02"));
+        let outline = state.text_outline.expect("outline kept");
+        assert!(outline.enabled);
+        assert_eq!(outline.color_mode.as_deref(), Some("fixed"));
+        assert_eq!(outline.width, 12.0);
+    }
+
+    #[test]
+    fn tool_state_bad_outline_color_and_mode_fall_back() {
+        let state = ToolStateConfig {
+            tool: None,
+            color: None,
+            text_outline: Some(TextOutlineConfig {
+                enabled: true,
+                color_mode: Some("bogus".to_string()),
+                color: Some("#12345".to_string()),
+                width: 3.0,
+            }),
+        }
+        .normalized();
+        let outline = state.text_outline.expect("outline kept");
+        assert_eq!(outline.color_mode.as_deref(), Some("auto"));
+        assert_eq!(outline.color, None);
     }
 
     #[test]

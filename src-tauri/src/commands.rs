@@ -5,6 +5,7 @@ use tracing::{info, warn};
 
 use crate::config::{
     lock_or_recover, AppConfig, AppState, GeneralConfig, LineWidthsConfig, SaveResult, Shortcuts,
+    ToolStateConfig,
 };
 use crate::error::{AppError, AppResult};
 use crate::shortcuts::{parse_shortcut, register_shortcuts};
@@ -302,6 +303,29 @@ pub fn save_line_widths(
         warn!("Failed to emit config-changed: {}", e);
     }
     info!("Line widths saved");
+    Ok(())
+}
+
+#[tauri::command]
+pub fn save_tool_state(
+    app: AppHandle,
+    state: tauri::State<'_, AppState>,
+    tool_state: ToolStateConfig,
+) -> AppResult<()> {
+    let snapshot = {
+        let mut cfg = lock_or_recover(&state.config);
+        let normalized = tool_state.normalized();
+        if cfg.general.tool_state == normalized {
+            return Ok(());
+        }
+        cfg.general.tool_state = normalized;
+        crate::config::save_config(&app, &cfg);
+        cfg.clone()
+    };
+    if let Err(e) = app.emit("config-changed", snapshot) {
+        warn!("Failed to emit config-changed: {}", e);
+    }
+    info!("Tool state saved");
     Ok(())
 }
 

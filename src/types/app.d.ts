@@ -27,6 +27,17 @@ export interface AppConfig {
       eraser: number
       text: number
     }
+    /** Last-used toolbar state; invalid fields fall back to defaults on load. */
+    toolState?: {
+      tool?: string
+      color?: string
+      textOutline?: {
+        enabled?: boolean
+        colorMode?: 'auto' | 'fixed'
+        color?: string
+        width?: number
+      }
+    }
     /** Five stroke-width presets (XS/S/M/L/XL); invalid arrays fall back to defaults. */
     widthPresets?: number[]
     autoStart?: boolean

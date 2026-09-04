@@ -6,6 +6,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useDrawing, setDrawingOpSink, type Tool, type DrawAction } from '../composables/useDrawing'
 import type { TextOutlineStyle } from '../composables/drawingTypes'
 import { useTooltip } from '../composables/useTooltip'
+import { resolveStoredToolState } from '../utils/toolState'
 import {
   createKeyDownHandler,
   trackCopyModifierKeyUp,
@@ -535,6 +536,67 @@ async function persistLineWidths() {
     console.error('Failed to save line widths:', error)
   }
 }
+
+let restoredSessionTool: Tool | null = null
+
+/** Validate + stash config tool state; tool applies at session start, color/outline immediately. */
+function applyToolStateFromConfig(general?: AppConfig['general']) {
+  const resolved = resolveStoredToolState(general?.toolState)
+  restoredSessionTool = resolved?.tool ?? null
+  if (resolved?.color && currentColor.value !== resolved.color) {
+    currentColor.value = resolved.color
+  }
+  const outline = resolved?.textOutline
+  if (outline) {
+    const cur = textOutline.value
+    if (
+      outline.enabled !== cur.enabled ||
+      outline.colorMode !== cur.colorMode ||
+      outline.color !== cur.color ||
+      outline.width !== cur.width
+    ) {
+      textOutline.value = outline
+    }
+  }
+}
+
+let persistToolStateTimer: ReturnType<typeof setTimeout> | null = null
+
+function schedulePersistToolState() {
+  if (persistToolStateTimer !== null) clearTimeout(persistToolStateTimer)
+  persistToolStateTimer = setTimeout(() => {
+    persistToolStateTimer = null
+    void persistToolState()
+  }, 250)
+}
+
+/** Cancel debounce and persist immediately (session exit / unmount). */
+function flushPersistToolState() {
+  if (persistToolStateTimer === null) return
+  clearTimeout(persistToolStateTimer)
+  persistToolStateTimer = null
+  void persistToolState()
+}
+
+async function persistToolState() {
+  try {
+    // Dedicated IPC patches only toolState under the Rust config lock —
+    // same pattern as save_line_widths (no read-modify-write races).
+    await invoke('save_tool_state', {
+      toolState: {
+        tool: currentTool.value,
+        color: currentColor.value,
+        textOutline: textOutline.value,
+      },
+    })
+  } catch (error) {
+    console.error('Failed to save tool state:', error)
+  }
+}
+
+// Any tool / color / outline change (toolbar, keyboard, right-click cycle) persists.
+// Restores are change-guarded, so re-applying our own saved state never re-triggers a write.
+watch([currentTool, currentColor, textOutline], schedulePersistToolState)
 
 function applyDefaultEntryOnActivate() {
   if (defaultEntryMode.value === 'whiteboard') {
@@ -2151,6 +2213,7 @@ onMounted(async () => {
     applyCrosshairCursorStyleFromConfig(cfg.general)
     applyStrokeSmoothingFromConfig(cfg.general)
     applyLineWidthsFromConfig(cfg.general)
+    applyToolStateFromConfig(cfg.general)
     preserveDrawings.value = cfg.general?.preserveDrawings ?? false
     whiteboardPreserveDrawings.value = cfg.general?.whiteboardPreserveDrawings ?? true
     setAngleSnapStep((cfg.general?.angleSnapStep as 15 | 30 | 45 | undefined) ?? 15)
@@ -2237,6 +2300,7 @@ onMounted(async () => {
       if (mode === 'hidden') {
         abortActivePointerInteraction()
         flushPersistLineWidths()
+        flushPersistToolState()
         whiteboardMode.value = false
         void syncWhiteboardMode(false)
         toolbarPanelHovered.value = false
@@ -2256,7 +2320,8 @@ onMounted(async () => {
           showToolbarPopup.value = false
         }
         if (previousMode === 'hidden') {
-          currentTool.value = 'pen'
+          // Fresh session: restore the last-used tool from config (first run → pen).
+          currentTool.value = restoredSessionTool ?? 'pen'
           // A fresh session always starts with ink visible.
           if (!inkVisible.value) setInkVisible(true)
           applyDefaultEntryOnActivate()
