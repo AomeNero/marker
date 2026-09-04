@@ -82,6 +82,52 @@ pub struct MonitorEntry {
     pub hidden: bool,
 }
 
+/// Pair proposed (label, monitor) assignments with the previous session's
+/// registry entries so strokes follow their monitor across topology changes
+/// (continuity pass of `assign_and_show_extra_overlays`).
+///
+/// The proposed label is only a fallback: a continuity match may claim a
+/// higher-numbered label (e.g. an old `overlay-3` surviving while this round
+/// proposes `overlay-2`), which would collide with a later proposed label.
+/// Such collisions fall back to the lowest unused dynamic label so every
+/// monitor ends up with its own window.
+fn resolve_label_pairs(
+    proposed: Vec<(String, MonitorSpec)>,
+    registry: &MonitorRegistry,
+) -> Vec<(String, MonitorSpec)> {
+    let mut taken: Vec<String> = Vec::new();
+    let mut resolved: Vec<(String, MonitorSpec)> = Vec::new();
+    for (label, spec) in proposed {
+        if label == PRIMARY_LABEL {
+            resolved.push((label, spec));
+            continue;
+        }
+        let previous = registry
+            .iter()
+            .filter(|(l, entry)| {
+                entry.spec.matches(&spec) && !taken.contains(l) && *l != PRIMARY_LABEL
+            })
+            .map(|(l, _)| l.clone())
+            .min(); // deterministic pick if several match
+        match previous {
+            Some(prev) => {
+                taken.push(prev.clone());
+                resolved.push((prev, spec));
+            }
+            None => {
+                let label = if taken.contains(&label) {
+                    next_dynamic_label(&taken)
+                } else {
+                    label
+                };
+                taken.push(label.clone());
+                resolved.push((label, spec));
+            }
+        }
+    }
+    resolved
+}
+
 /// label → assignment.
 pub type MonitorRegistry = HashMap<String, MonitorEntry>;
 
@@ -307,32 +353,7 @@ pub fn assign_and_show_extra_overlays(app: &AppHandle, state: &AppState) {
     // Continuity pass: reuse a label's previous monitor when it re-appears.
     let pairs: Vec<(String, MonitorSpec)> = {
         let registry = lock_or_recover(&state.monitors);
-        let mut taken: Vec<String> = Vec::new();
-        let mut resolved: Vec<(String, MonitorSpec)> = Vec::new();
-        for (label, spec) in proposed {
-            if label == PRIMARY_LABEL {
-                resolved.push((label, spec));
-                continue;
-            }
-            let previous = registry
-                .iter()
-                .filter(|(l, entry)| {
-                    entry.spec.matches(&spec) && !taken.contains(l) && l != &PRIMARY_LABEL
-                })
-                .map(|(l, _)| l.clone())
-                .min(); // deterministic pick if several match
-            match previous {
-                Some(prev) => {
-                    taken.push(prev.clone());
-                    resolved.push((prev, spec));
-                }
-                None => {
-                    taken.push(label.clone());
-                    resolved.push((label, spec));
-                }
-            }
-        }
-        resolved
+        resolve_label_pairs(proposed, &registry)
     };
 
     ensure_extra_overlay_windows(app, pairs.len().saturating_sub(1));
@@ -690,6 +711,71 @@ mod tests {
         let pairs = assign_labels(&monitors, &monitors[0]);
         assert_eq!(pairs.len(), 1);
         assert_eq!(pairs[0].0, "overlay");
+    }
+
+    // ---- resolve_label_pairs ------------------------------------------------
+
+    #[test]
+    fn resolve_label_pairs_empty_registry_follows_proposed() {
+        let monitors = [
+            mon(0, 0, 1920, 1080, 1.0, Some("A")),
+            mon(1920, 0, 1920, 1080, 1.0, Some("B")),
+        ];
+        let proposed = vec![
+            ("overlay".to_string(), monitors[0].clone()),
+            ("overlay-2".to_string(), monitors[1].clone()),
+        ];
+        let pairs = resolve_label_pairs(proposed, &MonitorRegistry::new());
+        assert_eq!(pairs[0].0, "overlay");
+        assert_eq!(pairs[1].0, "overlay-2");
+    }
+
+    #[test]
+    fn resolve_label_pairs_reuses_previous_label_when_unique() {
+        let b = mon(1920, 0, 1920, 1080, 1.0, Some("B"));
+        let mut registry = MonitorRegistry::new();
+        registry.insert(
+            "overlay-2".into(),
+            MonitorEntry {
+                spec: b.clone(),
+                hidden: true,
+            },
+        );
+        let proposed = vec![
+            ("overlay".to_string(), mon(0, 0, 1920, 1080, 1.0, Some("A"))),
+            ("overlay-2".to_string(), b.clone()),
+        ];
+        let pairs = resolve_label_pairs(proposed, &registry);
+        assert_eq!(pairs[1].0, "overlay-2");
+        assert_eq!(pairs[1].1, b);
+    }
+
+    #[test]
+    fn resolve_label_pairs_deduplicates_after_continuity_claim() {
+        // Session 1: cursor A, B=overlay-2, C=overlay-3. B is unplugged and D
+        // plugged in; this round proposes overlay-2 for C and overlay-3 for D
+        // (reading order), but C's continuity match is its old label
+        // overlay-3 — the proposed overlay-3 for D must not duplicate it.
+        let c = mon(1920, 0, 1920, 1080, 1.0, Some("C"));
+        let d = mon(3840, 0, 1920, 1080, 1.0, Some("D"));
+        let mut registry = MonitorRegistry::new();
+        registry.insert(
+            "overlay-3".into(),
+            MonitorEntry {
+                spec: c.clone(),
+                hidden: true,
+            },
+        );
+        let proposed = vec![
+            ("overlay".to_string(), mon(0, 0, 1920, 1080, 1.0, Some("A"))),
+            ("overlay-2".to_string(), c.clone()),
+            ("overlay-3".to_string(), d.clone()),
+        ];
+        let pairs = resolve_label_pairs(proposed, &registry);
+        let labels: Vec<&str> = pairs.iter().map(|(l, _)| l.as_str()).collect();
+        assert_eq!(labels, vec!["overlay", "overlay-3", "overlay-2"]);
+        assert_eq!(pairs[1].1, c);
+        assert_eq!(pairs[2].1, d);
     }
 
     // ---- labels ------------------------------------------------------------
