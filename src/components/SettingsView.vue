@@ -6,6 +6,7 @@ import type { AppConfig, SaveResult } from '../types/app'
 import { resolveDragMode, type DragMode } from '../utils/dragMode'
 import { applyTheme, watchSystemTheme, type ThemePreference } from '../composables/useAppTheme'
 import { resolveDefaultEntryMode, type DefaultEntryMode } from '../utils/entryMode'
+import { resolveToolbarVisibility, type ToolbarVisibility } from '../utils/toolbarSettings'
 import { resolveEraserMode, type EraserMode } from '../utils/eraserMode'
 import { resolveStrokeSmoothing, type StrokeSmoothing } from '../utils/strokeSmoothing'
 import { DEFAULT_WIDTH_PRESETS, resolveWidthPresets } from '../constants/tools'
@@ -212,6 +213,7 @@ const autoStartEnabled = ref(true)
 const theme = ref<ThemePreference>('dark')
 const dragMode = ref<DragMode>('off')
 const defaultEntryMode = ref<DefaultEntryMode>('screen')
+const toolbarVisibility = ref<ToolbarVisibility>('space')
 const eraserMode = ref<EraserMode>('stroke')
 const strokeSmoothing = ref<StrokeSmoothing>('standard')
 const widthPresets = ref<number[]>(DEFAULT_WIDTH_PRESETS.slice())
@@ -244,6 +246,7 @@ onMounted(async () => {
   stopThemeWatch = watchSystemTheme(() => theme.value)
   dragMode.value = resolveDragMode(cfg.general)
   defaultEntryMode.value = resolveDefaultEntryMode(cfg.general)
+  toolbarVisibility.value = resolveToolbarVisibility(cfg.general)
   eraserMode.value = resolveEraserMode(cfg.general)
   strokeSmoothing.value = resolveStrokeSmoothing(cfg.general)
   widthPresets.value = resolveWidthPresets(cfg.general?.widthPresets)
@@ -266,6 +269,7 @@ onMounted(async () => {
     void applyTheme(theme.value)
     dragMode.value = resolveDragMode(general)
     defaultEntryMode.value = resolveDefaultEntryMode(general)
+    toolbarVisibility.value = resolveToolbarVisibility(general)
     eraserMode.value = resolveEraserMode(general)
     strokeSmoothing.value = resolveStrokeSmoothing(general)
     widthPresets.value = resolveWidthPresets(general?.widthPresets)
@@ -553,6 +557,7 @@ onUnmounted(() => {
         :whiteboard-preserve-drawings="whiteboardPreserveDrawings"
         :auto-start-enabled="autoStartEnabled"
         :angle-snap-step="angleSnapStep"
+        :toolbar-visibility="toolbarVisibility"
         @update:theme="theme = $event"
         @update:drag-mode="dragMode = $event"
         @update:default-entry-mode="defaultEntryMode = $event"
@@ -562,6 +567,7 @@ onUnmounted(() => {
         @update:preserve-drawings="preserveDrawings = $event"
         @update:whiteboard-preserve-drawings="whiteboardPreserveDrawings = $event"
         @update:auto-start-enabled="autoStartEnabled = $event"
+        @update:toolbar-visibility="toolbarVisibility = $event"
         @update:angle-snap-step="angleSnapStep = $event"
       />
 

@@ -156,6 +156,9 @@ export default {
     strokeSmoothingStrong: 'Strong',
     strokeSmoothingDesc:
       'Smooths freehand pen and highlighter strokes. Standard balances follow and ink quality; Strong softens more; Off keeps raw pointer samples. Pen/touch keep pressure-sensitive width; mouse strokes stay uniform.',
+    toolbarVisibility: 'Always show toolbar',
+    toolbarVisibilityDesc:
+      'Keep the toolbar visible during annotation; it still steps aside while you draw. Turn off to toggle it with Space.',
   },
   toolbar: {
     undo: 'Undo',

@@ -10,6 +10,7 @@ import { DEFAULT_ENTRY_MODE_OPTIONS } from '../../utils/entryMode'
 import type { EraserMode } from '../../utils/eraserMode'
 import { ERASER_MODE_OPTIONS } from '../../utils/eraserMode'
 import { STROKE_SMOOTHING_OPTIONS, type StrokeSmoothing } from '../../utils/strokeSmoothing'
+import { isToolbarPinned, type ToolbarVisibility } from '../../utils/toolbarSettings'
 import { WIDTH_PRESET_LABEL_KEYS } from '../../constants/tools'
 import { applyTheme, type ThemePreference } from '../../composables/useAppTheme'
 import { useI18n } from '../../i18n'
@@ -84,6 +85,7 @@ const props = defineProps<{
   autoStartEnabled: boolean
   angleSnapStep: 15 | 30 | 45
   widthPresets: number[]
+  toolbarVisibility: ToolbarVisibility
 }>()
 
 const emit = defineEmits<{
@@ -97,6 +99,7 @@ const emit = defineEmits<{
   'update:autoStartEnabled': [value: boolean]
   'update:angleSnapStep': [value: 15 | 30 | 45]
   'update:widthPresets': [value: number[]]
+  'update:toolbarVisibility': [value: ToolbarVisibility]
 }>()
 
 /** Clamp-edited preset to 1..100px and persist the whole set. */
@@ -296,6 +299,19 @@ async function setDefaultEntryMode(mode: DefaultEntryMode) {
     await invoke('save_general', { general: cfg.general })
   } catch (error) {
     console.error('Failed to save default entry mode:', error)
+  }
+}
+
+async function toggleToolbarVisibility() {
+  const next: ToolbarVisibility = props.toolbarVisibility === 'always' ? 'space' : 'always'
+  emit('update:toolbarVisibility', next)
+  try {
+    const cfg = await invoke<AppConfig>('get_config')
+    if (!cfg.general) return
+    cfg.general.toolbarVisibility = next
+    await invoke('save_general', { general: cfg.general })
+  } catch (error) {
+    console.error('Failed to save toolbar visibility:', error)
   }
 }
 
@@ -567,6 +583,24 @@ async function toggleAngleSnapStep(step: (typeof snapStepOptions)[number]) {
           </div>
         </div>
         <p class="settings-card-desc">{{ t('settings.strokeSmoothingDesc') }}</p>
+
+        <div class="settings-card-row settings-card-row--divided">
+          <span class="settings-text-label">{{ t('settings.toolbarVisibility') }}</span>
+          <button
+            role="switch"
+            :aria-checked="isToolbarPinned(props.toolbarVisibility)"
+            :aria-label="t('settings.toolbarVisibility')"
+            class="relative w-8 h-4.5 rounded-full transition-colors duration-200 cursor-pointer border-none p-0 outline-none shadow-inner"
+            :class="isToolbarPinned(props.toolbarVisibility) ? 'settings-toggle-on' : 'settings-toggle-off'"
+            @click="toggleToolbarVisibility"
+          >
+            <span
+              class="absolute top-0.5 left-0.5 size-3.5 rounded-full bg-white shadow-md transition-transform duration-200"
+              :class="isToolbarPinned(props.toolbarVisibility) ? 'translate-x-3.5' : 'translate-x-0'"
+            />
+          </button>
+        </div>
+        <p class="settings-card-desc">{{ t('settings.toolbarVisibilityDesc') }}</p>
       </div>
 
       <div class="settings-card">

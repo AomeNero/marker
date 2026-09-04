@@ -152,6 +152,8 @@ export default {
     strokeSmoothingStrong: '强',
     strokeSmoothingDesc:
       '平滑钢笔与荧光笔笔迹。标准兼顾跟手与墨迹质量；强更柔和；关闭则保留原始采样点。笔/触控仍按压感变宽；鼠标为等宽。',
+    toolbarVisibility: '工具栏常驻显示',
+    toolbarVisibilityDesc: '标注期间保持显示，落笔时仍会暂时让位；关闭后按 Space 召回 / 隐藏。',
   },
   toolbar: {
     undo: '撤销',
