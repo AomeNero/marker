@@ -2572,13 +2572,9 @@ function exitDrawing(reason: 'keyboard' | 'toolbar' | 'unknown' = 'unknown') {
 }
 
 /** Save / open / insert `.marker` files, with the result surfaced as a tip. */
-async function runAnnotationFileAction(
-  mode: 'open' | 'insert' | 'save',
-  presetPath?: string,
-) {
+async function runAnnotationFileAction(mode: 'open' | 'insert' | 'save', presetPath?: string) {
   try {
-    const result =
-      mode === 'save' ? await saveAnnotationsToFile() : await loadAnnotationsFile(mode, presetPath)
+    const result = mode === 'save' ? await saveAnnotationsToFile() : await loadAnnotationsFile(mode, presetPath)
     if (result.kind === 'saved') {
       showTip(t('overlay.savedTo', { path: result.path }))
     } else if (result.kind === 'loaded') {

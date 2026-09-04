@@ -145,7 +145,8 @@ export default {
       '轨迹擦除：按路径局部擦除像素（可撤销）。对象擦除：划过图形或文字时删除整个元素（可撤销）。标注中选中橡皮擦后再按 E（或再点工具栏橡皮擦）可切换模式。使用橡皮擦时不会触发元素拖拽，即使已开启悬停拖动。',
     strokeSmoothing: '笔迹平滑',
     widthPresets: '笔粗档位',
-    widthPresetsDesc: '自定义工具栏五个粗细档位的像素值（极细 / 细 / 中 / 粗 / 极粗）。已有笔迹保持不变；当前粗细自动归入最接近的档位。',
+    widthPresetsDesc:
+      '自定义工具栏五个粗细档位的像素值（极细 / 细 / 中 / 粗 / 极粗）。已有笔迹保持不变；当前粗细自动归入最接近的档位。',
     strokeSmoothingOff: '关闭',
     strokeSmoothingStandard: '标准',
     strokeSmoothingStrong: '强',

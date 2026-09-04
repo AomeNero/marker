@@ -48,12 +48,30 @@ async function openUrl(url: string) {
       >
         <svg class="w-8 h-8" viewBox="0 0 1254 1254" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <defs>
-            <linearGradient id="brand-ring-about" data-name="brand ring" x1="-1657.64" y1="1167.84" x2="-1656.31" y2="1166.52" gradientTransform="translate(1167956.22 740010.45) rotate(-2.06) scale(688 -669)" gradientUnits="userSpaceOnUse">
+            <linearGradient
+              id="brand-ring-about"
+              data-name="brand ring"
+              x1="-1657.64"
+              y1="1167.84"
+              x2="-1656.31"
+              y2="1166.52"
+              gradientTransform="translate(1167956.22 740010.45) rotate(-2.06) scale(688 -669)"
+              gradientUnits="userSpaceOnUse"
+            >
               <stop offset="0" stop-color="#ff2c20" />
               <stop offset=".52" stop-color="#ff3327" />
               <stop offset="1" stop-color="#ff3b2c" />
             </linearGradient>
-            <linearGradient id="brand-nib-about" data-name="brand nib" x1="-1652.42" y1="1168.03" x2="-1651.63" y2="1169.08" gradientTransform="translate(390539.54 299548.25) scale(235.76 -256.08)" gradientUnits="userSpaceOnUse">
+            <linearGradient
+              id="brand-nib-about"
+              data-name="brand nib"
+              x1="-1652.42"
+              y1="1168.03"
+              x2="-1651.63"
+              y2="1169.08"
+              gradientTransform="translate(390539.54 299548.25) scale(235.76 -256.08)"
+              gradientUnits="userSpaceOnUse"
+            >
               <stop offset="0" stop-color="#092a67" />
               <stop offset=".52" stop-color="#0f377a" />
               <stop offset="1" stop-color="#173f84" />
@@ -80,7 +98,11 @@ async function openUrl(url: string) {
         {{ t('about.tagline') }}
       </p>
 
-      <p v-if="appVersion" class="settings-text-subtle text-center text-xs m-0" :class="updateUiExpanded ? 'mb-2' : 'mb-3'">
+      <p
+        v-if="appVersion"
+        class="settings-text-subtle text-center text-xs m-0"
+        :class="updateUiExpanded ? 'mb-2' : 'mb-3'"
+      >
         {{ t('about.currentVersion') }} {{ appVersion }}
       </p>
 

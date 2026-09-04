@@ -149,7 +149,8 @@ export default {
       'Stroke: erase pixels along the drag path (undoable). Object: delete entire shapes or text when you pass over them (undoable). While the eraser is selected, press E again (or click the toolbar eraser again) to switch modes. Element dragging is disabled while the eraser is selected, even with hover drag on.',
     strokeSmoothing: 'Stroke smoothing',
     widthPresets: 'Stroke width presets',
-    widthPresetsDesc: 'Customize the five toolbar stroke widths in pixels (XS / S / M / L / XL). Existing drawings keep their width; the current width snaps to the closest preset.',
+    widthPresetsDesc:
+      'Customize the five toolbar stroke widths in pixels (XS / S / M / L / XL). Existing drawings keep their width; the current width snaps to the closest preset.',
     strokeSmoothingOff: 'Off',
     strokeSmoothingStandard: 'Standard',
     strokeSmoothingStrong: 'Strong',

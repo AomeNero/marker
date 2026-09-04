@@ -184,9 +184,7 @@ export function resolveLineWidths(partial?: Partial<ToolLineWidths> | null): Too
   if (!partial) return defaults
   const eraserPresets = eraserWidthPresets()
   const normalizeEraser = (value: unknown): number =>
-    typeof value === 'number' && Number.isFinite(value)
-      ? snapToClosest(value, eraserPresets)
-      : defaults.eraser
+    typeof value === 'number' && Number.isFinite(value) ? snapToClosest(value, eraserPresets) : defaults.eraser
   return {
     stroke: normalizeLineWidth(partial.stroke ?? defaults.stroke),
     highlighter: normalizeLineWidth(partial.highlighter ?? defaults.highlighter),

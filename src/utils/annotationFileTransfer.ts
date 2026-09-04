@@ -2,12 +2,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { invoke } from '@tauri-apps/api/core'
 import { emit, emitTo, listen } from '@tauri-apps/api/event'
 import type { DrawAction } from '../composables/drawingTypes'
-import {
-  parseAnnotationFile,
-  planAnnotationLoad,
-  serializeAnnotationFile,
-  type LocalScreen,
-} from './annotationFile'
+import { parseAnnotationFile, planAnnotationLoad, serializeAnnotationFile, type LocalScreen } from './annotationFile'
 
 /**
  * Frontend orchestrator for `.marker` save / load. Format and routing logic
@@ -49,9 +44,7 @@ async function getScreenSpecs(): Promise<OverlayScreenSpec[]> {
 }
 
 /** Ask every overlay for its strokes and collect replies until quiet. */
-async function collectScreenExports(
-  specs: OverlayScreenSpec[],
-): Promise<Map<string, DrawAction[]>> {
+async function collectScreenExports(specs: OverlayScreenSpec[]): Promise<Map<string, DrawAction[]>> {
   const labels = new Set(specs.map((spec) => spec.label))
   const replies = new Map<string, DrawAction[]>()
   const unlisten = await listen<ExportReply>(ANNOTATIONS_EXPORT_EVENT, (event) => {
@@ -94,10 +87,7 @@ export async function saveAnnotationsToFile(): Promise<FileActionResult> {
  * `insert` stacks on top of it. Throws `MarkerFileError` for unreadable or
  * unsupported-version payloads.
  */
-export async function loadAnnotationsFile(
-  mode: LoadMode,
-  presetPath?: string,
-): Promise<FileActionResult> {
+export async function loadAnnotationsFile(mode: LoadMode, presetPath?: string): Promise<FileActionResult> {
   const payload = presetPath
     ? await invoke<{ path: string; content: string }>('read_annotations_file', { path: presetPath })
     : await invoke<{ path: string; content: string } | null>('pick_annotations_file')

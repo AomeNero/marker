@@ -77,9 +77,7 @@ function copyAction(action: DrawAction): DrawAction {
 
 /** Strip transient strokes and detach from live drawing state before writing. */
 export function persistableActions(actions: readonly DrawAction[]): DrawAction[] {
-  return actions
-    .filter((action) => !UNPERSISTED_TOOLS.includes(action.tool))
-    .map(copyAction)
+  return actions.filter((action) => !UNPERSISTED_TOOLS.includes(action.tool)).map(copyAction)
 }
 
 export function serializeAnnotationFile(
@@ -375,10 +373,7 @@ function clampActions(actions: DrawAction[], screen: LocalScreen): number {
  * live counterpart move — in file order — onto the primary screen, clamped
  * inside its bounds; data is never dropped.
  */
-export function planAnnotationLoad(
-  screens: readonly MarkerScreen[],
-  local: readonly LocalScreen[],
-): LoadPlan {
+export function planAnnotationLoad(screens: readonly MarkerScreen[], local: readonly LocalScreen[]): LoadPlan {
   if (local.length === 0) {
     return { assignments: [], fallback: null, missingScreens: screens.length }
   }
@@ -420,7 +415,10 @@ export function planAnnotationLoad(
   }
   return {
     assignments,
-    fallback: unmatched.length > 0 ? { label: primary.label, actions: unmatched, clampedCount: fallbackAssignment.clampedCount } : null,
+    fallback:
+      unmatched.length > 0
+        ? { label: primary.label, actions: unmatched, clampedCount: fallbackAssignment.clampedCount }
+        : null,
     missingScreens,
   }
 }

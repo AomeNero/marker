@@ -192,8 +192,14 @@ describe('parseAnnotationFile rejection', () => {
   })
 
   it('rejects an action with zero width or out-of-range opacity', () => {
-    expectError(JSON.stringify({ version: 1, screens: [makeScreen({ actions: [makeAction({ lineWidth: 0 })] })] }), 'unreadable')
-    expectError(JSON.stringify({ version: 1, screens: [makeScreen({ actions: [makeAction({ opacity: 5 })] })] }), 'unreadable')
+    expectError(
+      JSON.stringify({ version: 1, screens: [makeScreen({ actions: [makeAction({ lineWidth: 0 })] })] }),
+      'unreadable',
+    )
+    expectError(
+      JSON.stringify({ version: 1, screens: [makeScreen({ actions: [makeAction({ opacity: 5 })] })] }),
+      'unreadable',
+    )
   })
 
   it('rejects laser strokes smuggled into a hand-edited file', () => {
@@ -218,10 +224,28 @@ describe('planAnnotationLoad', () => {
   it('routes each screen onto its geometry-matching overlay', () => {
     const local = [
       makeLocal(),
-      makeLocal({ label: 'overlay-2', primary: false, name: 'DISPLAY B', x: 1920, width: 2560, height: 1440, scale: 1.25 }),
+      makeLocal({
+        label: 'overlay-2',
+        primary: false,
+        name: 'DISPLAY B',
+        x: 1920,
+        width: 2560,
+        height: 1440,
+        scale: 1.25,
+      }),
     ]
     const plan = planAnnotationLoad(
-      [makeScreen({ actions: [makeAction()] }), makeScreen({ name: 'DISPLAY B', x: 1920, width: 2560, height: 1440, scale: 1.25, actions: [makeAction(), makeAction()] })],
+      [
+        makeScreen({ actions: [makeAction()] }),
+        makeScreen({
+          name: 'DISPLAY B',
+          x: 1920,
+          width: 2560,
+          height: 1440,
+          scale: 1.25,
+          actions: [makeAction(), makeAction()],
+        }),
+      ],
       local,
     )
     expect(plan.missingScreens).toBe(0)
@@ -243,7 +267,18 @@ describe('planAnnotationLoad', () => {
     const plan = planAnnotationLoad(
       [
         makeScreen({ name: 'DISPLAY A' }),
-        makeScreen({ name: 'DISPLAY C', x: 9999, actions: [makeAction({ points: [{ x: -50, y: 500 }, { x: 3000, y: 1200 }] })] }),
+        makeScreen({
+          name: 'DISPLAY C',
+          x: 9999,
+          actions: [
+            makeAction({
+              points: [
+                { x: -50, y: 500 },
+                { x: 3000, y: 1200 },
+              ],
+            }),
+          ],
+        }),
       ],
       local,
     )
