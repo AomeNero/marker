@@ -607,6 +607,63 @@ function applyDefaultEntryOnActivate() {
   }
 }
 
+/** Apply an overlay session mode transition — from the `overlay-mode-changed`
+ *  broadcast or from the startup `get_overlay_state` snapshot (a dynamic
+ *  webview that mounts after the one-shot broadcast would stay inert). */
+function applyOverlayMode(mode: OverlaySessionMode) {
+  const previousMode = lastOverlayMode
+  lastOverlayMode = mode
+  logSessionEvent('overlay mode changed', { from: previousMode, to: mode })
+  if (mode === 'drawing') {
+    customCursorPositionReady.value = false
+    overlayLayoutReady.value = false
+  } else if (mode === 'hidden') {
+    customCursorPositionReady.value = true
+  }
+  active.value = mode === 'drawing'
+  showQuickColors.value = false
+  textBoxPos.value = null
+  if (mode === 'hidden') {
+    abortActivePointerInteraction()
+    flushPersistLineWidths()
+    flushPersistToolState()
+    whiteboardMode.value = false
+    void syncWhiteboardMode(false)
+    toolbarPanelHovered.value = false
+    toolbarPanelDragging.value = false
+    showToolbarPopup.value = false
+    if (!preserveDrawings.value) {
+      hardReset()
+      logActionEvent('canvas hard reset', { reason: 'exit-drawing' })
+    } else {
+      cancelSelectGestures()
+      clearSelection()
+    }
+  } else if (mode === 'drawing') {
+    toolbarPanelHovered.value = false
+    toolbarPanelDragging.value = false
+    if (!toolbarPinned.value && previousMode === 'hidden') {
+      showToolbarPopup.value = false
+    }
+    if (previousMode === 'hidden') {
+      // Fresh session: restore the last-used tool from config (first run → pen).
+      currentTool.value = restoredSessionTool ?? 'pen'
+      // A fresh session always starts with ink visible.
+      if (!inkVisible.value) setInkVisible(true)
+      applyDefaultEntryOnActivate()
+    }
+    void (async () => {
+      await scheduleOverlayResize()
+      await seedPointerPosition()
+      customCursorPositionReady.value = true
+      await refreshCustomCursorPosition()
+      emitPointerScreenForToolbar()
+      await syncOpenToolbarPopupWindow()
+    })()
+  }
+  syncOverlayStateToToolbar()
+}
+
 async function syncWhiteboardMode(active: boolean) {
   try {
     await invoke('set_whiteboard_mode', { active })
@@ -2287,58 +2344,7 @@ onMounted(async () => {
 
   unlisteners.push(
     await listen<string>('overlay-mode-changed', (event) => {
-      const mode = event.payload as OverlaySessionMode
-      const previousMode = lastOverlayMode
-      lastOverlayMode = mode
-      logSessionEvent('overlay mode changed', { from: previousMode, to: mode })
-      if (mode === 'drawing') {
-        customCursorPositionReady.value = false
-        overlayLayoutReady.value = false
-      } else if (mode === 'hidden') {
-        customCursorPositionReady.value = true
-      }
-      active.value = mode === 'drawing'
-      showQuickColors.value = false
-      textBoxPos.value = null
-      if (mode === 'hidden') {
-        abortActivePointerInteraction()
-        flushPersistLineWidths()
-        flushPersistToolState()
-        whiteboardMode.value = false
-        void syncWhiteboardMode(false)
-        toolbarPanelHovered.value = false
-        toolbarPanelDragging.value = false
-        showToolbarPopup.value = false
-        if (!preserveDrawings.value) {
-          hardReset()
-          logActionEvent('canvas hard reset', { reason: 'exit-drawing' })
-        } else {
-          cancelSelectGestures()
-          clearSelection()
-        }
-      } else if (mode === 'drawing') {
-        toolbarPanelHovered.value = false
-        toolbarPanelDragging.value = false
-        if (!toolbarPinned.value && previousMode === 'hidden') {
-          showToolbarPopup.value = false
-        }
-        if (previousMode === 'hidden') {
-          // Fresh session: restore the last-used tool from config (first run → pen).
-          currentTool.value = restoredSessionTool ?? 'pen'
-          // A fresh session always starts with ink visible.
-          if (!inkVisible.value) setInkVisible(true)
-          applyDefaultEntryOnActivate()
-        }
-        void (async () => {
-          await scheduleOverlayResize()
-          await seedPointerPosition()
-          customCursorPositionReady.value = true
-          await refreshCustomCursorPosition()
-          emitPointerScreenForToolbar()
-          await syncOpenToolbarPopupWindow()
-        })()
-      }
-      syncOverlayStateToToolbar()
+      applyOverlayMode(event.payload as OverlaySessionMode)
     }),
   )
 
@@ -2512,6 +2518,24 @@ onMounted(async () => {
       rememberToolbarPanelHeight(event.payload)
     }),
   )
+
+  // Snapshot handshake: listeners are up, so pull the authoritative session
+  // state once. Covers webviews that mounted after the one-shot mode broadcast
+  // (dynamic windows on slow machines / hotplug-created windows) and any
+  // missed whiteboard-changed while the session was already active.
+  try {
+    const snap = await invoke<{ mode: string; whiteboard: boolean }>('get_overlay_state')
+    if (snap.mode === 'drawing') {
+      if (!active.value) {
+        applyOverlayMode('drawing')
+      }
+      if (snap.whiteboard && !whiteboardMode.value) {
+        void enterWhiteboardMode()
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch overlay state snapshot:', error)
+  }
 })
 
 onUnmounted(() => {

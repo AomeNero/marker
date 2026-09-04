@@ -246,6 +246,7 @@ pub fn run() {
             commands::set_toolbar_popup,
             commands::raise_toolbar,
             commands::set_whiteboard_mode,
+            commands::get_overlay_state,
             commands::open_url,
             commands::reveal_settings_window,
             commands::is_portable,

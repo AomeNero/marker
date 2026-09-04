@@ -84,6 +84,24 @@ pub fn is_pointer_over_toolbar_panel(app: AppHandle) -> bool {
     crate::overlay::is_pointer_over_toolbar_panel(&app)
 }
 
+/// Authoritative session snapshot for overlay webviews that mounted after the
+/// one-shot `overlay-mode-changed` broadcast (dynamic windows are shown as soon
+/// as they exist; a slow webview would otherwise stay inert for the session).
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OverlayStateSnapshot {
+    pub mode: String,
+    pub whiteboard: bool,
+}
+
+#[tauri::command]
+pub fn get_overlay_state(state: tauri::State<'_, AppState>) -> OverlayStateSnapshot {
+    OverlayStateSnapshot {
+        mode: crate::overlay::current_mode(&state).as_str().to_string(),
+        whiteboard: *lock_or_recover(&state.whiteboard_mode),
+    }
+}
+
 /// Forward a toolbar action to exactly one overlay window — the one on the
 /// cursor's monitor — so multi-display setups execute each action once.
 /// The executor applies the action locally and broadcasts the new session
