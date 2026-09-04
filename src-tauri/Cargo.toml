@@ -1,6 +1,6 @@
 [package]
 name = "marker"
-version = "1.0.2"
+version = "1.0.3"
 description = "轻量级屏幕标注工具"
 authors = ["AomeNero"]
 repository = "https://github.com/AomeNero/marker"
