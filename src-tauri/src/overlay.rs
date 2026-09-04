@@ -552,8 +552,6 @@ pub fn deactivate_drawing(app: &AppHandle, state: &AppState) {
 }
 
 pub fn activate_drawing(app: &AppHandle, state: &AppState) {
-    set_mode(state, OverlayMode::Drawing);
-
     let preserve = lock_or_recover(&state.config).general.preserve_drawings;
 
     if let Some(window) = app.get_webview_window("overlay") {
@@ -573,6 +571,11 @@ pub fn activate_drawing(app: &AppHandle, state: &AppState) {
         ensure_overlay_transparent(&window);
         notify_overlay_geometry_changed(app);
     }
+
+    // Mark the session Drawing only after the static window is actually up.
+    // Setting the mode first turned any half-failed activation into a dead
+    // toggle: the next shortcut press took the exit path instead of retrying.
+    set_mode(state, OverlayMode::Drawing);
 
     // Assign remaining monitors to dynamic overlay windows and show them.
     crate::overlay_windows::assign_and_show_extra_overlays(app, state);
