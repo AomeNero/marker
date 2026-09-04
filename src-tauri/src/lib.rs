@@ -41,10 +41,12 @@ pub fn rebuild_tray_menu(app: &AppHandle) -> Result<(), Box<dyn std::error::Erro
     let s = i18n::strings();
     if let Some(tray) = app.tray_by_id("main") {
         let settings_item = MenuItemBuilder::with_id("settings", s.settings).build(app)?;
-        let open_item = MenuItemBuilder::with_id("open-annotations", s.open_annotations).build(app)?;
+        let open_item =
+            MenuItemBuilder::with_id("open-annotations", s.open_annotations).build(app)?;
         let insert_item =
             MenuItemBuilder::with_id("insert-annotations", s.insert_annotations).build(app)?;
-        let save_item = MenuItemBuilder::with_id("save-annotations", s.save_annotations).build(app)?;
+        let save_item =
+            MenuItemBuilder::with_id("save-annotations", s.save_annotations).build(app)?;
         let help_item = MenuItemBuilder::with_id("help", s.help).build(app)?;
         let about_item = MenuItemBuilder::with_id("about", s.about).build(app)?;
         let quit_item = MenuItemBuilder::with_id("quit", s.quit).build(app)?;
@@ -291,7 +293,11 @@ pub fn run() {
                         "settings" => open_settings(app),
                         "open-annotations" | "insert-annotations" | "save-annotations" => {
                             let state = app.state::<AppState>();
-                            let mode = event.id().as_ref().strip_suffix("-annotations").unwrap_or("");
+                            let mode = event
+                                .id()
+                                .as_ref()
+                                .strip_suffix("-annotations")
+                                .unwrap_or("");
                             annotation_file::request_file_action(app, &state, mode, None);
                         }
                         "help" => open_settings_tab(app, Some("help")),
