@@ -57,10 +57,10 @@
 <table>
 <tr>
 <td width="50%">
-<img src="assets/十种标注工具.png" alt="Marker 标注工具" />
+<img src="assets/%E5%8D%81%E7%A7%8D%E6%A0%87%E6%B3%A8%E5%B7%A5%E5%85%B7.png" alt="Marker 标注工具" />
 </td>
 <td width="50%">
-<img src="assets/设置面板.png" alt="设置面板" />
+<img src="assets/%E8%AE%BE%E7%BD%AE%E9%9D%A2%E6%9D%BF.png" alt="设置面板" />
 </td>
 </tr>
 </table>
